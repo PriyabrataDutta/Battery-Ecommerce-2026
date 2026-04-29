@@ -423,6 +423,13 @@ const Checkout = () => {
       setStep(0);
       return;
     }
+    const schedErr = validateSchedule(deliveryDate, slot, delivery);
+    if (schedErr) {
+      setScheduleError(schedErr);
+      toast.error(schedErr);
+      setStep(1);
+      return;
+    }
 
     setSubmitting(true);
     // Frontend-only mockup — simulate order placement

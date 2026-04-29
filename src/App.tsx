@@ -59,18 +59,20 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/account" element={<Account />} />
           </Route>
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin" element={<AdminLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="products" element={<AdminProducts />} />
-            <Route path="orders" element={<AdminOrders />} />
-            <Route path="users" element={<AdminUsers />} />
-            <Route path="brands" element={<AdminBrands />} />
-            <Route path="categories" element={<AdminCategories />} />
-            <Route path="quotes" element={<AdminQuotes />} />
-            <Route path="messages" element={<AdminMessages />} />
-            <Route path="settings" element={<AdminSettings />} />
-            <Route path="audit-log" element={<AuditLog />} />
+          <Route element={<PostLogoutRedirect />}>
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="products" element={<AdminProducts />} />
+              <Route path="orders" element={<AdminOrders />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="brands" element={<AdminBrands />} />
+              <Route path="categories" element={<AdminCategories />} />
+              <Route path="quotes" element={<AdminQuotes />} />
+              <Route path="messages" element={<AdminMessages />} />
+              <Route path="settings" element={<AdminSettings />} />
+              <Route path="audit-log" element={<AuditLog />} />
+            </Route>
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

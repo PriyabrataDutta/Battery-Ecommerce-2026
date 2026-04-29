@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useCart } from "@/hooks/useCart";
+import { useCart, lineKey, lineUnitPrice } from "@/hooks/useCart";
 import { Button } from "@/components/ui/button";
 import { formatINR } from "@/lib/format";
 import { Trash2, Minus, Plus } from "lucide-react";
@@ -18,22 +18,33 @@ const Cart = () => {
       ) : (
         <div className="grid lg:grid-cols-[1fr_360px] gap-8 mt-8">
           <div className="bg-white border border-line divide-y divide-line">
-            {items.map((it) => (
-              <div key={it.id} className="p-4 flex gap-4 items-center">
-                {it.image && <img src={it.image} alt={it.name} className="h-20 w-20 object-cover bg-muted" />}
-                <div className="flex-1 min-w-0">
-                  <Link to={`/product/${it.slug}`} className="font-display font-semibold hover:text-primary line-clamp-2">{it.name}</Link>
-                  <div className="text-xs text-muted-foreground">SKU: {it.sku}</div>
-                  <div className="font-bold mt-1">{formatINR(it.price)}</div>
+            {items.map((it) => {
+              const key = lineKey(it);
+              const unit = lineUnitPrice(it);
+              return (
+                <div key={key} className="p-4 flex gap-4 items-center">
+                  {it.image && <img src={it.image} alt={it.name} className="h-20 w-20 object-cover bg-muted" />}
+                  <div className="flex-1 min-w-0">
+                    <Link to={`/product/${it.slug}`} className="font-display font-semibold hover:text-primary line-clamp-2">{it.name}</Link>
+                    <div className="text-xs text-muted-foreground">SKU: {it.sku}</div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="font-bold">{formatINR(unit)}</div>
+                      {it.withExchange ? (
+                        <span className="badge-pill bg-primary text-white text-[10px]">With Exchange</span>
+                      ) : it.exchangeRebate ? (
+                        <span className="badge-pill bg-muted text-ink-soft text-[10px]">No Exchange</span>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="flex items-center border border-line">
+                    <button onClick={() => setQty(key, it.qty - 1)} className="h-9 w-9 grid place-items-center hover:bg-muted"><Minus className="h-3 w-3" /></button>
+                    <span className="w-10 text-center text-sm font-semibold">{it.qty}</span>
+                    <button onClick={() => setQty(key, it.qty + 1)} className="h-9 w-9 grid place-items-center hover:bg-muted"><Plus className="h-3 w-3" /></button>
+                  </div>
+                  <button onClick={() => removeItem(key)} className="text-muted-foreground hover:text-primary"><Trash2 className="h-4 w-4" /></button>
                 </div>
-                <div className="flex items-center border border-line">
-                  <button onClick={() => setQty(it.id, it.qty - 1)} className="h-9 w-9 grid place-items-center hover:bg-muted"><Minus className="h-3 w-3" /></button>
-                  <span className="w-10 text-center text-sm font-semibold">{it.qty}</span>
-                  <button onClick={() => setQty(it.id, it.qty + 1)} className="h-9 w-9 grid place-items-center hover:bg-muted"><Plus className="h-3 w-3" /></button>
-                </div>
-                <button onClick={() => removeItem(it.id)} className="text-muted-foreground hover:text-primary"><Trash2 className="h-4 w-4" /></button>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <aside className="bg-white border border-line p-6 h-fit sticky top-32">
             <h2 className="font-display font-bold text-lg uppercase tracking-wide">Order Summary</h2>

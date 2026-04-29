@@ -361,6 +361,45 @@ const Checkout = () => {
   const [slot, setSlot] = useState<SlotId | "">("");
   const [scheduleError, setScheduleError] = useState<string>("");
 
+  // Prefill from logged-in user: email + saved default address (if any).
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const updates: Partial<Address> = {};
+      if (user.email) updates.email = user.email;
+      const { data } = await supabase
+        .from("customer_addresses")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("is_default", { ascending: false })
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (data) {
+        updates.fullName = data.full_name ?? "";
+        updates.phone = data.phone ?? "";
+        updates.line1 = data.line1 ?? "";
+        updates.line2 = data.line2 ?? "";
+        updates.landmark = data.landmark ?? "";
+        updates.city = data.city ?? "";
+        updates.state = data.state ?? "";
+        updates.pincode = data.pincode ?? "";
+        updates.gstin = data.gstin ?? "";
+      }
+      if (cancelled) return;
+      setAddress((prev) => {
+        // Don't clobber any field the user has already filled in.
+        const merged = { ...prev };
+        for (const k of Object.keys(updates) as (keyof Address)[]) {
+          if (!merged[k]) merged[k] = updates[k] ?? "";
+        }
+        return merged;
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
+
   const deliveryOption = useMemo(
     () => DELIVERY_OPTIONS.find((o) => o.id === delivery)!,
     [delivery],

@@ -7,6 +7,10 @@ interface AuthState {
   user: User | null;
   session: Session | null;
   isStaff: boolean;
+  /** True if the customer has a phone on profile AND it's verified. Null while loading. */
+  phoneVerified: boolean | null;
+  /** True if the customer has a phone number on profile. Null while loading. */
+  hasPhone: boolean | null;
   /** True until BOTH the session is restored AND (if there's a user) the staff RPC has resolved. */
   loading: boolean;
 }
@@ -21,17 +25,34 @@ async function checkStaff(userId: string, force = false): Promise<boolean> {
   return !!data;
 }
 
+async function loadProfilePhoneState(userId: string) {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("phone, phone_verified")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error || !data) return { hasPhone: false, phoneVerified: false };
+  return {
+    hasPhone: !!data.phone,
+    phoneVerified: !!data.phone_verified,
+  };
+}
+
 export function useAuth(): AuthState & {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: string | null }>;
+  signInWithIdentifier: (identifier: string, password: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string, fullName?: string, phone?: string) => Promise<{ error: string | null }>;
   signInWithGoogle: (redirectTo?: string) => Promise<{ error: string | null }>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  refreshPhoneState: () => Promise<void>;
 } {
   const [state, setState] = useState<AuthState>({
     user: null,
     session: null,
     isStaff: false,
+    phoneVerified: null,
+    hasPhone: null,
     loading: true,
   });
 
@@ -44,32 +65,43 @@ export function useAuth(): AuthState & {
 
       if (!user) {
         cachedStaff = {};
-        setState({ user: null, session: null, isStaff: false, loading: false });
+        setState({
+          user: null,
+          session: null,
+          isStaff: false,
+          phoneVerified: null,
+          hasPhone: null,
+          loading: false,
+        });
         return;
       }
 
-      // Session present → keep loading=true until staff RPC resolves.
       setState((s) => ({ ...s, user, session, loading: true }));
 
-      // Defer RPC to next tick to avoid auth-deadlock inside onAuthStateChange.
       setTimeout(async () => {
-        const staff = await checkStaff(user.id);
+        const [staff, phoneState] = await Promise.all([
+          checkStaff(user.id),
+          loadProfilePhoneState(user.id),
+        ]);
         if (cancelled) return;
         setState((s) =>
-          // Only update if we're still on the same user (avoid races on quick sign-out).
           s.user?.id === user.id
-            ? { ...s, isStaff: staff, loading: false }
+            ? {
+                ...s,
+                isStaff: staff,
+                hasPhone: phoneState.hasPhone,
+                phoneVerified: phoneState.phoneVerified,
+                loading: false,
+              }
             : s,
         );
       }, 0);
     };
 
-    // Set up listener FIRST
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       applySession(session);
     });
 
-    // THEN read existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       applySession(session);
     });
@@ -85,13 +117,39 @@ export function useAuth(): AuthState & {
     return { error: error?.message ?? null };
   };
 
-  const signUp = async (email: string, password: string, fullName?: string) => {
+  /**
+   * Accepts either an email or a phone number. If it's a phone, look up the
+   * corresponding email via the public RPC, then sign in normally.
+   */
+  const signInWithIdentifier = async (identifier: string, password: string) => {
+    const trimmed = identifier.trim();
+    const looksLikeEmail = trimmed.includes("@");
+    let email = trimmed;
+
+    if (!looksLikeEmail) {
+      // Normalise: keep digits and leading +.
+      const normalised = trimmed.replace(/[^\d+]/g, "");
+      const { data, error } = await supabase.rpc("lookup_email_by_phone", {
+        _phone: normalised,
+      });
+      if (error) return { error: error.message };
+      if (!data) return { error: "No account found for that mobile number." };
+      email = data as string;
+    }
+
+    return signIn(email, password);
+  };
+
+  const signUp = async (email: string, password: string, fullName?: string, phone?: string) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/account`,
-        data: fullName ? { full_name: fullName } : undefined,
+        data: {
+          ...(fullName ? { full_name: fullName } : {}),
+          ...(phone ? { phone } : {}),
+        },
       },
     });
     return { error: error?.message ?? null };
@@ -124,5 +182,24 @@ export function useAuth(): AuthState & {
     await supabase.auth.signOut();
   };
 
-  return { ...state, signIn, signUp, signInWithGoogle, resetPassword, signOut };
+  const refreshPhoneState = async () => {
+    if (!state.user) return;
+    const phoneState = await loadProfilePhoneState(state.user.id);
+    setState((s) =>
+      s.user?.id === state.user!.id
+        ? { ...s, ...phoneState }
+        : s,
+    );
+  };
+
+  return {
+    ...state,
+    signIn,
+    signInWithIdentifier,
+    signUp,
+    signInWithGoogle,
+    resetPassword,
+    signOut,
+    refreshPhoneState,
+  };
 }

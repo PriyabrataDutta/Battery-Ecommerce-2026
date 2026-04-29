@@ -346,6 +346,7 @@ const validateSchedule = (
 
 const Checkout = () => {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const { items, subtotal, clear } = useCart();
   const [step, setStep] = useState<Step>(0);
   const [address, setAddress] = useState<Address>(EMPTY_ADDRESS);

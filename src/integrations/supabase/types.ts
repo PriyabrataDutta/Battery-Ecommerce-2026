@@ -469,6 +469,8 @@ export type Database = {
           category_id: string | null
           created_at: string
           description: string | null
+          exchange_rebate: number
+          has_exchange: boolean
           id: string
           is_bestseller: boolean
           is_featured: boolean
@@ -494,6 +496,8 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           description?: string | null
+          exchange_rebate?: number
+          has_exchange?: boolean
           id?: string
           is_bestseller?: boolean
           is_featured?: boolean
@@ -519,6 +523,8 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           description?: string | null
+          exchange_rebate?: number
+          has_exchange?: boolean
           id?: string
           is_bestseller?: boolean
           is_featured?: boolean

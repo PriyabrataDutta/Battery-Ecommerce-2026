@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ShieldCheck, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { setRememberMe } from "@/lib/adminSession";
 
 const AdminLogin = () => {
   const { user, isStaff, loading, signIn } = useAuth();
@@ -16,6 +18,7 @@ const AdminLogin = () => {
   const next = params.get("next") || "/admin";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [stage, setStage] = useState<string | null>(null);

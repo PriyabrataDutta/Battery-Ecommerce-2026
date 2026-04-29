@@ -25,7 +25,7 @@ const Contact = () => {
     const parsed = schema.safeParse(fd);
     if (!parsed.success) { toast.error(parsed.error.issues[0].message); return; }
     setBusy(true);
-    const { error } = await supabase.from("contact_messages").insert(parsed.data);
+    const { error } = await supabase.from("contact_messages").insert(parsed.data as never);
     setBusy(false);
     if (error) { toast.error("Could not send. Try again."); return; }
     setDone(true);

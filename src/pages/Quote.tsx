@@ -28,7 +28,7 @@ const Quote = () => {
       return;
     }
     setBusy(true);
-    const { error } = await supabase.from("quote_requests").insert(parsed.data);
+    const { error } = await supabase.from("quote_requests").insert(parsed.data as never);
     setBusy(false);
     if (error) {
       toast.error("Could not submit. Try again.");

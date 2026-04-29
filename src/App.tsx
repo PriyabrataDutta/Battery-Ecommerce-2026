@@ -50,27 +50,6 @@ const App = () => (
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
-            <Route path="products" element={<Products />} />
-            <Route path="products/new" element={<ProductForm />} />
-            <Route path="products/:id" element={<ProductForm />} />
-            <Route path="bulk-upload" element={<BulkUpload />} />
-            <Route path="categories" element={<AdminCategories />} />
-            <Route path="brands" element={<AdminBrands />} />
-            <Route path="fitment" element={<AdminFitment />} />
-            <Route path="media" element={<AdminMedia />} />
-            <Route path="offers" element={<AdminOffers />} />
-            <Route path="catalogs" element={<AdminCatalogs />} />
-            <Route path="settings" element={<AdminSettings />} />
-            <Route path="overview" element={<AdminOverview />} />
-            <Route path="users" element={<AdminUsers />} />
-            <Route path="orders" element={<AdminOrders />} />
-            <Route path="quotes" element={<AdminQuotes />} />
-            <Route path="callbacks" element={<AdminCallbacks />} />
-            <Route path="messages" element={<AdminMessages />} />
-            <Route path="content" element={<AdminContent />} />
-            <Route path="blog" element={<AdminBlog />} />
-            <Route path="activity" element={<AdminActivity />} />
-            <Route path="system" element={<AdminSystem />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

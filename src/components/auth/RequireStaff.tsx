@@ -123,11 +123,27 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
     const onFocus = () => verify("focus");
     window.addEventListener("focus", onFocus);
 
+    // Track user activity for idle-timeout (throttled to 1/30s)
+    let lastTouch = 0;
+    const onActivity = () => {
+      const now = Date.now();
+      if (now - lastTouch > 30_000) {
+        lastTouch = now;
+        touchActivity();
+      }
+    };
+    window.addEventListener("mousemove", onActivity);
+    window.addEventListener("keydown", onActivity);
+    window.addEventListener("click", onActivity);
+
     return () => {
       cancelled = true;
       window.clearInterval(interval);
       sub.subscription.unsubscribe();
       window.removeEventListener("focus", onFocus);
+      window.removeEventListener("mousemove", onActivity);
+      window.removeEventListener("keydown", onActivity);
+      window.removeEventListener("click", onActivity);
     };
   }, [user, signOut, location.pathname]);
 

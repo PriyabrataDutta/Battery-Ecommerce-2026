@@ -363,6 +363,63 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_addresses: {
+        Row: {
+          city: string
+          created_at: string
+          email: string | null
+          full_name: string
+          gstin: string | null
+          id: string
+          is_default: boolean
+          label: string | null
+          landmark: string | null
+          line1: string
+          line2: string | null
+          phone: string
+          pincode: string
+          state: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          city: string
+          created_at?: string
+          email?: string | null
+          full_name: string
+          gstin?: string | null
+          id?: string
+          is_default?: boolean
+          label?: string | null
+          landmark?: string | null
+          line1: string
+          line2?: string | null
+          phone: string
+          pincode: string
+          state: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          city?: string
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          gstin?: string | null
+          id?: string
+          is_default?: boolean
+          label?: string | null
+          landmark?: string | null
+          line1?: string
+          line2?: string | null
+          phone?: string
+          pincode?: string
+          state?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       offers: {
         Row: {
           applies_to: Json
@@ -466,8 +523,19 @@ export type Database = {
           customer_email: string | null
           customer_name: string | null
           customer_phone: string | null
+          delivery_label: string | null
+          delivery_method: string | null
+          discount: number
           id: string
           notes: string | null
+          order_number: string | null
+          payment_method: string | null
+          promo_code: string | null
+          promo_label: string | null
+          scheduled_date: string | null
+          scheduled_slot: string | null
+          scheduled_slot_label: string | null
+          scheduled_slot_window: string | null
           shipping: number
           status: Database["public"]["Enums"]["order_status"]
           stripe_session_id: string | null
@@ -483,8 +551,19 @@ export type Database = {
           customer_email?: string | null
           customer_name?: string | null
           customer_phone?: string | null
+          delivery_label?: string | null
+          delivery_method?: string | null
+          discount?: number
           id?: string
           notes?: string | null
+          order_number?: string | null
+          payment_method?: string | null
+          promo_code?: string | null
+          promo_label?: string | null
+          scheduled_date?: string | null
+          scheduled_slot?: string | null
+          scheduled_slot_label?: string | null
+          scheduled_slot_window?: string | null
           shipping?: number
           status?: Database["public"]["Enums"]["order_status"]
           stripe_session_id?: string | null
@@ -500,8 +579,19 @@ export type Database = {
           customer_email?: string | null
           customer_name?: string | null
           customer_phone?: string | null
+          delivery_label?: string | null
+          delivery_method?: string | null
+          discount?: number
           id?: string
           notes?: string | null
+          order_number?: string | null
+          payment_method?: string | null
+          promo_code?: string | null
+          promo_label?: string | null
+          scheduled_date?: string | null
+          scheduled_slot?: string | null
+          scheduled_slot_label?: string | null
+          scheduled_slot_window?: string | null
           shipping?: number
           status?: Database["public"]["Enums"]["order_status"]
           stripe_session_id?: string | null
@@ -784,6 +874,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      wishlist_items: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

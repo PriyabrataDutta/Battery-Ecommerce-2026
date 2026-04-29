@@ -162,8 +162,10 @@ const AdminLayout = () => {
                     variant="ghost"
                     size="icon"
                     onClick={async () => {
+                      markIntentionalSignOut();
                       await signOut();
                       clearAdminSessionFlags();
+                      toast.success("Signed out");
                     }}
                     aria-label="Sign out"
                   >

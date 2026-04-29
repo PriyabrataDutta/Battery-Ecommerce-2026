@@ -1158,11 +1158,13 @@ const ReviewStep = ({
   address,
   delivery,
   payment,
+  schedule,
 }: {
   items: ReturnType<typeof useCart>["items"];
   address: Address;
   delivery: (typeof DELIVERY_OPTIONS)[number];
   payment: (typeof PAYMENT_OPTIONS)[number];
+  schedule: { dateLabel: string; slotLabel: string; slotWindow: string } | null;
 }) => {
   return (
     <div className="space-y-6">

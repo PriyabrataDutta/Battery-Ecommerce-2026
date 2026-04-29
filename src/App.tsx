@@ -13,7 +13,9 @@ import Cart from "./pages/Cart";
 import Quote from "./pages/Quote";
 import Contact from "./pages/Contact";
 import Brands from "./pages/Brands";
-import { About, JumpStart, Catalog, Blog, Auth, Account } from "./pages/SimplePages";
+import { About, JumpStart, Catalog, Blog } from "./pages/SimplePages";
+import Auth from "./pages/Auth";
+import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

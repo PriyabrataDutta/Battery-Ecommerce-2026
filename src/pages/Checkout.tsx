@@ -183,6 +183,7 @@ const Checkout = () => {
   const { items, subtotal, clear } = useCart();
   const [step, setStep] = useState<Step>(0);
   const [address, setAddress] = useState<Address>(EMPTY_ADDRESS);
+  const [errors, setErrors] = useState<AddressErrors>({});
   const [delivery, setDelivery] = useState<DeliveryId>("standard");
   const [payment, setPayment] = useState<PaymentId>("upi");
   const [submitting, setSubmitting] = useState(false);
@@ -200,24 +201,60 @@ const Checkout = () => {
     return <Navigate to="/cart" replace />;
   }
 
-  const validateAddress = (a: Address) => {
-    if (!a.fullName.trim()) return "Full name is required";
-    if (!/^\d{10}$/.test(a.phone.replace(/\D/g, ""))) return "Enter a valid 10-digit phone number";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a.email)) return "Enter a valid email";
-    if (!a.line1.trim()) return "Address line 1 is required";
-    if (!a.city.trim()) return "City is required";
-    if (!a.state.trim()) return "State is required";
-    if (!/^\d{6}$/.test(a.pincode)) return "Enter a valid 6-digit PIN code";
-    return null;
+  /**
+   * Run the zod schema and apply context-sensitive rules:
+   *   - When delivery method is "installation", `notes` becomes mandatory
+   *     so the installer knows model/parking/access details.
+   * Returns a normalised address (trimmed, GSTIN uppercased) on success, or
+   * `null` if validation failed (errors are written to state).
+   */
+  const validateAddress = (a: Address, deliveryId: DeliveryId): Address | null => {
+    const result = addressSchema.safeParse(a);
+    const fieldErrors: AddressErrors = {};
+
+    if (!result.success) {
+      for (const issue of result.error.issues) {
+        const key = issue.path[0] as keyof Address | undefined;
+        if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
+      }
+    }
+
+    // Conditional rule: installation requires notes.
+    if (deliveryId === "installation") {
+      const trimmed = a.notes.trim();
+      if (trimmed.length < 10) {
+        fieldErrors.notes =
+          "Installation orders need delivery notes (≥10 chars): vehicle/model, parking, access.";
+      }
+    }
+
+    if (Object.keys(fieldErrors).length > 0) {
+      setErrors(fieldErrors);
+      const firstMsg = Object.values(fieldErrors)[0];
+      if (firstMsg) toast.error(firstMsg);
+      return null;
+    }
+
+    setErrors({});
+    return { ...a, ...result.data } as Address;
   };
 
   const goNext = () => {
     if (step === 0) {
-      const err = validateAddress(address);
-      if (err) {
-        toast.error(err);
-        return;
-      }
+      const ok = validateAddress(address, delivery);
+      if (!ok) return;
+      setAddress(ok); // persist normalised values
+    }
+    // If the user changed delivery to "installation" after passing step 0,
+    // re-check notes when leaving the Delivery step.
+    if (step === 1 && delivery === "installation" && address.notes.trim().length < 10) {
+      setErrors((e) => ({
+        ...e,
+        notes:
+          "Installation orders need delivery notes (≥10 chars): vehicle/model, parking, access.",
+      }));
+      toast.error("Please add delivery notes for installation, then go back to Address.");
+      return;
     }
     setStep((s) => Math.min(3, s + 1) as Step);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -229,6 +266,14 @@ const Checkout = () => {
   };
 
   const placeOrder = async () => {
+    // Defence-in-depth: re-validate before placing the order in case anything
+    // was bypassed via back-navigation or React DevTools state edits.
+    const ok = validateAddress(address, delivery);
+    if (!ok) {
+      setStep(0);
+      return;
+    }
+
     setSubmitting(true);
     // Frontend-only mockup — simulate order placement
     await new Promise((r) => setTimeout(r, 1200));
@@ -241,7 +286,7 @@ const Checkout = () => {
         unitPrice: lineUnitPrice(it),
         lineTotal: lineUnitPrice(it) * it.qty,
       })),
-      address,
+      address: ok,
       delivery: deliveryOption,
       payment: PAYMENT_OPTIONS.find((p) => p.id === payment)!,
       totals: { subtotal, tax, shipping: deliveryOption.price, total },

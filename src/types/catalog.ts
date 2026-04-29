@@ -53,6 +53,8 @@ export interface Product {
   is_on_sale: boolean;
   status: string;
   primary_image_url: string | null;
+  has_exchange: boolean;
+  exchange_rebate: number;
   battery_brands?: BatteryBrand | null;
   categories?: Category | null;
 }
@@ -65,4 +67,6 @@ export interface CartItem {
   price: number;
   qty: number;
   image: string | null;
+  withExchange?: boolean;
+  exchangeRebate?: number;
 }

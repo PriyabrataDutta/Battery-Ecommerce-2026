@@ -22,25 +22,23 @@ import Dashboard from "./pages/admin/Dashboard";
 import Products from "./pages/admin/Products";
 import ProductForm from "./pages/admin/ProductForm";
 import BulkUpload from "./pages/admin/BulkUpload";
-import {
-  Categories as AdminCategories,
-  Brands as AdminBrands,
-  Fitment as AdminFitment,
-  Media as AdminMedia,
-  Offers as AdminOffers,
-  Catalogs as AdminCatalogs,
-  Settings as AdminSettings,
-  Overview as AdminOverview,
-  Users as AdminUsers,
-  Orders as AdminOrders,
-  Quotes as AdminQuotes,
-  Callbacks as AdminCallbacks,
-  Messages as AdminMessages,
-  Content as AdminContent,
-  Blog as AdminBlog,
-  ActivityLog as AdminActivity,
-  SystemMonitor as AdminSystem,
-} from "./pages/admin/StubPages";
+import AdminCategories from "./pages/admin/Categories";
+import AdminBrands from "./pages/admin/Brands";
+import AdminFitment from "./pages/admin/Fitment";
+import AdminMedia from "./pages/admin/Media";
+import AdminOffers from "./pages/admin/Offers";
+import AdminCatalogs from "./pages/admin/Catalogs";
+import AdminSettings from "./pages/admin/Settings";
+import AdminOverview from "./pages/admin/Overview";
+import AdminUsers from "./pages/admin/Users";
+import AdminOrders from "./pages/admin/Orders";
+import AdminQuotes from "./pages/admin/Quotes";
+import AdminCallbacks from "./pages/admin/Callbacks";
+import AdminMessages from "./pages/admin/Messages";
+import AdminContent from "./pages/admin/Content";
+import AdminBlog from "./pages/admin/BlogAdmin";
+import AdminActivity from "./pages/admin/ActivityLog";
+import AdminSystem from "./pages/admin/SystemMonitor";
 
 const queryClient = new QueryClient();
 

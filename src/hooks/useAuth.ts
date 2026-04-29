@@ -11,8 +11,8 @@ interface AuthState {
 
 let cachedStaff: Record<string, boolean> = {};
 
-async function checkStaff(userId: string): Promise<boolean> {
-  if (cachedStaff[userId] !== undefined) return cachedStaff[userId];
+async function checkStaff(userId: string, force = false): Promise<boolean> {
+  if (!force && cachedStaff[userId] !== undefined) return cachedStaff[userId];
   const { data, error } = await supabase.rpc("is_staff", { _user_id: userId });
   if (error) return false;
   cachedStaff[userId] = !!data;

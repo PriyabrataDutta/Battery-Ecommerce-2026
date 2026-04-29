@@ -493,7 +493,7 @@ const Checkout = () => {
       setStep(0);
       return;
     }
-    const schedErr = validateSchedule(deliveryDate, slot, delivery);
+    const schedErr = validateSchedule(deliveryDate, slot, delivery, address.notes);
     if (schedErr) {
       setScheduleError(schedErr);
       toast.error(schedErr);

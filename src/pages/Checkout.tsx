@@ -34,6 +34,7 @@ interface Address {
   city: string;
   state: string;
   pincode: string;
+  gstin: string;
   notes: string;
 }
 
@@ -47,8 +48,101 @@ const EMPTY_ADDRESS: Address = {
   city: "",
   state: "",
   pincode: "",
+  gstin: "",
   notes: "",
 };
+
+// Permitted characters across address-like fields: letters, numbers, common
+// Indian punctuation. Blocks angle brackets, braces, backticks, and pipes to
+// stop trivial injection attempts before they reach any backend.
+const SAFE_TEXT = /^[\p{L}\p{N}\s,.\-/#&()'’]*$/u;
+
+// Official Indian GSTIN format: 2-digit state, 10-char PAN, 1 entity, "Z",
+// 1 checksum. Case-insensitive on input; we uppercase before validating.
+const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
+
+/**
+ * Address schema. Field-level rules are intentionally explicit so the UI can
+ * show targeted error messages. `gstin`, `landmark`, and `notes` are tightened
+ * per the latest checkout requirements.
+ */
+const addressSchema = z.object({
+  fullName: z
+    .string()
+    .trim()
+    .min(2, "Full name must be at least 2 characters")
+    .max(80, "Full name must be under 80 characters")
+    .regex(/^[\p{L}\s.'’-]+$/u, "Full name can only contain letters, spaces, and . ' -"),
+  phone: z
+    .string()
+    .transform((v) => v.replace(/\D/g, ""))
+    .pipe(
+      z
+        .string()
+        .regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian mobile number"),
+    ),
+  email: z
+    .string()
+    .trim()
+    .email("Enter a valid email address")
+    .max(120, "Email must be under 120 characters"),
+  line1: z
+    .string()
+    .trim()
+    .min(5, "Address line 1 must be at least 5 characters")
+    .max(120, "Address line 1 must be under 120 characters")
+    .regex(SAFE_TEXT, "Address contains unsupported characters"),
+  line2: z
+    .string()
+    .trim()
+    .max(120, "Address line 2 must be under 120 characters")
+    .regex(SAFE_TEXT, "Address contains unsupported characters")
+    .optional()
+    .or(z.literal("")),
+  landmark: z
+    .string()
+    .trim()
+    .min(3, "Landmark should be at least 3 characters (helps the delivery agent)")
+    .max(80, "Landmark must be under 80 characters")
+    .regex(SAFE_TEXT, "Landmark contains unsupported characters"),
+  city: z
+    .string()
+    .trim()
+    .min(2, "City is required")
+    .max(60, "City must be under 60 characters")
+    .regex(/^[\p{L}\s.'-]+$/u, "City can only contain letters"),
+  state: z
+    .string()
+    .trim()
+    .min(2, "State is required")
+    .max(60, "State must be under 60 characters")
+    .regex(/^[\p{L}\s.'-]+$/u, "State can only contain letters"),
+  pincode: z
+    .string()
+    .regex(/^[1-9][0-9]{5}$/, "Enter a valid 6-digit Indian PIN code"),
+  // GSTIN is optional for B2C buyers. When provided, it must be a real GSTIN
+  // and the embedded state code (first 2 digits) must match the state code
+  // table — but cross-checking state-name → state-code is out of scope here,
+  // so we only enforce the structural format.
+  gstin: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .refine((v) => v === "" || GSTIN_REGEX.test(v), {
+      message: "Invalid GSTIN. Format: 22AAAAA0000A1Z5",
+    })
+    .optional()
+    .or(z.literal("")),
+  notes: z
+    .string()
+    .trim()
+    .max(500, "Notes must be under 500 characters")
+    .regex(SAFE_TEXT, "Notes contain unsupported characters")
+    .optional()
+    .or(z.literal("")),
+});
+
+type AddressErrors = Partial<Record<keyof Address, string>>;
 
 type DeliveryId = "standard" | "express" | "installation";
 const DELIVERY_OPTIONS: {

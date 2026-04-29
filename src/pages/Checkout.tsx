@@ -445,6 +445,13 @@ const Checkout = () => {
       })),
       address: ok,
       delivery: deliveryOption,
+      schedule: {
+        date: deliveryDate!.toISOString(),
+        dateLabel: format(deliveryDate!, "EEE, dd MMM yyyy"),
+        slot,
+        slotLabel: TIME_SLOTS.find((s) => s.id === slot)!.label,
+        slotWindow: TIME_SLOTS.find((s) => s.id === slot)!.window,
+      },
       payment: PAYMENT_OPTIONS.find((p) => p.id === payment)!,
       totals: {
         subtotal,

@@ -150,9 +150,13 @@ const AdminLogin = () => {
           </p>
         </div>
 
-        {params.get("reason") && (
+        {isAccessExpiredCause(params.get("reason")) && (
           <div className="mb-4">
-            <AccessExpired reason={params.get("reason")!} variant="banner" loginPath="#" />
+            <AccessExpired
+              cause={params.get("reason") as Parameters<typeof AccessExpired>[0]["cause"]}
+              variant="banner"
+              loginPath="#"
+            />
           </div>
         )}
 

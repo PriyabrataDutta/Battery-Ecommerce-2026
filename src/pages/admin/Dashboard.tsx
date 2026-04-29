@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
+import { useAdminTab, type AdminTab } from "@/stores/dashboardTabs";
 import {
   Package,
   ShoppingBag,
@@ -173,13 +173,13 @@ const Dashboard = () => {
     <div className="space-y-6">
       {/* KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-        <Kpi icon={IndianRupee} label="Revenue (30d)" value={kpis ? formatINR(kpis.revenue) : "—"} to="/admin/orders" />
-        <Kpi icon={ShoppingBag} label="Orders Today" value={kpis?.ordersToday ?? "—"} to="/admin/orders" />
-        <Kpi icon={Package} label="Products" value={kpis?.productCount ?? "—"} to="/admin/products" />
-        <Kpi icon={AlertTriangle} label="Low Stock" value={kpis?.lowStock ?? "—"} to="/admin/products" tone="warn" />
-        <Kpi icon={FileText} label="New Quotes" value={kpis?.quotesNew ?? "—"} to="/admin/quotes" />
-        <Kpi icon={PhoneCall} label="Callbacks" value={kpis?.callsNew ?? "—"} to="/admin/callbacks" />
-        <Kpi icon={Mail} label="Messages" value={kpis?.msgsNew ?? "—"} to="/admin/messages" />
+        <Kpi icon={IndianRupee} label="Revenue (30d)" value={kpis ? formatINR(kpis.revenue) : "—"} tab="orders" />
+        <Kpi icon={ShoppingBag} label="Orders Today" value={kpis?.ordersToday ?? "—"} tab="orders" />
+        <Kpi icon={Package} label="Products" value={kpis?.productCount ?? "—"} tab="products" />
+        <Kpi icon={AlertTriangle} label="Low Stock" value={kpis?.lowStock ?? "—"} tab="products" tone="warn" />
+        <Kpi icon={FileText} label="New Quotes" value={kpis?.quotesNew ?? "—"} tab="quotes" />
+        <Kpi icon={PhoneCall} label="Callbacks" value={kpis?.callsNew ?? "—"} tab="messages" />
+        <Kpi icon={Mail} label="Messages" value={kpis?.msgsNew ?? "—"} tab="messages" />
       </div>
 
       {/* Revenue + Orders chart */}
@@ -314,25 +314,29 @@ const Kpi = ({
   icon: Icon,
   label,
   value,
-  to,
+  tab,
   tone,
 }: {
   icon: any;
   label: string;
   value: any;
-  to: string;
+  tab: AdminTab;
   tone?: "warn";
-}) => (
-  <Link
-    to={to}
-    className="bg-card border border-line rounded-lg p-3 hover:border-primary/40 hover:shadow-card transition-all"
-  >
-    <div className="flex items-center gap-2 text-muted-foreground text-[11px] uppercase tracking-wider font-semibold">
-      <Icon className={`h-3.5 w-3.5 ${tone === "warn" ? "text-warning" : ""}`} />
-      <span className="truncate">{label}</span>
-    </div>
-    <div className="mt-1.5 font-display-tight font-bold text-xl truncate">{value}</div>
-  </Link>
-);
+}) => {
+  const setTab = useAdminTab((s) => s.setTab);
+  return (
+    <button
+      type="button"
+      onClick={() => setTab(tab)}
+      className="bg-card border border-line rounded-lg p-3 hover:border-primary/40 hover:shadow-card transition-all text-left"
+    >
+      <div className="flex items-center gap-2 text-muted-foreground text-[11px] uppercase tracking-wider font-semibold">
+        <Icon className={`h-3.5 w-3.5 ${tone === "warn" ? "text-warning" : ""}`} />
+        <span className="truncate">{label}</span>
+      </div>
+      <div className="mt-1.5 font-display-tight font-bold text-xl truncate">{value}</div>
+    </button>
+  );
+};
 
 export default Dashboard;

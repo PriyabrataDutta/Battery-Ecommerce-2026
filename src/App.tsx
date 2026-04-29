@@ -18,31 +18,10 @@ import Brands from "./pages/Brands";
 import { About, JumpStart, Catalog, Blog } from "./pages/SimplePages";
 import Auth from "./pages/Auth";
 import AccountLayout from "./pages/account/AccountLayout";
-import AccountOverview from "./pages/account/AccountOverview";
-import AccountOrders from "./pages/account/AccountOrders";
-import AccountAddresses from "./pages/account/AccountAddresses";
-import AccountProfile from "./pages/account/AccountProfile";
-import {
-  AccountWishlist,
-  AccountQuotes,
-  AccountSupport,
-} from "./pages/account/AccountPlaceholder";
 import NotFound from "./pages/NotFound";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminLogin from "./pages/admin/AdminLogin";
-import Dashboard from "./pages/admin/Dashboard";
-import AuditLog from "./pages/admin/AuditLog";
 import { PostLogoutRedirect } from "./components/auth/PostLogoutRedirect";
-import {
-  AdminProducts,
-  AdminOrders,
-  AdminUsers,
-  AdminBrands,
-  AdminCategories,
-  AdminQuotes,
-  AdminMessages,
-  AdminSettings,
-} from "./pages/admin/Placeholder";
 
 const queryClient = new QueryClient();
 
@@ -70,30 +49,11 @@ const App = () => (
             <Route path="/catalog" element={<Catalog />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/account" element={<AccountLayout />}>
-              <Route index element={<AccountOverview />} />
-              <Route path="orders" element={<AccountOrders />} />
-              <Route path="addresses" element={<AccountAddresses />} />
-              <Route path="wishlist" element={<AccountWishlist />} />
-              <Route path="quotes" element={<AccountQuotes />} />
-              <Route path="support" element={<AccountSupport />} />
-              <Route path="profile" element={<AccountProfile />} />
-            </Route>
+            <Route path="/account" element={<AccountLayout />} />
           </Route>
           <Route element={<PostLogoutRedirect />}>
             <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin" element={<AdminLayout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="products" element={<AdminProducts />} />
-              <Route path="orders" element={<AdminOrders />} />
-              <Route path="users" element={<AdminUsers />} />
-              <Route path="brands" element={<AdminBrands />} />
-              <Route path="categories" element={<AdminCategories />} />
-              <Route path="quotes" element={<AdminQuotes />} />
-              <Route path="messages" element={<AdminMessages />} />
-              <Route path="settings" element={<AdminSettings />} />
-              <Route path="audit-log" element={<AuditLog />} />
-            </Route>
+            <Route path="/admin" element={<AdminLayout />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

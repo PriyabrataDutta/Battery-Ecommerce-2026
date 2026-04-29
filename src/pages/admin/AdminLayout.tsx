@@ -1,4 +1,4 @@
-import { Outlet, useLocation, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { RequireStaff } from "@/components/auth/RequireStaff";
@@ -20,34 +20,48 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { performAdminLogout } from "@/components/auth/PostLogoutRedirect";
+import { useAdminTab, type AdminTab } from "@/stores/dashboardTabs";
+import Dashboard from "@/pages/admin/Dashboard";
+import AuditLog from "@/pages/admin/AuditLog";
+import {
+  AdminProducts,
+  AdminOrders,
+  AdminUsers,
+  AdminBrands,
+  AdminCategories,
+  AdminQuotes,
+  AdminMessages,
+  AdminSettings,
+} from "@/pages/admin/Placeholder";
 
-const titleMap: Record<string, { title: string; subtitle?: string }> = {
-  "/admin": { title: "Sales Dashboard" },
-  "/admin/products": { title: "Products" },
-  "/admin/brands": { title: "Brands" },
-  "/admin/categories": { title: "Categories" },
-  "/admin/fitment": { title: "Car Fitment" },
-  "/admin/bulk-upload": { title: "Bulk Upload" },
-  "/admin/media": { title: "Media Library" },
-  "/admin/offers": { title: "Offers & Coupons" },
-  "/admin/catalogs": { title: "PDF Catalogs" },
-  "/admin/settings": { title: "Settings" },
-  "/admin/overview": { title: "Overview" },
-  "/admin/users": { title: "Users" },
-  "/admin/orders": { title: "Orders" },
-  "/admin/quotes": { title: "Quote Requests" },
-  "/admin/callbacks": { title: "Callback Requests" },
-  "/admin/messages": { title: "Contact Messages" },
-  "/admin/content": { title: "Content" },
-  "/admin/blog": { title: "Blog Posts" },
-  "/admin/activity": { title: "Activity Log" },
-  "/admin/audit-log": { title: "Admin Audit Log" },
-  "/admin/system": { title: "System Monitor" },
+const titleMap: Record<AdminTab, string> = {
+  dashboard: "Sales Dashboard",
+  products: "Products",
+  brands: "Brands",
+  categories: "Categories",
+  settings: "Settings",
+  users: "Users",
+  orders: "Orders",
+  quotes: "Quote Requests",
+  messages: "Contact Messages",
+  "audit-log": "Admin Audit Log",
+};
+
+const PANELS: Record<AdminTab, () => JSX.Element> = {
+  dashboard: Dashboard,
+  products: AdminProducts,
+  brands: AdminBrands,
+  categories: AdminCategories,
+  settings: AdminSettings,
+  users: AdminUsers,
+  orders: AdminOrders,
+  quotes: AdminQuotes,
+  messages: AdminMessages,
+  "audit-log": AuditLog,
 };
 
 const AdminLayout = () => {
   const { user } = useAuth();
-  const { pathname } = useLocation();
   const [role, setRole] = useState<string>("");
 
   useEffect(() => {
@@ -67,10 +81,9 @@ const AdminLayout = () => {
       });
   }, [user]);
 
-  const matched = Object.keys(titleMap)
-    .sort((a, b) => b.length - a.length)
-    .find((k) => pathname === k || pathname.startsWith(k + "/"));
-  const meta = (matched && titleMap[matched]) || { title: "Admin" };
+  const tab = useAdminTab((s) => s.tab);
+  const ActivePanel = PANELS[tab] ?? Dashboard;
+  const meta = { title: titleMap[tab] ?? "Admin" };
 
   return (
     <RequireStaff>
@@ -171,8 +184,8 @@ const AdminLayout = () => {
               </div>
             </header>
 
-            <main className="flex-1 p-4 md:p-6 overflow-x-auto">
-              <Outlet />
+            <main key={tab} className="flex-1 p-4 md:p-6 overflow-x-auto">
+              <ActivePanel />
             </main>
 
             {/* Floating action stack */}

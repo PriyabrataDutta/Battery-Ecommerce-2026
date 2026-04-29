@@ -1043,27 +1043,15 @@ const DeliveryStep = ({
         })}
       </RadioGroup>
 
-      {showNotesWarning && (
-        <div
-          role="alert"
-          className="mt-4 flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-400"
-        >
-          <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
-          <div>
-            <div className="font-semibold">Delivery notes required</div>
-            <div>
-              Installation orders need at least 10 characters of notes (vehicle, parking, access).
-              Please go back and update the Address step before continuing.
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Schedule */}
       <div className="mt-8 border-t border-line pt-6">
         <div className="flex items-center gap-2">
           <CalendarIcon className="h-5 w-5 text-primary" />
-          <h3 className="font-display-tight text-lg font-bold">Schedule your delivery</h3>
+          <h3 className="font-display-tight text-lg font-bold">
+            {delivery === "installation"
+              ? "Schedule your installation"
+              : "Schedule your delivery"}
+          </h3>
         </div>
         <p className="text-sm text-muted-foreground mt-1">
           Earliest available date for this method:{" "}
@@ -1108,14 +1096,20 @@ const DeliveryStep = ({
 
           <div>
             <Label className="text-xs font-display font-semibold uppercase tracking-wide">
-              Preferred time slot <span className="text-primary">*</span>
+              {delivery === "installation"
+                ? "Installation time slot"
+                : "Preferred time slot"}{" "}
+              <span className="text-primary">*</span>
             </Label>
             <RadioGroup
               value={slot}
               onValueChange={(v) => setSlot(v as SlotId)}
-              className="mt-1.5 grid grid-cols-2 gap-2"
+              className={cn(
+                "mt-1.5 grid gap-2",
+                delivery === "installation" ? "grid-cols-1" : "grid-cols-2",
+              )}
             >
-              {TIME_SLOTS.map((s) => {
+              {slots.map((s) => {
                 const active = slot === s.id;
                 return (
                   <label
@@ -1129,12 +1123,22 @@ const DeliveryStep = ({
                     ].join(" ")}
                   >
                     <RadioGroupItem id={`slot-${s.id}`} value={s.id} className="mt-0.5" />
-                    <div className="min-w-0">
-                      <div className="text-sm font-display font-semibold flex items-center gap-1">
-                        <Clock className="h-3 w-3 text-ink-soft" />
-                        {s.label}
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-display font-semibold flex items-center gap-1.5 flex-wrap">
+                        <Clock className="h-3 w-3 text-ink-soft shrink-0" />
+                        <span>{s.label}</span>
+                        {s.notesMin > 0 && (
+                          <span className="ml-auto text-[10px] font-display font-bold uppercase tracking-wide text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5">
+                            Notes ≥ {s.notesMin}
+                          </span>
+                        )}
                       </div>
                       <div className="text-[11px] text-muted-foreground">{s.window}</div>
+                      {s.notesHint && active && (
+                        <div className="mt-1 text-[11px] text-amber-700 dark:text-amber-400">
+                          {s.notesHint}
+                        </div>
+                      )}
                     </div>
                   </label>
                 );
@@ -1142,6 +1146,32 @@ const DeliveryStep = ({
             </RadioGroup>
           </div>
         </div>
+
+        {/* Slot-driven notes status */}
+        {selectedSlot && selectedSlot.notesMin > 0 && (
+          <div
+            role={notesShortfall > 0 ? "alert" : undefined}
+            className={cn(
+              "mt-4 flex items-start gap-2 rounded-md border p-3 text-xs",
+              notesShortfall > 0
+                ? "border-amber-500/30 bg-amber-500/5 text-amber-700 dark:text-amber-400"
+                : "border-success/30 bg-success/5 text-success",
+            )}
+          >
+            <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
+            <div>
+              <div className="font-semibold">
+                {notesShortfall > 0
+                  ? `Add ${notesShortfall} more character${notesShortfall === 1 ? "" : "s"} to delivery notes`
+                  : "Delivery notes meet this slot's requirement"}
+              </div>
+              <div>
+                "{selectedSlot.label}" requires at least {selectedSlot.notesMin} characters of
+                notes (currently {notesLength}). Edit them in the Address step.
+              </div>
+            </div>
+          </div>
+        )}
 
         {scheduleError && (
           <p className="mt-3 text-xs text-destructive font-medium" role="alert">

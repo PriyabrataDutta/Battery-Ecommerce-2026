@@ -69,7 +69,7 @@ const AdminLogin = () => {
     if (!isAdmin) {
       return fail(
         "admin-check",
-        "This email is not registered as an admin account. Use the customer sign-in instead.",
+        `"${normalizedEmail}" is not registered as an admin account. Check for typos, or use the customer sign-in.`,
       );
     }
 

@@ -20,6 +20,16 @@ function write(items: CartItem[]) {
   listeners.forEach((l) => l());
 }
 
+// Effective per-unit price (with exchange rebate applied if chosen)
+export function lineUnitPrice(it: CartItem) {
+  return it.withExchange && it.exchangeRebate ? Math.max(0, it.price - it.exchangeRebate) : it.price;
+}
+
+// Distinct cart key — same product with/without exchange are separate lines
+function lineKey(it: Pick<CartItem, "id" | "withExchange">) {
+  return `${it.id}__${it.withExchange ? "ex" : "noex"}`;
+}
+
 export function useCart() {
   const [items, setItems] = useState<CartItem[]>(read);
 
@@ -33,7 +43,8 @@ export function useCart() {
 
   const addItem = useCallback((item: Omit<CartItem, "qty">, qty = 1) => {
     const current = read();
-    const existing = current.find((i) => i.id === item.id);
+    const key = lineKey(item);
+    const existing = current.find((i) => lineKey(i) === key);
     if (existing) {
       existing.qty += qty;
       write([...current]);
@@ -42,24 +53,35 @@ export function useCart() {
     }
   }, []);
 
-  const removeItem = useCallback((id: string) => {
-    write(read().filter((i) => i.id !== id));
+  const removeLine = useCallback((key: string) => {
+    write(read().filter((i) => lineKey(i) !== key));
   }, []);
 
-  const setQty = useCallback((id: string, qty: number) => {
-    if (qty <= 0) return removeItem(id);
+  const setLineQty = useCallback((key: string, qty: number) => {
+    if (qty <= 0) return removeLine(key);
     const current = read();
-    const it = current.find((i) => i.id === id);
+    const it = current.find((i) => lineKey(i) === key);
     if (it) {
       it.qty = qty;
       write([...current]);
     }
-  }, [removeItem]);
+  }, [removeLine]);
 
   const clear = useCallback(() => write([]), []);
 
-  const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
+  const subtotal = items.reduce((s, i) => s + lineUnitPrice(i) * i.qty, 0);
   const count = items.reduce((s, i) => s + i.qty, 0);
 
-  return { items, addItem, removeItem, setQty, clear, subtotal, count };
+  return {
+    items,
+    addItem,
+    removeItem: removeLine, // kept for backwards compatibility, expects line key
+    setQty: setLineQty,     // expects line key
+    clear,
+    subtotal,
+    count,
+    lineKey,
+  };
 }
+
+export { lineKey };

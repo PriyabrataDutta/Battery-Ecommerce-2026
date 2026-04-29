@@ -20,6 +20,7 @@ import {
   Lock,
 } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
 
 type Step = 0 | 1 | 2 | 3;
 

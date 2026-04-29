@@ -206,6 +206,28 @@ const PROMO_CODES: Promo[] = [
   { code: "FESTIVE15", label: "15% off orders above ₹8,000", type: "percent", value: 15, minSubtotal: 8000 },
 ];
 
+/**
+ * Available delivery time slots. The minimum lead-time per delivery method
+ * gates which calendar dates are selectable (e.g. installation needs 2 days
+ * to dispatch a technician). Slots themselves are the same across methods.
+ */
+type SlotId = "morning" | "midday" | "afternoon" | "evening";
+const TIME_SLOTS: { id: SlotId; label: string; window: string }[] = [
+  { id: "morning", label: "Morning", window: "8:00 AM – 11:00 AM" },
+  { id: "midday", label: "Midday", window: "11:00 AM – 2:00 PM" },
+  { id: "afternoon", label: "Afternoon", window: "2:00 PM – 5:00 PM" },
+  { id: "evening", label: "Evening", window: "5:00 PM – 8:00 PM" },
+];
+
+// Earliest day a method can deliver, counted from "today".
+const DELIVERY_LEAD_DAYS: Record<DeliveryId, number> = {
+  express: 1,
+  standard: 3,
+  installation: 2,
+};
+// How far ahead the customer can schedule.
+const DELIVERY_MAX_DAYS = 14;
+
 const Checkout = () => {
   const navigate = useNavigate();
   const { items, subtotal, clear } = useCart();

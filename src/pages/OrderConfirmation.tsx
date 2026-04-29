@@ -11,6 +11,7 @@ import {
   Printer,
   ArrowRight,
   ShieldCheck,
+  CalendarClock,
 } from "lucide-react";
 import { lineKey } from "@/hooks/useCart";
 
@@ -42,6 +43,13 @@ interface SavedOrder {
     notes: string;
   };
   delivery: { id: string; label: string; eta: string; price: number };
+  schedule?: {
+    date: string;
+    dateLabel: string;
+    slot: string;
+    slotLabel: string;
+    slotWindow: string;
+  };
   payment: { id: string; label: string; hint: string };
   totals: {
     subtotal: number;
@@ -130,11 +138,33 @@ const OrderConfirmation = () => {
           <Step
             icon={Truck}
             title={order.delivery.label}
-            desc={`ETA: ${order.delivery.eta}`}
+            desc={
+              order.schedule
+                ? `Scheduled for ${order.schedule.dateLabel} · ${order.schedule.slotLabel} (${order.schedule.slotWindow})`
+                : `ETA: ${order.delivery.eta}`
+            }
             state="upcoming"
           />
         </ol>
       </div>
+
+      {order.schedule && (
+        <div className="mt-6 bg-primary/5 border border-primary/30 p-4 flex items-start gap-3">
+          <CalendarClock className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <div className="font-display font-bold uppercase tracking-wide">
+              Delivery scheduled
+            </div>
+            <div className="text-muted-foreground">
+              We'll deliver on{" "}
+              <span className="font-semibold text-ink">{order.schedule.dateLabel}</span>{" "}
+              between{" "}
+              <span className="font-semibold text-ink">{order.schedule.slotWindow}</span>{" "}
+              ({order.schedule.slotLabel}).
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid lg:grid-cols-[1fr_380px] gap-8 mt-8">
         {/* Items + addresses */}

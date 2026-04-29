@@ -1,11 +1,15 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, Navigate } from "react-router-dom";
+import { format, addDays } from "date-fns";
 import { useCart, lineKey, lineUnitPrice } from "@/hooks/useCart";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { formatINR } from "@/lib/format";
 import {
   Check,
@@ -20,6 +24,8 @@ import {
   Lock,
   Tag,
   X,
+  CalendarIcon,
+  Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -200,6 +206,61 @@ const PROMO_CODES: Promo[] = [
   { code: "FESTIVE15", label: "15% off orders above ₹8,000", type: "percent", value: 15, minSubtotal: 8000 },
 ];
 
+/**
+ * Available delivery time slots. The minimum lead-time per delivery method
+ * gates which calendar dates are selectable (e.g. installation needs 2 days
+ * to dispatch a technician). Slots themselves are the same across methods.
+ */
+type SlotId = "morning" | "midday" | "afternoon" | "evening";
+const TIME_SLOTS: { id: SlotId; label: string; window: string }[] = [
+  { id: "morning", label: "Morning", window: "8:00 AM – 11:00 AM" },
+  { id: "midday", label: "Midday", window: "11:00 AM – 2:00 PM" },
+  { id: "afternoon", label: "Afternoon", window: "2:00 PM – 5:00 PM" },
+  { id: "evening", label: "Evening", window: "5:00 PM – 8:00 PM" },
+];
+
+// Earliest day a method can deliver, counted from "today".
+const DELIVERY_LEAD_DAYS: Record<DeliveryId, number> = {
+  express: 1,
+  standard: 3,
+  installation: 2,
+};
+// How far ahead the customer can schedule.
+const DELIVERY_MAX_DAYS = 14;
+
+const startOfToday = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
+const earliestDeliveryDate = (d: DeliveryId) =>
+  addDays(startOfToday(), DELIVERY_LEAD_DAYS[d]);
+const latestDeliveryDate = () => addDays(startOfToday(), DELIVERY_MAX_DAYS);
+
+const isDateDisabled = (date: Date, d: DeliveryId) => {
+  const dayStart = new Date(date);
+  dayStart.setHours(0, 0, 0, 0);
+  if (dayStart < earliestDeliveryDate(d)) return true;
+  if (dayStart > latestDeliveryDate()) return true;
+  // Sundays unavailable for installation (technician off-day).
+  if (d === "installation" && dayStart.getDay() === 0) return true;
+  return false;
+};
+
+const validateSchedule = (
+  date: Date | undefined,
+  slotId: SlotId | "",
+  d: DeliveryId,
+): string => {
+  if (!date) return "Please pick a delivery date.";
+  if (!slotId) return "Please pick a delivery time slot.";
+  if (isDateDisabled(date, d)) {
+    return `That date isn't available for ${d} delivery. Please pick another.`;
+  }
+  return "";
+};
+
 const Checkout = () => {
   const navigate = useNavigate();
   const { items, subtotal, clear } = useCart();
@@ -212,6 +273,9 @@ const Checkout = () => {
   const [promoInput, setPromoInput] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<Promo | null>(null);
   const [promoError, setPromoError] = useState<string>("");
+  const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(undefined);
+  const [slot, setSlot] = useState<SlotId | "">("");
+  const [scheduleError, setScheduleError] = useState<string>("");
 
   const deliveryOption = useMemo(
     () => DELIVERY_OPTIONS.find((o) => o.id === delivery)!,
@@ -332,6 +396,16 @@ const Checkout = () => {
       toast.error("Please add delivery notes for installation, then go back to Address.");
       return;
     }
+    // Schedule must be selected before leaving the Delivery step.
+    if (step === 1) {
+      const err = validateSchedule(deliveryDate, slot, delivery);
+      if (err) {
+        setScheduleError(err);
+        toast.error(err);
+        return;
+      }
+      setScheduleError("");
+    }
     setStep((s) => Math.min(3, s + 1) as Step);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -349,6 +423,13 @@ const Checkout = () => {
       setStep(0);
       return;
     }
+    const schedErr = validateSchedule(deliveryDate, slot, delivery);
+    if (schedErr) {
+      setScheduleError(schedErr);
+      toast.error(schedErr);
+      setStep(1);
+      return;
+    }
 
     setSubmitting(true);
     // Frontend-only mockup — simulate order placement
@@ -364,6 +445,13 @@ const Checkout = () => {
       })),
       address: ok,
       delivery: deliveryOption,
+      schedule: {
+        date: deliveryDate!.toISOString(),
+        dateLabel: format(deliveryDate!, "EEE, dd MMM yyyy"),
+        slot,
+        slotLabel: TIME_SLOTS.find((s) => s.id === slot)!.label,
+        slotWindow: TIME_SLOTS.find((s) => s.id === slot)!.window,
+      },
       payment: PAYMENT_OPTIONS.find((p) => p.id === payment)!,
       totals: {
         subtotal,
@@ -439,8 +527,28 @@ const Checkout = () => {
           {step === 1 && (
             <DeliveryStep
               delivery={delivery}
-              setDelivery={setDelivery}
+              setDelivery={(d) => {
+                setDelivery(d);
+                // If the previously chosen date is no longer valid for the new
+                // method, drop it so the user must reconfirm.
+                if (deliveryDate && isDateDisabled(deliveryDate, d)) {
+                  setDeliveryDate(undefined);
+                  setSlot("");
+                }
+                setScheduleError("");
+              }}
               hasNotes={address.notes.trim().length >= 10}
+              deliveryDate={deliveryDate}
+              setDeliveryDate={(d) => {
+                setDeliveryDate(d);
+                setScheduleError("");
+              }}
+              slot={slot}
+              setSlot={(s) => {
+                setSlot(s);
+                setScheduleError("");
+              }}
+              scheduleError={scheduleError}
             />
           )}
           {step === 2 && (
@@ -452,6 +560,15 @@ const Checkout = () => {
               address={address}
               delivery={deliveryOption}
               payment={PAYMENT_OPTIONS.find((p) => p.id === payment)!}
+              schedule={
+                deliveryDate && slot
+                  ? {
+                      dateLabel: format(deliveryDate, "EEE, dd MMM yyyy"),
+                      slotLabel: TIME_SLOTS.find((s) => s.id === slot)!.label,
+                      slotWindow: TIME_SLOTS.find((s) => s.id === slot)!.window,
+                    }
+                  : null
+              }
             />
           )}
 
@@ -797,12 +914,23 @@ const DeliveryStep = ({
   delivery,
   setDelivery,
   hasNotes,
+  deliveryDate,
+  setDeliveryDate,
+  slot,
+  setSlot,
+  scheduleError,
 }: {
   delivery: DeliveryId;
   setDelivery: (d: DeliveryId) => void;
   hasNotes: boolean;
+  deliveryDate: Date | undefined;
+  setDeliveryDate: (d: Date | undefined) => void;
+  slot: SlotId | "";
+  setSlot: (s: SlotId | "") => void;
+  scheduleError: string;
 }) => {
   const showNotesWarning = delivery === "installation" && !hasNotes;
+  const earliest = earliestDeliveryDate(delivery);
   return (
     <div>
       <div className="flex items-center gap-2">
@@ -855,6 +983,97 @@ const DeliveryStep = ({
           </div>
         </div>
       )}
+
+      {/* Schedule */}
+      <div className="mt-8 border-t border-line pt-6">
+        <div className="flex items-center gap-2">
+          <CalendarIcon className="h-5 w-5 text-primary" />
+          <h3 className="font-display-tight text-lg font-bold">Schedule your delivery</h3>
+        </div>
+        <p className="text-sm text-muted-foreground mt-1">
+          Earliest available date for this method:{" "}
+          <span className="font-semibold text-ink">{format(earliest, "EEE, dd MMM yyyy")}</span>
+          {delivery === "installation" && " · Sundays unavailable for installation"}
+        </p>
+
+        <div className="mt-4 grid sm:grid-cols-2 gap-4">
+          <div>
+            <Label className="text-xs font-display font-semibold uppercase tracking-wide">
+              Preferred date <span className="text-primary">*</span>
+            </Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "mt-1.5 w-full justify-start text-left font-normal",
+                    !deliveryDate && "text-muted-foreground",
+                  )}
+                  aria-invalid={!!scheduleError && !deliveryDate}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {deliveryDate
+                    ? format(deliveryDate, "EEE, dd MMM yyyy")
+                    : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={deliveryDate}
+                  onSelect={setDeliveryDate}
+                  disabled={(date) => isDateDisabled(date, delivery)}
+                  defaultMonth={deliveryDate ?? earliest}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div>
+            <Label className="text-xs font-display font-semibold uppercase tracking-wide">
+              Preferred time slot <span className="text-primary">*</span>
+            </Label>
+            <RadioGroup
+              value={slot}
+              onValueChange={(v) => setSlot(v as SlotId)}
+              className="mt-1.5 grid grid-cols-2 gap-2"
+            >
+              {TIME_SLOTS.map((s) => {
+                const active = slot === s.id;
+                return (
+                  <label
+                    key={s.id}
+                    htmlFor={`slot-${s.id}`}
+                    className={[
+                      "flex items-start gap-2 p-3 border cursor-pointer transition-colors text-left",
+                      active
+                        ? "border-primary bg-primary/5"
+                        : "border-line hover:border-ink-soft",
+                    ].join(" ")}
+                  >
+                    <RadioGroupItem id={`slot-${s.id}`} value={s.id} className="mt-0.5" />
+                    <div className="min-w-0">
+                      <div className="text-sm font-display font-semibold flex items-center gap-1">
+                        <Clock className="h-3 w-3 text-ink-soft" />
+                        {s.label}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">{s.window}</div>
+                    </div>
+                  </label>
+                );
+              })}
+            </RadioGroup>
+          </div>
+        </div>
+
+        {scheduleError && (
+          <p className="mt-3 text-xs text-destructive font-medium" role="alert">
+            {scheduleError}
+          </p>
+        )}
+      </div>
     </div>
   );
 };
@@ -939,11 +1158,13 @@ const ReviewStep = ({
   address,
   delivery,
   payment,
+  schedule,
 }: {
   items: ReturnType<typeof useCart>["items"];
   address: Address;
   delivery: (typeof DELIVERY_OPTIONS)[number];
   payment: (typeof PAYMENT_OPTIONS)[number];
+  schedule: { dateLabel: string; slotLabel: string; slotWindow: string } | null;
 }) => {
   return (
     <div className="space-y-6">
@@ -990,6 +1211,15 @@ const ReviewStep = ({
             {delivery.price === 0 ? <span className="text-success">FREE</span> : formatINR(delivery.price)}
           </div>
         </div>
+        {schedule && (
+          <div className="mt-3 pt-3 border-t border-line text-sm flex items-center gap-2 text-muted-foreground">
+            <CalendarIcon className="h-4 w-4 text-primary shrink-0" />
+            <span>
+              <span className="font-semibold text-ink">{schedule.dateLabel}</span> ·{" "}
+              {schedule.slotLabel} ({schedule.slotWindow})
+            </span>
+          </div>
+        )}
       </ReviewBlock>
 
       <ReviewBlock title="Payment" icon={payment.icon}>

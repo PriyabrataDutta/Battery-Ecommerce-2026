@@ -344,22 +344,94 @@ const validateSchedule = (
   return "";
 };
 
+const DRAFT_KEY = "kachi_checkout_draft_v1";
+const DRAFT_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+type CheckoutDraft = {
+  savedAt: number;
+  address: Address;
+  delivery: DeliveryId;
+  payment: PaymentId;
+  promoInput: string;
+  deliveryDate: string | null; // ISO
+  slot: SlotId | "";
+};
+
+const loadDraft = (): CheckoutDraft | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as CheckoutDraft;
+    if (!parsed?.savedAt || Date.now() - parsed.savedAt > DRAFT_TTL_MS) {
+      localStorage.removeItem(DRAFT_KEY);
+      return null;
+    }
+    return parsed;
+  } catch {
+    localStorage.removeItem(DRAFT_KEY);
+    return null;
+  }
+};
+
+const clearDraft = () => {
+  if (typeof window !== "undefined") localStorage.removeItem(DRAFT_KEY);
+};
+
 const Checkout = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { items, subtotal, clear } = useCart();
+
+  // Hydrate from any non-expired draft synchronously so a page refresh keeps
+  // exactly what the user typed. Drafts older than 5 minutes self-destruct.
+  const initialDraft = typeof window !== "undefined" ? loadDraft() : null;
+
   const [step, setStep] = useState<Step>(0);
-  const [address, setAddress] = useState<Address>(EMPTY_ADDRESS);
+  const [address, setAddress] = useState<Address>(initialDraft?.address ?? EMPTY_ADDRESS);
   const [errors, setErrors] = useState<AddressErrors>({});
-  const [delivery, setDelivery] = useState<DeliveryId>("standard");
-  const [payment, setPayment] = useState<PaymentId>("upi");
+  const [delivery, setDelivery] = useState<DeliveryId>(initialDraft?.delivery ?? "standard");
+  const [payment, setPayment] = useState<PaymentId>(initialDraft?.payment ?? "upi");
   const [submitting, setSubmitting] = useState(false);
-  const [promoInput, setPromoInput] = useState("");
+  const [promoInput, setPromoInput] = useState(initialDraft?.promoInput ?? "");
   const [appliedPromo, setAppliedPromo] = useState<Promo | null>(null);
   const [promoError, setPromoError] = useState<string>("");
-  const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(undefined);
-  const [slot, setSlot] = useState<SlotId | "">("");
+  const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(
+    initialDraft?.deliveryDate ? new Date(initialDraft.deliveryDate) : undefined,
+  );
+  const [slot, setSlot] = useState<SlotId | "">(initialDraft?.slot ?? "");
   const [scheduleError, setScheduleError] = useState<string>("");
+
+  // Persist a draft on every meaningful change. Self-destructs after 5 min via loadDraft().
+  useEffect(() => {
+    // Don't persist a totally empty form (avoids creating a stale entry on first visit).
+    const hasAnyValue =
+      Object.values(address).some((v) => typeof v === "string" && v.trim().length > 0) ||
+      promoInput.trim().length > 0 ||
+      !!deliveryDate ||
+      slot !== "";
+    if (!hasAnyValue) return;
+    const draft: CheckoutDraft = {
+      savedAt: Date.now(),
+      address,
+      delivery,
+      payment,
+      promoInput,
+      deliveryDate: deliveryDate ? deliveryDate.toISOString() : null,
+      slot,
+    };
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    } catch {
+      // storage full / disabled — silently ignore
+    }
+  }, [address, delivery, payment, promoInput, deliveryDate, slot]);
+
+  // Auto-purge after the TTL elapses while the page is still open.
+  useEffect(() => {
+    const t = setTimeout(() => clearDraft(), DRAFT_TTL_MS);
+    return () => clearTimeout(t);
+  }, []);
 
   // Prefill from logged-in user: email + saved default address (if any).
   useEffect(() => {

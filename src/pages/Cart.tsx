@@ -55,7 +55,9 @@ const Cart = () => {
             <div className="border-t border-line mt-4 pt-4 flex justify-between font-display font-bold text-xl">
               <span>Total</span><span>{formatINR(subtotal)}</span>
             </div>
-            <Button className="w-full mt-5" size="lg" disabled>Checkout (coming soon)</Button>
+            <Button asChild className="w-full mt-5" size="lg">
+              <Link to="/checkout">Proceed to Checkout</Link>
+            </Button>
             <Button asChild variant="outline" className="w-full mt-2"><Link to="/quote">Request Quote Instead</Link></Button>
             <button onClick={clear} className="mt-3 text-xs text-muted-foreground hover:text-primary mx-auto block">Clear cart</button>
           </aside>

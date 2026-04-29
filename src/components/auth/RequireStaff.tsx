@@ -136,7 +136,7 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
           reason,
           error: staffError?.message,
         });
-        setForcedOut("Your admin access has been revoked.");
+        setForcedOut("role-revoked");
         toast.error("Access revoked", { description: "Your staff role is no longer active." });
       }
     };

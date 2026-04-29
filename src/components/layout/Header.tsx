@@ -1,8 +1,9 @@
 import { Link, NavLink } from "react-router-dom";
-import { Search, ShoppingCart, User, Menu, Phone, MessageCircle, ChevronDown, X } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, Phone, MessageCircle, ChevronDown, X, LogOut } from "lucide-react";
 import { useState } from "react";
 import logo from "@/assets/kachi-logo.png";
 import { useCart } from "@/hooks/useCart";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +19,7 @@ const mainNav = [
 
 export function Header() {
   const { count } = useCart();
+  const { user, loading, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -43,7 +45,22 @@ export function Header() {
           </div>
           <div className="flex items-center gap-4 ml-auto">
             <Link to="/quote" className="hover:text-primary">Have a Question?</Link>
-            <Link to="/auth" className="hover:text-primary">Sign in</Link>
+            {loading ? null : user ? (
+              <>
+                <Link to="/account" className="hover:text-primary truncate max-w-[180px]">
+                  {user.email}
+                </Link>
+                <button
+                  onClick={signOut}
+                  className="hover:text-primary inline-flex items-center gap-1"
+                  aria-label="Sign out"
+                >
+                  <LogOut className="h-3 w-3" /> Sign out
+                </button>
+              </>
+            ) : (
+              <Link to="/auth" className="hover:text-primary">Sign in</Link>
+            )}
           </div>
         </div>
       </div>
@@ -68,7 +85,7 @@ export function Header() {
 
         <div className="ml-auto flex items-center gap-2">
           <Button asChild variant="ghost" size="icon" className="hidden sm:inline-flex">
-            <Link to="/account" aria-label="Account">
+            <Link to={user ? "/account" : "/auth"} aria-label={user ? "Account" : "Sign in"}>
               <User className="h-5 w-5" />
             </Link>
           </Button>

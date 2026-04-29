@@ -54,21 +54,21 @@ const AdminLogin = () => {
       return fail("email-validation", "Please enter your password.");
     }
 
-    // Stage 2: Admin check
-    console.info("[AdminLogin] stage: admin-check");
+    // Stage 2: Admin email check
+    console.info("[AdminLogin] stage: admin-email");
     const { data: isAdmin, error: rpcError } = await supabase.rpc("is_admin_email", {
       _email: normalizedEmail,
     });
     if (rpcError) {
       return fail(
-        "admin-check",
-        `Could not verify admin status: ${rpcError.message}`,
+        "admin-email",
+        `Could not verify admin email: ${rpcError.message}`,
         rpcError,
       );
     }
     if (!isAdmin) {
       return fail(
-        "admin-check",
+        "admin-email",
         `"${normalizedEmail}" is not registered as an admin account. Check for typos, or use the customer sign-in.`,
       );
     }
@@ -86,33 +86,37 @@ const AdminLogin = () => {
       return fail("sign-in", friendly, signInError);
     }
 
-    // Stage 4: Session / staff verification
-    console.info("[AdminLogin] stage: session-verify");
+    // Stage 4: Auth session
+    console.info("[AdminLogin] stage: auth-session");
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     if (sessionError) {
-      return fail("session-verify", `Session error: ${sessionError.message}`, sessionError);
+      return fail("auth-session", `Session error: ${sessionError.message}`, sessionError);
     }
     const uid = sessionData.session?.user.id;
     if (!uid) {
-      return fail("session-verify", "Sign-in succeeded but no session was returned.");
+      return fail("auth-session", "Sign-in succeeded but no session was returned.");
     }
+
+    // Stage 5: Staff role
+    console.info("[AdminLogin] stage: staff-role");
     const { data: staff, error: staffError } = await supabase.rpc("is_staff", { _user_id: uid });
     if (staffError) {
-      return fail("session-verify", `Could not verify staff role: ${staffError.message}`, staffError);
+      return fail("staff-role", `Could not verify staff role: ${staffError.message}`, staffError);
     }
     if (!staff) {
       await supabase.auth.signOut();
       return fail(
-        "session-verify",
+        "staff-role",
         "Signed in, but this account has no admin/staff role assigned.",
       );
     }
 
-    // Stage 5: Redirect
-    console.info("[AdminLogin] success — redirecting to", next);
+    // Stage 6: Redirect (always /admin or explicit /admin/* next)
+    const target = next.startsWith("/admin") ? next : "/admin";
+    console.info("[AdminLogin] success — redirecting to", target);
     toast.success("Welcome back");
     setSubmitting(false);
-    navigate(next, { replace: true });
+    navigate(target, { replace: true });
   };
 
   return (

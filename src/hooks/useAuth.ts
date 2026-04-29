@@ -6,6 +6,7 @@ interface AuthState {
   user: User | null;
   session: Session | null;
   isStaff: boolean;
+  /** True until BOTH the session is restored AND (if there's a user) the staff RPC has resolved. */
   loading: boolean;
 }
 
@@ -32,32 +33,48 @@ export function useAuth(): AuthState & {
   });
 
   useEffect(() => {
+    let cancelled = false;
+
+    const applySession = (session: Session | null) => {
+      if (cancelled) return;
+      const user = session?.user ?? null;
+
+      if (!user) {
+        cachedStaff = {};
+        setState({ user: null, session: null, isStaff: false, loading: false });
+        return;
+      }
+
+      // Session present → keep loading=true until staff RPC resolves.
+      setState((s) => ({ ...s, user, session, loading: true }));
+
+      // Defer RPC to next tick to avoid auth-deadlock inside onAuthStateChange.
+      setTimeout(async () => {
+        const staff = await checkStaff(user.id);
+        if (cancelled) return;
+        setState((s) =>
+          // Only update if we're still on the same user (avoid races on quick sign-out).
+          s.user?.id === user.id
+            ? { ...s, isStaff: staff, loading: false }
+            : s,
+        );
+      }, 0);
+    };
+
     // Set up listener FIRST
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setState((s) => ({ ...s, session, user: session?.user ?? null, loading: false }));
-      if (session?.user) {
-        // Defer staff RPC to next tick to avoid auth deadlocks
-        setTimeout(async () => {
-          const staff = await checkStaff(session.user.id);
-          setState((s) => ({ ...s, isStaff: staff }));
-        }, 0);
-      } else {
-        cachedStaff = {};
-        setState((s) => ({ ...s, isStaff: false }));
-      }
+      applySession(session);
     });
 
     // THEN read existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setState((s) => ({ ...s, session, user: session?.user ?? null, loading: false }));
-      if (session?.user) {
-        checkStaff(session.user.id).then((staff) =>
-          setState((s) => ({ ...s, isStaff: staff }))
-        );
-      }
+      applySession(session);
     });
 
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {

@@ -177,6 +177,14 @@ const OrderConfirmation = () => {
                   {order.address.city}, {order.address.state} – {order.address.pincode}
                 </div>
                 <div className="mt-1 text-muted-foreground">{order.address.phone}</div>
+                {order.address.gstin && (
+                  <div className="mt-1 text-xs">
+                    <span className="text-muted-foreground">GSTIN:</span>{" "}
+                    <span className="font-mono font-semibold tracking-wider">
+                      {order.address.gstin}
+                    </span>
+                  </div>
+                )}
               </div>
             </InfoBlock>
             <InfoBlock title="Contact" icon={Mail}>

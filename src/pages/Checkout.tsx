@@ -603,6 +603,10 @@ const Checkout = () => {
                 // method, drop it so the user must reconfirm.
                 if (deliveryDate && isDateDisabled(deliveryDate, d)) {
                   setDeliveryDate(undefined);
+                }
+                // Slot lists differ between standard and installation, so
+                // always reset the slot when the method changes.
+                if (slot && !slotsForDelivery(d).some((s) => s.id === slot)) {
                   setSlot("");
                 }
                 setScheduleError("");

@@ -159,3 +159,11 @@
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
 }
+
+/* Soften input placeholder text for better hierarchy */
+@layer base {
+  input::placeholder,
+  textarea::placeholder {
+    color: hsl(var(--muted-foreground) / 0.45);
+  }
+}

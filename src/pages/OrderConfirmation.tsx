@@ -12,6 +12,7 @@ import {
   ArrowRight,
   ShieldCheck,
   CalendarClock,
+  Tag,
 } from "lucide-react";
 import { lineKey } from "@/hooks/useCart";
 
@@ -242,20 +243,60 @@ const OrderConfirmation = () => {
             <div className="font-semibold">{order.payment.label}</div>
             <div className="text-xs text-muted-foreground">{order.payment.hint}</div>
           </div>
+          {/* Promo summary callout — only renders when a promo was applied. */}
+          {order.totals.promo && order.totals.discount && order.totals.discount > 0 ? (
+            <div className="mt-4 border border-success/30 bg-success/5 p-3">
+              <div className="flex items-start gap-2">
+                <Tag className="h-4 w-4 text-success shrink-0 mt-0.5" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono font-bold tracking-wider text-success text-sm">
+                      {order.totals.promo.code}
+                    </span>
+                    <span className="text-[10px] font-display font-bold uppercase tracking-wide bg-success/15 text-success px-1.5 py-0.5">
+                      Applied
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    {order.totals.promo.label}
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                    <span className="text-muted-foreground">You saved</span>
+                    <span className="text-right font-semibold text-success">
+                      −{formatINR(order.totals.discount)}
+                    </span>
+                    <span className="text-muted-foreground">Subtotal after discount</span>
+                    <span className="text-right font-semibold text-ink">
+                      {formatINR(order.totals.subtotal - order.totals.discount)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
           <div className="border-t border-line mt-4 pt-4 space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Subtotal</span>
               <span className="font-semibold">{formatINR(order.totals.subtotal)}</span>
             </div>
             {order.totals.discount && order.totals.discount > 0 ? (
-              <div className="flex justify-between">
-                <span className="text-success">
-                  Discount{order.totals.promo ? ` (${order.totals.promo.code})` : ""}
-                </span>
-                <span className="font-semibold text-success">
-                  −{formatINR(order.totals.discount)}
-                </span>
-              </div>
+              <>
+                <div className="flex justify-between">
+                  <span className="text-success">
+                    Discount{order.totals.promo ? ` (${order.totals.promo.code})` : ""}
+                  </span>
+                  <span className="font-semibold text-success">
+                    −{formatINR(order.totals.discount)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Subtotal after discount</span>
+                  <span className="font-semibold">
+                    {formatINR(order.totals.subtotal - order.totals.discount)}
+                  </span>
+                </div>
+              </>
             ) : null}
             <div className="flex justify-between">
               <span className="text-muted-foreground">GST (18%)</span>

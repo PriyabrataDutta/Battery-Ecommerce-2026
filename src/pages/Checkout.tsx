@@ -18,6 +18,8 @@ import {
   Banknote,
   Smartphone,
   Lock,
+  Tag,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";

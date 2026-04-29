@@ -164,6 +164,8 @@
 @layer base {
   input::placeholder,
   textarea::placeholder {
-    color: hsl(var(--muted-foreground) / 0.35);
+    color: hsl(var(--foreground) / 0.18) !important;
+    opacity: 1;
+    font-weight: 400;
   }
 }

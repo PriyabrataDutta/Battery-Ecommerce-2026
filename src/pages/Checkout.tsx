@@ -343,10 +343,20 @@ const Checkout = () => {
         {/* Step content */}
         <section className="bg-white border border-line p-5 md:p-7">
           {step === 0 && (
-            <AddressStep address={address} setAddress={setAddress} />
+            <AddressStep
+              address={address}
+              setAddress={setAddress}
+              errors={errors}
+              clearError={(k) => setErrors((e) => ({ ...e, [k]: undefined }))}
+              installationSelected={delivery === "installation"}
+            />
           )}
           {step === 1 && (
-            <DeliveryStep delivery={delivery} setDelivery={setDelivery} />
+            <DeliveryStep
+              delivery={delivery}
+              setDelivery={setDelivery}
+              hasNotes={address.notes.trim().length >= 10}
+            />
           )}
           {step === 2 && (
             <PaymentStep payment={payment} setPayment={setPayment} />

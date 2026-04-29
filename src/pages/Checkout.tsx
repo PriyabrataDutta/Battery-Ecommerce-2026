@@ -568,7 +568,7 @@ const Checkout = () => {
         customer_name: ok.fullName,
         customer_email: ok.email,
         customer_phone: ok.phone,
-        address: { ...ok } as unknown as Record<string, unknown>,
+        address: JSON.parse(JSON.stringify(ok)),
         notes: ok.notes || null,
         subtotal,
         discount,

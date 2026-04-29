@@ -228,6 +228,39 @@ const DELIVERY_LEAD_DAYS: Record<DeliveryId, number> = {
 // How far ahead the customer can schedule.
 const DELIVERY_MAX_DAYS = 14;
 
+const startOfToday = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
+const earliestDeliveryDate = (d: DeliveryId) =>
+  addDays(startOfToday(), DELIVERY_LEAD_DAYS[d]);
+const latestDeliveryDate = () => addDays(startOfToday(), DELIVERY_MAX_DAYS);
+
+const isDateDisabled = (date: Date, d: DeliveryId) => {
+  const dayStart = new Date(date);
+  dayStart.setHours(0, 0, 0, 0);
+  if (dayStart < earliestDeliveryDate(d)) return true;
+  if (dayStart > latestDeliveryDate()) return true;
+  // Sundays unavailable for installation (technician off-day).
+  if (d === "installation" && dayStart.getDay() === 0) return true;
+  return false;
+};
+
+const validateSchedule = (
+  date: Date | undefined,
+  slotId: SlotId | "",
+  d: DeliveryId,
+): string => {
+  if (!date) return "Please pick a delivery date.";
+  if (!slotId) return "Please pick a delivery time slot.";
+  if (isDateDisabled(date, d)) {
+    return `That date isn't available for ${d} delivery. Please pick another.`;
+  }
+  return "";
+};
+
 const Checkout = () => {
   const navigate = useNavigate();
   const { items, subtotal, clear } = useCart();

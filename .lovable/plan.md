@@ -1,179 +1,108 @@
 ## Goal
 
-Ship a complete staff-only admin at `/admin/*` that lets you manage everything in the store: products, brands, fitment, orders, quotes, callbacks, contact messages, blog, catalogs — plus the bulk Excel import you already asked for.
+Make `/admin` a real, fully-featured control center for the entire website — like the EBASCO reference. Every sidebar item must be a working page that lets you view, create, edit, and delete the corresponding website data. Today most are placeholders; this plan replaces all of them with real management screens backed by the existing database tables.
 
----
+## What's wrong today
 
-## 1. Auth (one-time prerequisite)
+- Admin shell looks right, but `Categories`, `Brands`, `Fitment`, `Media`, `Offers`, `Catalogs`, `Settings`, `Overview`, `Users`, `Orders`, `Quotes`, `Callbacks`, `Messages`, `Content`, `Blog`, `Activity Log`, `System Monitor` are all stub pages with one sentence of text.
+- Only `Products`, `ProductForm`, `BulkUpload` and the dashboard actually do anything.
+- Result: you can see the dashboard, but you can't actually run the site from `/admin`.
 
-The store currently has a stubbed `/auth` page. The admin needs real auth.
+## What "fully featured" means here
 
-- Replace `Auth` and `Account` stubs with a real **email + password** sign-in / sign-up page (`/auth`), plus a real `/account` page that shows profile + sign-out. Google sign-in is **not included this round** — easy to add later.
-- `src/hooks/useAuth.ts` — listens to `onAuthStateChange`, exposes `{ user, session, isStaff, loading }` (the `isStaff` flag is read once via `is_staff` RPC after each sign-in).
-- `src/components/auth/RequireStaff.tsx` — route guard; non-staff gets redirected to `/auth?next=/admin/...`.
-- **Promotion to admin**: I'll give you one SQL line to run for your own user once you sign up:
-  ```sql
-  insert into user_roles (user_id, role)
-  values ((select id from auth.users where email = 'you@example.com'), 'admin');
-  ```
-
-No DB schema change needed — `user_roles`, `is_staff()`, RLS policies are already in place from earlier.
-
----
-
-## 2. Admin shell
-
-`src/pages/admin/AdminLayout.tsx` — uses shadcn `Sidebar` + `SidebarProvider`:
+Every management page follows the same pattern so the whole admin feels consistent:
 
 ```text
-┌──────────┬──────────────────────────────────┐
-│ KACHI    │  Header (page title • sign out)  │
-│ ADMIN    ├──────────────────────────────────┤
-│          │                                  │
-│ Dashboard│   <Outlet />                     │
-│ Products │                                  │
-│ Brands   │                                  │
-│ Categories                                  │
-│ Fitment  │                                  │
-│ Orders   │                                  │
-│ Quotes   │                                  │
-│ Callbacks│                                  │
-│ Messages │                                  │
-│ Blog     │                                  │
-│ Catalogs │                                  │
-│ Bulk Up. │                                  │
-└──────────┴──────────────────────────────────┘
+[Page header]  Title + count + "New" button + search/filter bar
+[Data table ]  Sortable columns, row actions (edit, delete, status change)
+[Side drawer]  Create/edit form opens in a Sheet (no full page nav)
+[Empty state]  Friendly message + "Create first ..." CTA
+[Bulk acts  ]  Multi-select + delete / change status
 ```
 
-All admin routes are wrapped in `RequireStaff`.
+All writes go through Supabase with existing `is_staff()` RLS, so security is unchanged.
 
----
+## Pages to build (each one is real, not a stub)
 
-## 3. Admin pages — full list
+### Catalog group
 
-Each page uses TanStack Query against the existing tables (RLS already allows staff full read/write).
+- **Categories** — table of `categories` (name, slug, parent, sort, image). Create/edit drawer with image upload to `product-images`, parent picker (self-referential), auto-slug. Delete with "in use by N products" guard.
+- **Brands** — table of `battery_brands` (logo, name, slug, sort, products count). Drawer to upload logo to `brand-logos`, edit description, reorder.
+- **Car Fitment** — two-pane manager. Left: `car_brands` list + add/edit. Right: `car_models` for selected brand (name, years, slug). Plus a "Map products" tab that lets you pick a model and tick which products fit it (`product_fitment` junction).
+- **Bulk Upload** — already exists, leave as-is but link results into Products list.
+- **Media** — gallery view of files in the `product-images`, `brand-logos`, `blog`, `catalogs` buckets. Upload, copy URL, delete. Bucket switcher tabs.
+- **Offers** — needs a new `offers` table (title, code, type percent/flat, value, starts_at, ends_at, is_active, applies_to). Standard table + drawer. Used later by cart for discounts.
+- **Catalogs** — table of `catalog_files` (title, category, size, download). Upload PDF to `catalogs` bucket, set title/description/category.
+- **Settings** — single-form page editing a new `site_settings` key/value table: store name, contact phone, WhatsApp number, email, address, hero copy, social links, GST/footer text. Also "danger zone" (clear cart sessions etc).
 
-| Route | What it does |
-|---|---|
-| `/admin` (Dashboard) | KPI cards: orders today, revenue (30d), pending quotes, new callbacks, low-stock products. Recent activity table. |
-| `/admin/products` | Searchable table (name / SKU / brand / price / stock / status). Inline status toggle. Row click → edit drawer. **New Product** button. |
-| `/admin/products/new` & `/admin/products/:id` | Full product form: name, slug (auto), SKU, brand, category, price, MRP, exchange rebate, has_exchange, stock, warranty months, capacity, short/long description, badges, flags (featured/bestseller/new/on-sale), status, primary image upload (to `product-images` bucket), specs key-value editor, fitment picker (multi-select car models grouped by car brand). |
-| `/admin/brands` | List + create / edit battery brands (name, slug, logo upload to `brand-logos`, description, sort order). |
-| `/admin/categories` | List + create / edit categories (name, slug, parent, image, icon, sort order). |
-| `/admin/fitment` | Two-pane editor: left = car brands (CRUD), right = car models for selected brand (CRUD with name + years). |
-| `/admin/orders` | List with filters (status, date). Drilldown shows customer, items, totals, status timeline. Status update dropdown (`pending → paid → shipped → delivered → cancelled`). |
-| `/admin/quotes` | Quote requests table. Status update + notes. Link to download `boq_file_url` if present. |
-| `/admin/callbacks` | Callback requests; mark contacted / closed. Click-to-WhatsApp / call-to-phone shortcuts. |
-| `/admin/messages` | Contact form messages; mark read / closed. |
-| `/admin/blog` | Posts CRUD: title, slug, cover image upload (`blog` bucket), excerpt, body (textarea — Markdown rendered on the public side), publish toggle. |
-| `/admin/catalogs` | Upload PDF catalogs to `catalogs` bucket; list with title / category / file size / delete. |
-| `/admin/bulk-upload` | XLSX import (see §5). |
+### Management group
 
-Reusable bits:
-- `src/components/admin/DataTable.tsx` — generic table (search + pagination + column config).
-- `src/components/admin/ImageUpload.tsx` — drop-zone that uploads to a chosen Supabase Storage bucket and returns a public URL.
-- `src/components/admin/StatusBadge.tsx` — coloured badges for order_status / request_status enums.
+- **Overview** — same KPI strip + a compact "today vs yesterday" panel and quick links. (Distinct from Sales Dashboard which is the chart-heavy view.)
+- **Users** — list of `profiles` joined with `user_roles` and `auth.users.email` (via a staff-only RPC). Columns: name, email, phone, company, roles, joined. Row actions: promote to staff/admin, demote to customer, view orders. Search by name/email.
+- **Orders** — table of `orders` with status pill, customer, total, date. Click row → drawer showing line items (`order_items`), shipping address, notes, status timeline. Status changer (pending → ordered → in_progress → dispatched → in_transit → delivered, plus cancelled / returned). Export CSV.
+- **Quote Requests** — table of `quote_requests` with name/company/phone/email/status. Drawer shows full requirement, BOQ file link, lets staff change status (new → contacted → quoted → won/lost) and add internal notes.
+- **Callback Requests** — table of `callback_requests` with phone, preferred time, message, status. One-click "Mark contacted" + WhatsApp/Tel quick-launch buttons.
+- **Contact Messages** — inbox-style list of `contact_messages`. Click to read full message in side panel, mark resolved, reply via mailto.
+- **Content** — homepage section editor backed by `site_settings`: hero headline/subhead/CTA, "Why Kachi" bullet list, featured brand/category sections, banner toggles. Saves to `site_settings` and storefront reads from it.
+- **Blog** — table of `blog_posts`. Editor drawer with title, slug (auto), cover image upload, excerpt, body (textarea with Markdown), publish toggle. List filter: published/drafts.
 
----
+### Super Admin group
 
-## 4. Image / file uploads
+- **Activity Log** — needs a new `activity_log` table written by triggers/RPCs on important actions (product create/update/delete, order status change, role change, bulk import). Read-only table with actor email, action, target, timestamp, JSON diff in popover. Includes a manual "log entry" already happens for bulk imports.
+- **System Monitor** — health panel: counts (products, orders, users), storage usage per bucket (via RPC), recent edge function errors (link out), database row counts, quick "rebuild slugs" / "recompute exchange rebate" maintenance buttons.
 
-All four buckets already exist (`product-images`, `brand-logos`, `catalogs`, `blog`). I'll add **storage policies** for staff-only writes and public reads where appropriate (catalogs and blog already public; quote-uploads stays private). One small migration:
+## Backend changes (one migration)
 
-```sql
--- staff can write to all four content buckets; public can read product/brand/catalog/blog
-create policy "staff_write_<bucket>" on storage.objects
-  for all to authenticated
-  using (bucket_id = '<bucket>' and is_staff(auth.uid()))
-  with check (bucket_id = '<bucket>' and is_staff(auth.uid()));
-```
+New tables (all with `is_staff()` RLS for write, sensible read policies):
 
-(Repeated per bucket; no policy is removed.)
+- `offers` — title, code (unique), type ('percent'|'flat'), value, starts_at, ends_at, is_active, applies_to jsonb.
+- `site_settings` — key (text PK), value (jsonb), updated_at, updated_by. Public read so storefront can read hero text etc.
+- `activity_log` — actor_id, actor_email, action, entity_type, entity_id, diff jsonb, created_at. Staff read only.
 
----
+New RPCs (SECURITY DEFINER, staff-gated):
 
-## 5. Bulk upload (Excel) — the importer you asked for
+- `admin_list_users()` — joins `profiles` + `user_roles` + `auth.users.email`. Avoids exposing `auth.users` directly.
+- `admin_set_user_role(user_id, role)` — replaces caller's roles for that user.
+- `admin_storage_usage()` — returns bytes per bucket from `storage.objects`.
+- `admin_log(action, entity_type, entity_id, diff)` — inserts into `activity_log`. Called from frontend after writes.
 
-Page `/admin/bulk-upload`:
+Indexes added on hot filter columns: `orders(status, created_at)`, `quote_requests(status)`, `callback_requests(status)`, `contact_messages(status)`, `products(status, stock)`, `activity_log(created_at)`.
 
-```text
-Category: [Car Batteries ▾]   ☐ Wipe & replace before import
-[ Drag & drop your XLSX or click to choose ]
+## Frontend pieces to add
 
-→ Parse summary: 79 products • 4 battery brands • N car brands • M car models
-→ Preview table (first 5 rows) so you can sanity-check column mapping.
+Shared building blocks so every page looks the same and stays small:
 
-[ Cancel ]                                    [ Import 79 rows ]
-```
+- `AdminPageHeader` — title, count, primary action, search input.
+- `EntityTable` — wrapper around `DataTable` adding multi-select, row actions menu, empty state, loading skeleton.
+- `EntityDrawer` — shadcn `Sheet` with form, save/cancel, delete confirm.
+- `useAdminCrud(table, queryKey)` hook — wraps list/create/update/delete with React Query invalidation + toast + activity_log write.
+- `StatusPicker` — inline dropdown for changing order/request status with optimistic update.
+- `MarkdownEditor` — textarea with preview tab (used by Blog and Content).
+- `BucketBrowser` — used by Media page.
 
-Client-side (using `xlsx` package, already installed):
-1. Read first sheet, normalise column lookups for `Battery Name`, `Battery Brand`, `Car Brand`, `Car Model`, `With Exchange Price`, `Without Exchange Price`, `Warranty`.
-2. **Forward-fill continuation rows**: when `Battery Name` is blank, append that row's `Car Brand` / `Car Model` to the previous product's lists. (Your file has these.)
-3. Split car brand/model cells on commas → arrays.
-4. POST cleaned rows to edge function `bulk-import-products`.
+Storefront integration so the admin actually controls the site:
 
-Edge function (service role, after JWT → `is_staff` check):
-1. Resolve target category by slug.
-2. If `wipe`, delete all products in that category.
-3. Upsert `battery_brands` (by slug) → name→id map.
-4. Upsert `car_brands` (by slug).
-5. Upsert `car_models` by composite slug `${brand}-${model}`, pairing brand[i] with model[i] from the split arrays (fallback: first brand).
-6. For each product:
-   - `sku` = first all-caps token in name (e.g. `Amaron 105D31L Automotive Battery` → `105D31L`)
-   - `slug` = `${brand}-${sku}`
-   - `price` = Without Exchange Price
-   - `exchange_rebate` = Without − With Exchange (clamped)
-   - `warranty_months` = number before `MONTHS`; `specs.warranty_split` = the `(24+24)` portion
-   - `has_exchange` = rebate > 0
-   - Upsert by `sku`.
-   - Replace fitment: delete `product_fitment` rows for that product, insert one per resolved car model.
-7. Return `{ upserted_products, fitment_links, errors[] }`. Toast the result.
+- `Home`, `Footer`, `Header` read hero text, contact info, brand name from `site_settings` (with sensible defaults).
+- `Cart`/checkout consults `offers` for coupon validation.
+- `Blog` storefront page (already routed) lists `blog_posts` where `is_published = true`.
 
----
+## Approach
 
-## 6. Files added / changed
+1. Run the migration (offers, site_settings, activity_log + indexes + RPCs). One migration, then types regenerate.
+2. Build the shared components (`AdminPageHeader`, `EntityTable`, `EntityDrawer`, `useAdminCrud`, `StatusPicker`, `MarkdownEditor`, `BucketBrowser`).
+3. Replace stubs page-by-page in this order so the most useful management lands first:
+   Orders → Quotes → Callbacks → Messages → Categories → Brands → Fitment → Media → Catalogs → Offers → Blog → Content → Settings → Users → Activity Log → System Monitor.
+4. Wire storefront reads to `site_settings` and `offers` so changes in admin show up on the site.
+5. Verify `/admin` end-to-end in the preview: create a category, create a brand, edit homepage hero, change an order's status, mark a callback contacted, publish a blog post.
 
-```
-src/hooks/useAuth.ts                            (new)
-src/components/auth/RequireStaff.tsx            (new)
-src/pages/Auth.tsx                              (new — replaces stub)
-src/pages/Account.tsx                           (new — replaces stub)
+## What stays the same
 
-src/pages/admin/AdminLayout.tsx                 (new)
-src/pages/admin/Dashboard.tsx                   (new)
-src/pages/admin/Products.tsx                    (new — list)
-src/pages/admin/ProductForm.tsx                 (new — new + edit)
-src/pages/admin/Brands.tsx                      (new)
-src/pages/admin/Categories.tsx                  (new)
-src/pages/admin/Fitment.tsx                     (new)
-src/pages/admin/Orders.tsx                      (new)
-src/pages/admin/Quotes.tsx                      (new)
-src/pages/admin/Callbacks.tsx                   (new)
-src/pages/admin/Messages.tsx                    (new)
-src/pages/admin/Blog.tsx                        (new)
-src/pages/admin/Catalogs.tsx                    (new)
-src/pages/admin/BulkUpload.tsx                  (new)
+- `/admin` shell, sidebar groups, EBASCO-style header, Sales Dashboard charts, RequireStaff guard, existing Products and BulkUpload pages.
 
-src/components/admin/AdminSidebar.tsx           (new)
-src/components/admin/DataTable.tsx              (new)
-src/components/admin/ImageUpload.tsx            (new)
-src/components/admin/StatusBadge.tsx            (new)
-src/lib/parseProductsXlsx.ts                    (new)
+## Out of scope (call out so we agree)
 
-supabase/functions/bulk-import-products/index.ts (new)
-src/App.tsx                                     (mount /admin/* + real /auth)
-src/pages/SimplePages.tsx                       (drop Auth/Account exports)
-```
+- Email/SMS notifications when orders or requests change status (can add later via edge function + Resend).
+- Inventory ledger / stock-movement history (only current `stock` column managed).
+- Multi-currency, multi-language.
 
-DB migration: storage policies for staff-write on the four buckets. No table-shape changes.
-
----
-
-## 7. Out of scope (this round, easy follow-ups)
-
-- Stripe checkout (separate request — recommend running it next so admin Orders has real data).
-- Google sign-in.
-- Rich-text editor for blog (plain Markdown for now).
-- Admin role management UI (promote others). Bootstrap stays SQL-based for safety.
-
-After you approve I'll do all of the above in one build, deploy the edge function automatically, and give you the SQL line to make yourself admin once you sign up at `/auth`.
+This is a big build. Scale-wise it touches ~16 admin pages plus shared infra. Approve and I'll start with the migration, then ship pages in the order above so each step is usable on its own.

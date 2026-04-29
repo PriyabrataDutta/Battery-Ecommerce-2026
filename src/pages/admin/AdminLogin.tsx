@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ShieldCheck, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { setRememberMe } from "@/lib/adminSession";
+import { AccessExpired } from "@/components/auth/AccessExpired";
 
 const AdminLogin = () => {
   const { user, isStaff, loading, signIn } = useAuth();

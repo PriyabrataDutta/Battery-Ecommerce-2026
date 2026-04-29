@@ -38,7 +38,7 @@ const emailOnlySchema = z.object({
 const Auth = () => {
   const [params] = useSearchParams();
   const next = params.get("next") || "/account";
-  const { user, signIn, signUp, signInWithGoogle, resetPassword, loading } = useAuth();
+  const { user, signInWithIdentifier, signUp, signInWithGoogle, resetPassword, loading } = useAuth();
   const [busy, setBusy] = useState(false);
   const [forgot, setForgot] = useState(false);
 
@@ -62,13 +62,16 @@ const Auth = () => {
       return;
     }
     setBusy(true);
-    const adminMsg = await checkNotAdmin(parsed.data.email);
-    if (adminMsg) {
-      setBusy(false);
-      toast.error(adminMsg);
-      return;
+    // Only run admin-check when an email was typed; for a phone we don't have it.
+    if (parsed.data.identifier.includes("@")) {
+      const adminMsg = await checkNotAdmin(parsed.data.identifier);
+      if (adminMsg) {
+        setBusy(false);
+        toast.error(adminMsg);
+        return;
+      }
     }
-    const { error } = await signIn(parsed.data.email, parsed.data.password);
+    const { error } = await signInWithIdentifier(parsed.data.identifier, parsed.data.password);
     setBusy(false);
     if (error) toast.error(error);
     else toast.success("Welcome back");
@@ -89,10 +92,15 @@ const Auth = () => {
       toast.error(adminMsg);
       return;
     }
-    const { error } = await signUp(parsed.data.email, parsed.data.password, parsed.data.fullName);
+    const { error } = await signUp(
+      parsed.data.email,
+      parsed.data.password,
+      parsed.data.fullName,
+      parsed.data.phone,
+    );
     setBusy(false);
     if (error) toast.error(error);
-    else toast.success("Check your inbox to confirm your email");
+    else toast.success("Account created. Check your email to confirm, then verify your mobile.");
   };
 
   const handleGoogle = async () => {

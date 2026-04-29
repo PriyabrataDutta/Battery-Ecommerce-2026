@@ -458,23 +458,20 @@ const Checkout = () => {
       if (!ok) return;
       setAddress(ok); // persist normalised values
     }
-    // If the user changed delivery to "installation" after passing step 0,
-    // re-check notes when leaving the Delivery step.
-    if (step === 1 && delivery === "installation" && address.notes.trim().length < 10) {
-      setErrors((e) => ({
-        ...e,
-        notes:
-          "Installation orders need delivery notes (≥10 chars): vehicle/model, parking, access.",
-      }));
-      toast.error("Please add delivery notes for installation, then go back to Address.");
-      return;
-    }
-    // Schedule must be selected before leaving the Delivery step.
+    // Schedule (and slot-driven notes) must be valid before leaving Delivery.
     if (step === 1) {
-      const err = validateSchedule(deliveryDate, slot, delivery);
+      const err = validateSchedule(deliveryDate, slot, delivery, address.notes);
       if (err) {
         setScheduleError(err);
         toast.error(err);
+        // If the failure is the notes rule, also flag the field on Address.
+        const slotMeta = findSlot(slot);
+        if (slotMeta && slotMeta.notesMin > 0 && address.notes.trim().length < slotMeta.notesMin) {
+          setErrors((e) => ({
+            ...e,
+            notes: `"${slotMeta.label}" needs delivery notes (≥${slotMeta.notesMin} chars).`,
+          }));
+        }
         return;
       }
       setScheduleError("");

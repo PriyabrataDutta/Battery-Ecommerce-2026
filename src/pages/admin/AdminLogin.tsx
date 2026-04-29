@@ -167,7 +167,14 @@ const AdminLogin = () => {
           {error && (
             <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-              <span>{error}</span>
+              <div className="space-y-0.5">
+                {stage && (
+                  <div className="font-semibold uppercase tracking-wide text-[10px] opacity-80">
+                    Failed at: {stage}
+                  </div>
+                )}
+                <div>{error}</div>
+              </div>
             </div>
           )}
 

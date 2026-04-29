@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminLogin from "./pages/admin/AdminLogin";
 import Dashboard from "./pages/admin/Dashboard";
+import AuditLog from "./pages/admin/AuditLog";
 import {
   AdminProducts,
   AdminOrders,
@@ -68,6 +69,7 @@ const App = () => (
             <Route path="quotes" element={<AdminQuotes />} />
             <Route path="messages" element={<AdminMessages />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="audit-log" element={<AuditLog />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

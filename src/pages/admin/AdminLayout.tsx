@@ -41,6 +41,7 @@ const titleMap: Record<string, { title: string; subtitle?: string }> = {
   "/admin/content": { title: "Content" },
   "/admin/blog": { title: "Blog Posts" },
   "/admin/activity": { title: "Activity Log" },
+  "/admin/audit-log": { title: "Admin Audit Log" },
   "/admin/system": { title: "System Monitor" },
 };
 

@@ -43,6 +43,13 @@ interface SavedOrder {
     notes: string;
   };
   delivery: { id: string; label: string; eta: string; price: number };
+  schedule?: {
+    date: string;
+    dateLabel: string;
+    slot: string;
+    slotLabel: string;
+    slotWindow: string;
+  };
   payment: { id: string; label: string; hint: string };
   totals: {
     subtotal: number;

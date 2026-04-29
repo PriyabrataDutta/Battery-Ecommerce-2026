@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 
 interface AuthState {
   user: User | null;
@@ -23,6 +24,8 @@ async function checkStaff(userId: string, force = false): Promise<boolean> {
 export function useAuth(): AuthState & {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: string | null }>;
+  signInWithGoogle: (redirectTo?: string) => Promise<{ error: string | null }>;
+  resetPassword: (email: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 } {
   const [state, setState] = useState<AuthState>({
@@ -87,9 +90,31 @@ export function useAuth(): AuthState & {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
+        emailRedirectTo: `${window.location.origin}/account`,
         data: fullName ? { full_name: fullName } : undefined,
       },
+    });
+    return { error: error?.message ?? null };
+  };
+
+  const signInWithGoogle = async (redirectTo?: string) => {
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: redirectTo ?? `${window.location.origin}/account`,
+      });
+      if (result.error) {
+        const msg = result.error instanceof Error ? result.error.message : String(result.error);
+        return { error: msg };
+      }
+      return { error: null };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : "Google sign-in failed" };
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
     });
     return { error: error?.message ?? null };
   };
@@ -99,5 +124,5 @@ export function useAuth(): AuthState & {
     await supabase.auth.signOut();
   };
 
-  return { ...state, signIn, signUp, signOut };
+  return { ...state, signIn, signUp, signInWithGoogle, resetPassword, signOut };
 }

@@ -148,9 +148,7 @@ const AdminLayout = () => {
                             } catch (e) {
                               console.error("[AdminLayout] global signout audit failed", e);
                             }
-                            markIntentionalSignOut();
-                            await supabase.auth.signOut({ scope: "global" });
-                            clearAdminSessionFlags();
+                            await performAdminLogout({ global: true });
                             toast.success("Signed out from all devices");
                           }}
                         >

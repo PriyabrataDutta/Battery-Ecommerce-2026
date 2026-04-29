@@ -25,6 +25,16 @@ const Auth = () => {
 
   if (!loading && user) return <Navigate to={next} replace />;
 
+  const checkNotAdmin = async (email: string): Promise<string | null> => {
+    const { data, error } = await (await import("@/integrations/supabase/client")).supabase
+      .rpc("is_admin_email", { _email: email });
+    if (error) return null; // fail-open if check errors; backend still enforces
+    if (data === true) {
+      return "This email belongs to an admin account. Please use the admin sign-in.";
+    }
+    return null;
+  };
+
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
@@ -34,6 +44,12 @@ const Auth = () => {
       return;
     }
     setBusy(true);
+    const adminMsg = await checkNotAdmin(parsed.data.email);
+    if (adminMsg) {
+      setBusy(false);
+      toast.error(adminMsg);
+      return;
+    }
     const { error } = await signIn(parsed.data.email, parsed.data.password);
     setBusy(false);
     if (error) toast.error(error);
@@ -49,6 +65,12 @@ const Auth = () => {
       return;
     }
     setBusy(true);
+    const adminMsg = await checkNotAdmin(parsed.data.email);
+    if (adminMsg) {
+      setBusy(false);
+      toast.error(adminMsg);
+      return;
+    }
     const { error } = await signUp(parsed.data.email, parsed.data.password, parsed.data.fullName);
     setBusy(false);
     if (error) toast.error(error);

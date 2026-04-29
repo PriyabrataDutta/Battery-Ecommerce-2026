@@ -17,6 +17,30 @@ import { About, JumpStart, Catalog, Blog } from "./pages/SimplePages";
 import Auth from "./pages/Auth";
 import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
+import AdminLayout from "./pages/admin/AdminLayout";
+import Dashboard from "./pages/admin/Dashboard";
+import Products from "./pages/admin/Products";
+import ProductForm from "./pages/admin/ProductForm";
+import BulkUpload from "./pages/admin/BulkUpload";
+import {
+  Categories as AdminCategories,
+  Brands as AdminBrands,
+  Fitment as AdminFitment,
+  Media as AdminMedia,
+  Offers as AdminOffers,
+  Catalogs as AdminCatalogs,
+  Settings as AdminSettings,
+  Overview as AdminOverview,
+  Users as AdminUsers,
+  Orders as AdminOrders,
+  Quotes as AdminQuotes,
+  Callbacks as AdminCallbacks,
+  Messages as AdminMessages,
+  Content as AdminContent,
+  Blog as AdminBlog,
+  ActivityLog as AdminActivity,
+  SystemMonitor as AdminSystem,
+} from "./pages/admin/StubPages";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +67,30 @@ const App = () => (
             <Route path="/blog" element={<Blog />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/account" element={<Account />} />
+          </Route>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="products" element={<Products />} />
+            <Route path="products/new" element={<ProductForm />} />
+            <Route path="products/:id" element={<ProductForm />} />
+            <Route path="bulk-upload" element={<BulkUpload />} />
+            <Route path="categories" element={<AdminCategories />} />
+            <Route path="brands" element={<AdminBrands />} />
+            <Route path="fitment" element={<AdminFitment />} />
+            <Route path="media" element={<AdminMedia />} />
+            <Route path="offers" element={<AdminOffers />} />
+            <Route path="catalogs" element={<AdminCatalogs />} />
+            <Route path="settings" element={<AdminSettings />} />
+            <Route path="overview" element={<AdminOverview />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="quotes" element={<AdminQuotes />} />
+            <Route path="callbacks" element={<AdminCallbacks />} />
+            <Route path="messages" element={<AdminMessages />} />
+            <Route path="content" element={<AdminContent />} />
+            <Route path="blog" element={<AdminBlog />} />
+            <Route path="activity" element={<AdminActivity />} />
+            <Route path="system" element={<AdminSystem />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

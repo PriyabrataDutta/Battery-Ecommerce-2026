@@ -39,6 +39,17 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
         }
       });
 
+    const fetchClientIp = async (): Promise<string> => {
+      try {
+        const { data, error } = await supabase.functions.invoke("client-ip");
+        if (error) throw error;
+        return (data as { ip?: string })?.ip ?? "unknown";
+      } catch (e) {
+        console.warn("[RequireStaff] could not fetch client IP", e);
+        return "unknown";
+      }
+    };
+
     const auditAndSignOut = async (
       action: "admin.session_expired" | "admin.access_revoked",
       userId: string,
@@ -46,6 +57,7 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
     ) => {
       // Audit FIRST — admin_log() requires is_staff(auth.uid()), so we must
       // log before signOut() invalidates the session.
+      const ip = await fetchClientIp();
       try {
         await supabase.rpc("admin_log", {
           _action: action,
@@ -55,6 +67,8 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
             user_id: userId,
             at: new Date().toISOString(),
             path: location.pathname,
+            ip,
+            user_agent: navigator.userAgent,
             ...details,
           },
         });

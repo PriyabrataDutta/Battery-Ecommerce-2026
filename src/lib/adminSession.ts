@@ -77,7 +77,7 @@ export function isIdleExpired(): boolean {
   if (isRemembered()) return false; // remembered sessions don't idle-expire
   const last = Number(localStorage.getItem(ACTIVITY_KEY) ?? 0);
   if (!last) return false;
-  return Date.now() - last > IDLE_TIMEOUT_MS;
+  return Date.now() - last > getIdleTimeoutMs();
 }
 
 export function clearAdminSessionFlags() {

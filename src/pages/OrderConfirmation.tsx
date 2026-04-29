@@ -38,6 +38,7 @@ interface SavedOrder {
     city: string;
     state: string;
     pincode: string;
+    gstin?: string;
     notes: string;
   };
   delivery: { id: string; label: string; eta: string; price: number };

@@ -9,6 +9,8 @@ import { toast } from "sonner";
 export function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
   const dpct = discountPct(product.price, product.mrp);
+  const showExchange = product.has_exchange && product.exchange_rebate > 0;
+  const exchangePrice = product.price - product.exchange_rebate;
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -20,6 +22,8 @@ export function ProductCard({ product }: { product: Product }) {
       sku: product.sku,
       price: product.price,
       image: product.primary_image_url,
+      withExchange: false,
+      exchangeRebate: product.exchange_rebate,
     });
     toast.success("Added to cart", { description: product.name });
   };
@@ -54,12 +58,33 @@ export function ProductCard({ product }: { product: Product }) {
         </h3>
         <div className="text-xs text-muted-foreground mt-1">SKU: {product.sku}</div>
 
+        {/* Without exchange (primary price) */}
         <div className="mt-3 flex items-baseline gap-2">
           <span className="font-display text-xl font-bold text-ink">{formatINR(product.price)}</span>
           {product.mrp && product.mrp > product.price && (
             <span className="text-xs text-muted-foreground line-through">{formatINR(product.mrp)}</span>
           )}
         </div>
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">
+          Without exchange
+        </div>
+
+        {/* With exchange */}
+        {showExchange && (
+          <div className="mt-2 border-t border-dashed border-line pt-2">
+            <div className="flex items-baseline gap-2">
+              <span className="font-display text-base font-bold text-primary">
+                {formatINR(exchangePrice)}
+              </span>
+              <span className="text-[10px] uppercase tracking-wider text-primary/80 font-semibold">
+                With exchange
+              </span>
+            </div>
+            <div className="text-[10px] text-muted-foreground">
+              Save {formatINR(product.exchange_rebate)} on old battery return
+            </div>
+          </div>
+        )}
 
         <div className="mt-auto pt-3 grid grid-cols-2 gap-2">
           <Button size="sm" variant="outline" className="text-xs" onClick={handleAdd}>

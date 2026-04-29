@@ -124,12 +124,12 @@ const Checkout = () => {
         return;
       }
     }
-    setStep((s) => Math.min(3, (s + 1) as Step));
+    setStep((s) => Math.min(3, s + 1) as Step);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const goBack = () => {
-    setStep((s) => Math.max(0, (s - 1) as Step));
+    setStep((s) => Math.max(0, s - 1) as Step);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 

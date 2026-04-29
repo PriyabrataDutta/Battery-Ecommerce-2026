@@ -47,6 +47,42 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          is_active: boolean
+          phone: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          is_active?: boolean
+          phone?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean
+          phone?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       battery_brands: {
         Row: {
           created_at: string
@@ -754,6 +790,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_create_admin_profile: {
+        Args: {
+          _email: string
+          _full_name?: string
+          _phone?: string
+          _role?: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: string
+      }
       admin_list_users: {
         Args: never
         Returns: {
@@ -804,6 +849,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin_email: { Args: { _email: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {

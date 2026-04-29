@@ -91,7 +91,7 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
           await signOut();
         }
         clearAdminSessionFlags();
-        setForcedOut("You were signed out because the browser was closed.");
+        setForcedOut("ephemeral-orphan");
         return;
       }
       if (isIdleExpired()) {

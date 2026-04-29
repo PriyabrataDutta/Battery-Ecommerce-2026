@@ -19,7 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { clearAdminSessionFlags } from "@/lib/adminSession";
+import { clearAdminSessionFlags, markIntentionalSignOut } from "@/lib/adminSession";
 
 const titleMap: Record<string, { title: string; subtitle?: string }> = {
   "/admin": { title: "Sales Dashboard" },
@@ -147,6 +147,7 @@ const AdminLayout = () => {
                             } catch (e) {
                               console.error("[AdminLayout] global signout audit failed", e);
                             }
+                            markIntentionalSignOut();
                             await supabase.auth.signOut({ scope: "global" });
                             clearAdminSessionFlags();
                             toast.success("Signed out from all devices");
@@ -161,8 +162,10 @@ const AdminLayout = () => {
                     variant="ghost"
                     size="icon"
                     onClick={async () => {
+                      markIntentionalSignOut();
                       await signOut();
                       clearAdminSessionFlags();
+                      toast.success("Signed out");
                     }}
                     aria-label="Sign out"
                   >

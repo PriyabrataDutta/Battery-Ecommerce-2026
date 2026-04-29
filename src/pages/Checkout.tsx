@@ -983,7 +983,7 @@ const AddressStep = ({
 const DeliveryStep = ({
   delivery,
   setDelivery,
-  hasNotes,
+  notesLength,
   deliveryDate,
   setDeliveryDate,
   slot,
@@ -992,15 +992,20 @@ const DeliveryStep = ({
 }: {
   delivery: DeliveryId;
   setDelivery: (d: DeliveryId) => void;
-  hasNotes: boolean;
+  notesLength: number;
   deliveryDate: Date | undefined;
   setDeliveryDate: (d: Date | undefined) => void;
   slot: SlotId | "";
   setSlot: (s: SlotId | "") => void;
   scheduleError: string;
 }) => {
-  const showNotesWarning = delivery === "installation" && !hasNotes;
   const earliest = earliestDeliveryDate(delivery);
+  const slots = slotsForDelivery(delivery);
+  const selectedSlot = findSlot(slot);
+  const notesShortfall =
+    selectedSlot && selectedSlot.notesMin > 0
+      ? Math.max(0, selectedSlot.notesMin - notesLength)
+      : 0;
   return (
     <div>
       <div className="flex items-center gap-2">

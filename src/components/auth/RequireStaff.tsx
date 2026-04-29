@@ -11,6 +11,7 @@ import {
   clearAdminSessionFlags,
   setIdleTimeoutMinutes,
   getIdleTimeoutMs,
+  consumeIntentionalSignOut,
 } from "@/lib/adminSession";
 
 const REVERIFY_INTERVAL_MS = 60_000; // re-check every 60s

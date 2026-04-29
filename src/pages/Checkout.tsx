@@ -207,17 +207,84 @@ const PROMO_CODES: Promo[] = [
 ];
 
 /**
- * Available delivery time slots. The minimum lead-time per delivery method
- * gates which calendar dates are selectable (e.g. installation needs 2 days
- * to dispatch a technician). Slots themselves are the same across methods.
+ * Standard delivery slots — drop-off only, no technician.
  */
-type SlotId = "morning" | "midday" | "afternoon" | "evening";
-const TIME_SLOTS: { id: SlotId; label: string; window: string }[] = [
-  { id: "morning", label: "Morning", window: "8:00 AM – 11:00 AM" },
-  { id: "midday", label: "Midday", window: "11:00 AM – 2:00 PM" },
-  { id: "afternoon", label: "Afternoon", window: "2:00 PM – 5:00 PM" },
-  { id: "evening", label: "Evening", window: "5:00 PM – 8:00 PM" },
+type SlotId =
+  | "morning"
+  | "midday"
+  | "afternoon"
+  | "evening"
+  // Installation-only slots:
+  | "install_early"
+  | "install_morning"
+  | "install_midday"
+  | "install_afternoon"
+  | "install_evening";
+
+interface Slot {
+  id: SlotId;
+  label: string;
+  window: string;
+  /** Minimum delivery-notes length the customer must provide for this slot.
+   *  0 means notes are optional. Higher values represent slots that need more
+   *  context (e.g. evening installs need parking/lift access details). */
+  notesMin: number;
+  /** Helper text shown beside the notes requirement. */
+  notesHint?: string;
+}
+
+const STANDARD_SLOTS: Slot[] = [
+  { id: "morning", label: "Morning", window: "8:00 AM – 11:00 AM", notesMin: 0 },
+  { id: "midday", label: "Midday", window: "11:00 AM – 2:00 PM", notesMin: 0 },
+  { id: "afternoon", label: "Afternoon", window: "2:00 PM – 5:00 PM", notesMin: 0 },
+  { id: "evening", label: "Evening", window: "5:00 PM – 8:00 PM", notesMin: 0 },
 ];
+
+const INSTALLATION_SLOTS: Slot[] = [
+  {
+    id: "install_early",
+    label: "Early Morning Install",
+    window: "7:00 AM – 9:00 AM",
+    notesMin: 20,
+    notesHint:
+      "Early-morning slot needs gate/lift access details so the technician can enter without delay.",
+  },
+  {
+    id: "install_morning",
+    label: "Morning Install",
+    window: "9:00 AM – 12:00 PM",
+    notesMin: 10,
+    notesHint: "Add vehicle make/model and parking spot.",
+  },
+  {
+    id: "install_midday",
+    label: "Midday Install",
+    window: "12:00 PM – 3:00 PM",
+    notesMin: 10,
+    notesHint: "Add vehicle make/model and parking spot.",
+  },
+  {
+    id: "install_afternoon",
+    label: "Afternoon Install",
+    window: "3:00 PM – 6:00 PM",
+    notesMin: 10,
+    notesHint: "Add vehicle make/model and parking spot.",
+  },
+  {
+    id: "install_evening",
+    label: "Evening Install",
+    window: "6:00 PM – 8:30 PM",
+    notesMin: 25,
+    notesHint:
+      "Evening slot requires parking, lift availability, building access (gate code/intercom) and contact at site.",
+  },
+];
+
+const slotsForDelivery = (d: DeliveryId): Slot[] =>
+  d === "installation" ? INSTALLATION_SLOTS : STANDARD_SLOTS;
+
+const findSlot = (id: SlotId | "" | undefined): Slot | undefined =>
+  id ? [...STANDARD_SLOTS, ...INSTALLATION_SLOTS].find((s) => s.id === id) : undefined;
 
 // Earliest day a method can deliver, counted from "today".
 const DELIVERY_LEAD_DAYS: Record<DeliveryId, number> = {

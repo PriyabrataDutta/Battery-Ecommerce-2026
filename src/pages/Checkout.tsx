@@ -423,13 +423,14 @@ const Checkout = () => {
   }
 
   /**
-   * Run the zod schema and apply context-sensitive rules:
-   *   - When delivery method is "installation", `notes` becomes mandatory
-   *     so the installer knows model/parking/access details.
+   * Run the zod schema. Notes requirements are no longer enforced here — they
+   * are now driven by the chosen installation slot in the Delivery step (see
+   * `validateSchedule`), because different slots demand different levels of
+   * detail (e.g. evening installs need access/lift info).
    * Returns a normalised address (trimmed, GSTIN uppercased) on success, or
    * `null` if validation failed (errors are written to state).
    */
-  const validateAddress = (a: Address, deliveryId: DeliveryId): Address | null => {
+  const validateAddress = (a: Address, _deliveryId: DeliveryId): Address | null => {
     const result = addressSchema.safeParse(a);
     const fieldErrors: AddressErrors = {};
 
@@ -437,15 +438,6 @@ const Checkout = () => {
       for (const issue of result.error.issues) {
         const key = issue.path[0] as keyof Address | undefined;
         if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
-      }
-    }
-
-    // Conditional rule: installation requires notes.
-    if (deliveryId === "installation") {
-      const trimmed = a.notes.trim();
-      if (trimmed.length < 10) {
-        fieldErrors.notes =
-          "Installation orders need delivery notes (≥10 chars): vehicle/model, parking, access.";
       }
     }
 

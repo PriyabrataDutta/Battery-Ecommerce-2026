@@ -319,11 +319,25 @@ const validateSchedule = (
   date: Date | undefined,
   slotId: SlotId | "",
   d: DeliveryId,
+  notes: string,
 ): string => {
   if (!date) return "Please pick a delivery date.";
   if (!slotId) return "Please pick a delivery time slot.";
   if (isDateDisabled(date, d)) {
     return `That date isn't available for ${d} delivery. Please pick another.`;
+  }
+  // Slot must belong to the currently chosen delivery method.
+  const validIds = slotsForDelivery(d).map((s) => s.id);
+  if (!validIds.includes(slotId)) {
+    return "Selected time slot isn't valid for this delivery method.";
+  }
+  // Notes requirement is now driven by the chosen slot, not the method itself.
+  const slotMeta = findSlot(slotId);
+  if (slotMeta && slotMeta.notesMin > 0) {
+    const len = notes.trim().length;
+    if (len < slotMeta.notesMin) {
+      return `"${slotMeta.label}" needs delivery notes (≥${slotMeta.notesMin} chars). ${slotMeta.notesHint ?? ""}`.trim();
+    }
   }
   return "";
 };

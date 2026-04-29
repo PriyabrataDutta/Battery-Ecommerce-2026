@@ -46,7 +46,7 @@ const titleMap: Record<string, { title: string; subtitle?: string }> = {
 };
 
 const AdminLayout = () => {
-  const { signOut, user } = useAuth();
+  const { user } = useAuth();
   const { pathname } = useLocation();
   const [role, setRole] = useState<string>("");
 

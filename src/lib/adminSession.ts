@@ -85,3 +85,16 @@ export function clearAdminSessionFlags() {
   localStorage.removeItem(ACTIVITY_KEY);
   sessionStorage.removeItem(EPHEMERAL_KEY);
 }
+
+const INTENTIONAL_SIGNOUT_KEY = "admin.intentional_signout";
+
+/** Mark the next SIGNED_OUT event as user-initiated (logout button). */
+export function markIntentionalSignOut() {
+  sessionStorage.setItem(INTENTIONAL_SIGNOUT_KEY, "1");
+}
+
+export function consumeIntentionalSignOut(): boolean {
+  const v = sessionStorage.getItem(INTENTIONAL_SIGNOUT_KEY) === "1";
+  if (v) sessionStorage.removeItem(INTENTIONAL_SIGNOUT_KEY);
+  return v;
+}

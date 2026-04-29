@@ -363,6 +363,16 @@ const Checkout = () => {
       toast.error("Please add delivery notes for installation, then go back to Address.");
       return;
     }
+    // Schedule must be selected before leaving the Delivery step.
+    if (step === 1) {
+      const err = validateSchedule(deliveryDate, slot, delivery);
+      if (err) {
+        setScheduleError(err);
+        toast.error(err);
+        return;
+      }
+      setScheduleError("");
+    }
     setStep((s) => Math.min(3, s + 1) as Step);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };

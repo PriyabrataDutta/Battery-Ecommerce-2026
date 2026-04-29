@@ -82,10 +82,9 @@ const AdminLayout = () => {
       });
   }, [user]);
 
-  const matched = Object.keys(titleMap)
-    .sort((a, b) => b.length - a.length)
-    .find((k) => pathname === k || pathname.startsWith(k + "/"));
-  const meta = (matched && titleMap[matched]) || { title: "Admin" };
+  const tab = useAdminTab((s) => s.tab);
+  const ActivePanel = PANELS[tab] ?? Dashboard;
+  const meta = { title: titleMap[tab] ?? "Admin" };
 
   return (
     <RequireStaff>

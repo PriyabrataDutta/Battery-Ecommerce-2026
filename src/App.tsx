@@ -17,7 +17,16 @@ import Contact from "./pages/Contact";
 import Brands from "./pages/Brands";
 import { About, JumpStart, Catalog, Blog } from "./pages/SimplePages";
 import Auth from "./pages/Auth";
-import Account from "./pages/Account";
+import AccountLayout from "./pages/account/AccountLayout";
+import AccountOverview from "./pages/account/AccountOverview";
+import AccountOrders from "./pages/account/AccountOrders";
+import AccountAddresses from "./pages/account/AccountAddresses";
+import AccountProfile from "./pages/account/AccountProfile";
+import {
+  AccountWishlist,
+  AccountQuotes,
+  AccountSupport,
+} from "./pages/account/AccountPlaceholder";
 import NotFound from "./pages/NotFound";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -61,7 +70,15 @@ const App = () => (
             <Route path="/catalog" element={<Catalog />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/account" element={<Account />} />
+            <Route path="/account" element={<AccountLayout />}>
+              <Route index element={<AccountOverview />} />
+              <Route path="orders" element={<AccountOrders />} />
+              <Route path="addresses" element={<AccountAddresses />} />
+              <Route path="wishlist" element={<AccountWishlist />} />
+              <Route path="quotes" element={<AccountQuotes />} />
+              <Route path="support" element={<AccountSupport />} />
+              <Route path="profile" element={<AccountProfile />} />
+            </Route>
           </Route>
           <Route element={<PostLogoutRedirect />}>
             <Route path="/admin/login" element={<AdminLogin />} />

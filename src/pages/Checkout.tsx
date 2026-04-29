@@ -461,11 +461,20 @@ const Checkout = () => {
 const AddressStep = ({
   address,
   setAddress,
+  errors,
+  clearError,
+  installationSelected,
 }: {
   address: Address;
   setAddress: (a: Address) => void;
+  errors: AddressErrors;
+  clearError: (k: keyof Address) => void;
+  installationSelected: boolean;
 }) => {
-  const set = (k: keyof Address, v: string) => setAddress({ ...address, [k]: v });
+  const set = (k: keyof Address, v: string) => {
+    setAddress({ ...address, [k]: v });
+    if (errors[k]) clearError(k);
+  };
   return (
     <div>
       <div className="flex items-center gap-2">
@@ -477,67 +486,131 @@ const AddressStep = ({
       </p>
 
       <div className="mt-6 grid sm:grid-cols-2 gap-4">
-        <Field label="Full name" required>
-          <Input value={address.fullName} onChange={(e) => set("fullName", e.target.value)} placeholder="Ravi Kumar" />
+        <Field label="Full name" required error={errors.fullName}>
+          <Input
+            value={address.fullName}
+            onChange={(e) => set("fullName", e.target.value)}
+            placeholder="Ravi Kumar"
+            maxLength={80}
+            aria-invalid={!!errors.fullName}
+          />
         </Field>
-        <Field label="Mobile number" required>
+        <Field label="Mobile number" required error={errors.phone}>
           <Input
             value={address.phone}
             onChange={(e) => set("phone", e.target.value)}
             placeholder="98765 43210"
             inputMode="tel"
             maxLength={15}
+            aria-invalid={!!errors.phone}
           />
         </Field>
-        <Field label="Email" required className="sm:col-span-2">
+        <Field label="Email" required className="sm:col-span-2" error={errors.email}>
           <Input
             type="email"
             value={address.email}
             onChange={(e) => set("email", e.target.value)}
             placeholder="ravi@example.com"
+            maxLength={120}
+            aria-invalid={!!errors.email}
           />
         </Field>
-        <Field label="Address line 1" required className="sm:col-span-2">
+        <Field label="Address line 1" required className="sm:col-span-2" error={errors.line1}>
           <Input
             value={address.line1}
             onChange={(e) => set("line1", e.target.value)}
             placeholder="House / Flat no., Street"
+            maxLength={120}
+            aria-invalid={!!errors.line1}
           />
         </Field>
-        <Field label="Address line 2" className="sm:col-span-2">
+        <Field label="Address line 2" className="sm:col-span-2" error={errors.line2}>
           <Input
             value={address.line2}
             onChange={(e) => set("line2", e.target.value)}
             placeholder="Area, Colony (optional)"
+            maxLength={120}
+            aria-invalid={!!errors.line2}
           />
         </Field>
-        <Field label="Landmark">
+        <Field
+          label="Landmark"
+          required
+          error={errors.landmark}
+          help="Helps the delivery agent locate you (e.g. ‘opposite Reliance Smart’)."
+        >
           <Input
             value={address.landmark}
             onChange={(e) => set("landmark", e.target.value)}
-            placeholder="Near… (optional)"
+            placeholder="Opposite Reliance Smart"
+            maxLength={80}
+            aria-invalid={!!errors.landmark}
           />
         </Field>
-        <Field label="PIN code" required>
+        <Field label="PIN code" required error={errors.pincode}>
           <Input
             value={address.pincode}
             onChange={(e) => set("pincode", e.target.value.replace(/\D/g, "").slice(0, 6))}
             placeholder="560001"
             inputMode="numeric"
+            aria-invalid={!!errors.pincode}
           />
         </Field>
-        <Field label="City" required>
-          <Input value={address.city} onChange={(e) => set("city", e.target.value)} placeholder="Bengaluru" />
+        <Field label="City" required error={errors.city}>
+          <Input
+            value={address.city}
+            onChange={(e) => set("city", e.target.value)}
+            placeholder="Bengaluru"
+            maxLength={60}
+            aria-invalid={!!errors.city}
+          />
         </Field>
-        <Field label="State" required>
-          <Input value={address.state} onChange={(e) => set("state", e.target.value)} placeholder="Karnataka" />
+        <Field label="State" required error={errors.state}>
+          <Input
+            value={address.state}
+            onChange={(e) => set("state", e.target.value)}
+            placeholder="Karnataka"
+            maxLength={60}
+            aria-invalid={!!errors.state}
+          />
         </Field>
-        <Field label="Delivery notes" className="sm:col-span-2">
+        <Field
+          label="GSTIN"
+          className="sm:col-span-2"
+          error={errors.gstin}
+          help="Optional — add your business GSTIN to receive a tax invoice."
+        >
+          <Input
+            value={address.gstin}
+            onChange={(e) => set("gstin", e.target.value.toUpperCase().slice(0, 15))}
+            placeholder="22AAAAA0000A1Z5"
+            maxLength={15}
+            className="uppercase tracking-wider"
+            aria-invalid={!!errors.gstin}
+          />
+        </Field>
+        <Field
+          label={`Delivery notes${installationSelected ? "" : ""}`}
+          required={installationSelected}
+          className="sm:col-span-2"
+          error={errors.notes}
+          help={
+            installationSelected
+              ? "Required for installation: vehicle make/model, parking spot, building access (gate code, lift, floor)."
+              : "Optional — any specific delivery instructions."
+          }
+        >
           <Textarea
             rows={3}
             value={address.notes}
             onChange={(e) => set("notes", e.target.value)}
-            placeholder="Any specific delivery instructions… (optional)"
+            placeholder={
+              installationSelected
+                ? "e.g. Maruti Swift 2019, basement parking B2, intercom #404, lift available"
+                : "Any specific delivery instructions… (optional)"
+            }
+            maxLength={500}
+            aria-invalid={!!errors.notes}
           />
         </Field>
       </div>
@@ -548,10 +621,13 @@ const AddressStep = ({
 const DeliveryStep = ({
   delivery,
   setDelivery,
+  hasNotes,
 }: {
   delivery: DeliveryId;
   setDelivery: (d: DeliveryId) => void;
+  hasNotes: boolean;
 }) => {
+  const showNotesWarning = delivery === "installation" && !hasNotes;
   return (
     <div>
       <div className="flex items-center gap-2">
@@ -588,6 +664,22 @@ const DeliveryStep = ({
           );
         })}
       </RadioGroup>
+
+      {showNotesWarning && (
+        <div
+          role="alert"
+          className="mt-4 flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-400"
+        >
+          <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
+          <div>
+            <div className="font-semibold">Delivery notes required</div>
+            <div>
+              Installation orders need at least 10 characters of notes (vehicle, parking, access).
+              Please go back and update the Address step before continuing.
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

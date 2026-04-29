@@ -19,7 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { clearAdminSessionFlags } from "@/lib/adminSession";
+import { clearAdminSessionFlags, markIntentionalSignOut } from "@/lib/adminSession";
 
 const titleMap: Record<string, { title: string; subtitle?: string }> = {
   "/admin": { title: "Sales Dashboard" },

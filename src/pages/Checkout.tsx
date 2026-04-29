@@ -715,6 +715,7 @@ const Checkout = () => {
     };
     sessionStorage.setItem("kachi_last_order", JSON.stringify(order));
     clear();
+    clearDraft();
     setSubmitting(false);
     navigate("/order-confirmation", { replace: true });
   };

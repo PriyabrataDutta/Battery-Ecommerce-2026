@@ -217,6 +217,16 @@ const OrderConfirmation = () => {
               <span className="text-muted-foreground">Subtotal</span>
               <span className="font-semibold">{formatINR(order.totals.subtotal)}</span>
             </div>
+            {order.totals.discount && order.totals.discount > 0 ? (
+              <div className="flex justify-between">
+                <span className="text-success">
+                  Discount{order.totals.promo ? ` (${order.totals.promo.code})` : ""}
+                </span>
+                <span className="font-semibold text-success">
+                  −{formatINR(order.totals.discount)}
+                </span>
+              </div>
+            ) : null}
             <div className="flex justify-between">
               <span className="text-muted-foreground">GST (18%)</span>
               <span className="font-semibold">{formatINR(order.totals.tax)}</span>

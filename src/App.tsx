@@ -18,6 +18,7 @@ import Auth from "./pages/Auth";
 import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
 import AdminLayout from "./pages/admin/AdminLayout";
+import AdminLogin from "./pages/admin/AdminLogin";
 import Dashboard from "./pages/admin/Dashboard";
 import Products from "./pages/admin/Products";
 import ProductForm from "./pages/admin/ProductForm";
@@ -66,6 +67,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/account" element={<Account />} />
           </Route>
+          <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="products" element={<Products />} />

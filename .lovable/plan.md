@@ -1,72 +1,84 @@
-# Customer auth audit & polish
+# Phone-first customer auth
 
-## What's already working
+Goal: every customer has a verified phone number on file. Email stays as the underlying auth identifier (so we don't have to fake anything), but phone is required at signup, usable as a login handle, and verified with a 4-digit code sent by email today (swap to SMS OTP later).
 
-- `Auth.tsx` has email/password sign-in + sign-up with zod validation, blocks admin emails from using the customer flow.
-- `useAuth` hook correctly sets up `onAuthStateChange` BEFORE `getSession()` (no auth race), caches `is_staff`, exposes `signIn` / `signUp` / `signOut`.
-- `RequireAuth` gates `/account` and remembers the intended destination via `?next=`.
-- `Auth.tsx` already redirects signed-in users to `next` (default `/account`).
-- DB has `profiles`, `user_roles`, `handle_new_user` trigger that creates a customer profile + assigns `customer` role on signup. RLS is in place.
-- Checkout already uses `RequireAuth` (per earlier work).
+## What changes for the user
 
-## Gaps to fix
+**Signup form** (3 required fields + password):
 
-1. **Header always shows "Sign in"** even when the user is logged in — confusing. The User icon goes to `/account` regardless of auth state.
-2. **No Google sign-in** — Lovable Cloud default for auth is email + Google; only email/password is wired.
-3. **No password reset flow** — no "Forgot password?" link, no `/reset-password` page. Without the page, recovery links auto-log the user in without changing the password.
-4. **Sign-up emailRedirectTo points to `/`** — after confirming email, user lands on home with no signal. Better: land on `/account` (or `/auth?confirmed=1`).
-5. **Post-signup messaging is stale if email auto-confirm is on** — we tell them to check inbox even when no email is sent. Not breaking, but worth a quick check.
-6. **No loading state on the User icon** during the brief `loading=true` window — shows a fleeting "Sign in" link before flipping. Minor.
+- Full name
+- Mobile number (with country code, default +91)
+- Email
+- Password
 
-## Proposed changes
+**Login form** — single "Email or mobile" field + password. We auto-detect what they typed. Leave the google login as it it.
 
-### 1. Header auth state (`src/components/layout/Header.tsx`)
-- Read `user`, `loading` from `useAuth`.
-- Top utility bar: when signed in, replace "Sign in" with the user's email (or first name) linking to `/account`, plus a small "Sign out" button. When loading, render nothing to avoid flicker.
-- User icon button: when signed out, link to `/auth` instead of `/account` (so guests don't bounce through `RequireAuth`).
+**4-digit verification step** — right after signup (and on first login of any unverified existing account), we email a 4-digit code. They enter it to unlock the account. Until verified, `/account` and `/checkout` show the verification screen instead of their normal content.
 
-### 2. Add Google sign-in (`src/pages/Auth.tsx`)
-- Add a "Continue with Google" button above the email/password tabs.
-- Calls `supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: ${window.location.origin}/account } })`.
-- Enable Google provider via `configure_social_auth` (no client ID needed — Lovable Cloud handles it).
+**Existing customers without a phone** — on next login they hit a blocking "Add your mobile number" screen before they can use the dashboard or checkout.
 
-### 3. Password reset
-- Add a "Forgot password?" link on the Sign In tab → opens a small inline form (or routes to `/auth?mode=forgot`) that calls `supabase.auth.resetPasswordForEmail(email, { redirectTo: ${origin}/reset-password })`.
-- Create `src/pages/ResetPassword.tsx`: detects `type=recovery` in URL hash, shows new-password form, calls `supabase.auth.updateUser({ password })`, then redirects to `/account`.
-- Register `/reset-password` as a **public** route in `App.tsx`.
+## Database changes
 
-### 4. Signup redirect & confirmation UX
-- In `useAuth.signUp`, change `emailRedirectTo` from `${origin}/` to `${origin}/account`.
-- After email confirmation lands the user on `/account` already authenticated.
+Add to `profiles`:
 
-### 5. Dashboard redirect on sign-in
-- Already handled (`Auth.tsx` reads `?next=` and falls back to `/account`). I'll add a small toast confirmation and verify checkout's redirect chain (`/checkout` → `/auth?next=/checkout` → back to `/checkout`) still works.
+- `phone_verified boolean not null default false`
+- `phone_verified_at timestamptz`
+- unique index on `lower(phone)` (partial, where phone is not null) so phone login lookups are unambiguous
 
-## Auth settings to verify (no code, just config)
+New table `phone_verification_codes`:
 
-- `configure_auth` — keep email confirmation **enabled** (default; matches user-roles knowledge: do NOT auto-confirm unless explicitly asked).
-- `configure_auth` — turn on **Password HIBP check** so leaked passwords are blocked at signup. Cheap win.
-- `configure_social_auth` — enable **Google** provider.
+- `user_id uuid` (FK auth.users, cascade)
+- `code_hash text` (sha256 of the 4-digit code — never store the raw code)
+- `expires_at timestamptz` (10 minutes)
+- `attempts int default 0` (lock after 5)
+- `created_at timestamptz default now()`
+- RLS: only the user themselves can select/insert/delete their own row; staff read-only.
 
-## Files to touch
+Update `handle_new_user()` trigger to also write `phone` from `raw_user_meta_data->>'phone'` into `profiles.phone` at signup.
 
-- edit `src/components/layout/Header.tsx` — auth-aware top bar + user icon
-- edit `src/pages/Auth.tsx` — Google button, "Forgot password?" link
-- edit `src/hooks/useAuth.ts` — change signup redirect to `/account`, add `signInWithGoogle`, add `resetPassword`
-- create `src/pages/ResetPassword.tsx`
-- edit `src/App.tsx` — register `/reset-password` route
-- run `configure_social_auth` (Google) and `configure_auth` (HIBP on)
+New RPC `lookup_email_by_phone(_phone text) returns text` (security definer) — used by the login form to translate a phone number to the email Supabase Auth needs. Returns null if no match. Rate-limited via a simple per-IP/per-minute check is out of scope for v1.
 
-## Out of scope (ask if you want them)
+New RPC `verify_phone_code(_code text) returns boolean` (security definer) — hashes the code, compares against the user's row in `phone_verification_codes`, increments attempts on failure, on success sets `profiles.phone_verified = true` and deletes the code row.
 
-- Phone/SMS sign-in
-- Apple sign-in
-- Magic-link (passwordless) sign-in
-- Custom branded auth emails (would need email-domain setup)
-- Profile editing UI inside the dashboard (the page exists but I haven't audited the form — separate task)
+## Edge function
 
-## Confirmation needed
+`send-phone-verification-code` (new) — called from the client after signup or when the user requests a resend:
 
-- OK to enable **Google sign-in**? (Default per Lovable Cloud guidance.)
-- OK to enable **HIBP leaked-password check**?
-- Keep **email confirmation required** before sign-in (recommended), or auto-confirm so users can log in immediately?
+1. Generates a random 4-digit code.
+2. Stores its sha256 hash + 10-minute expiry in `phone_verification_codes` (upserts on user_id).
+3. Sends an email to the authenticated user via Lovable's transactional email system with the code and the phone number it's confirming ("Use code 4821 to verify +91 98xxx xxxxx").
+4. Returns `{ ok: true }`.
+
+This requires the project's email domain + transactional email infra. If that isn't already set up, the setup dialog will be shown during build and we'll scaffold `send-transactional-email` first.
+
+## Frontend changes
+
+`src/pages/Auth.tsx`
+
+- Add phone input (with country-code prefix, default +91) to the signup form, required, validated as 10-15 digits.
+- Replace the sign-in "Email" input with "Email or mobile". On submit: if it parses as a phone, call `lookup_email_by_phone` RPC and use the returned email; otherwise treat as email.
+- After a successful signup, route to `/verify-phone` instead of showing the "check your inbox" toast (we still rely on Supabase email confirmation, but the 4-digit step is for *phone ownership*, sent over email until SMS lands).
+
+`src/pages/VerifyPhone.tsx` (new) — simple 4-input code field, "Resend code" button (60s cooldown), calls `verify_phone_code` RPC. On success, navigates to the original `next` destination.
+
+`src/hooks/useAuth.ts`
+
+- Extend `signUp` to accept `phone` and pass it in `options.data` so the trigger picks it up.
+- Add `phoneVerified: boolean` to the returned state (read from `profiles` after auth resolves, alongside the existing staff check).
+- Add `signInWithIdentifier(identifier, password)` helper that does the phone-to-email lookup.
+
+`src/components/auth/RequirePhoneVerified.tsx` (new wrapper) — used in `App.tsx` around `/account` and `/checkout`. If user is logged in but `phoneVerified` is false OR `profiles.phone` is null, redirect to `/verify-phone` (or `/add-phone` if phone is missing entirely).
+
+`src/pages/AddPhone.tsx` (new) — for legacy accounts. Single phone input, on submit writes to `profiles.phone` then triggers the same verification flow.
+
+`src/App.tsx` — register `/verify-phone` and `/add-phone` routes; wrap `/account` and `/checkout` with `RequirePhoneVerified`.
+
+## Why we keep email as the auth identifier
+
+Lovable Cloud auth needs either an email or an SMS provider. SMS OTP isn't enabled on this project yet, so going phone-only would force us to invent synthetic emails like `9198xxx@example.com` — messy, and a pain to migrate later. Keeping email as the real identifier means: (a) password reset, Google sign-in, and email confirmation all keep working unchanged; (b) when you turn on SMS OTP later, we just swap the `send-phone-verification-code` function from "email the code" to "SMS the code" — no schema change, no data migration.
+
+## Out of scope for this round
+
+- True SMS OTP (planned follow-up — flip a single line in the edge function).
+- Phone number change flow with re-verification (we'll add when needed).
+- Rate-limiting the lookup-by-phone RPC (basic; can be hardened later).

@@ -634,8 +634,8 @@ const Checkout = () => {
                 deliveryDate && slot
                   ? {
                       dateLabel: format(deliveryDate, "EEE, dd MMM yyyy"),
-                      slotLabel: TIME_SLOTS.find((s) => s.id === slot)!.label,
-                      slotWindow: TIME_SLOTS.find((s) => s.id === slot)!.window,
+                      slotLabel: findSlot(slot)!.label,
+                      slotWindow: findSlot(slot)!.window,
                     }
                   : null
               }

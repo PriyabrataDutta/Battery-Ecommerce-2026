@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate, useLocation, useSearchParams } from "react-router-dom";
+import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 const AdminLogin = () => {
   const { user, isStaff, loading, signIn } = useAuth();
   const [params] = useSearchParams();
+  const navigate = useNavigate();
   const next = params.get("next") || "/admin";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,9 +31,17 @@ const AdminLogin = () => {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail) {
+      setError("Please enter your admin email.");
+      setSubmitting(false);
+      return;
+    }
+
     // Verify the email is registered as an admin BEFORE signing in
     const { data: isAdmin, error: rpcError } = await supabase.rpc("is_admin_email", {
-      _email: email,
+      _email: normalizedEmail,
     });
     if (rpcError) {
       setError("Could not verify admin status. Please try again.");
@@ -45,7 +54,7 @@ const AdminLogin = () => {
       return;
     }
 
-    const { error: signInError } = await signIn(email, password);
+    const { error: signInError } = await signIn(normalizedEmail, password);
     if (signInError) {
       setError(signInError);
       setSubmitting(false);
@@ -68,7 +77,7 @@ const AdminLogin = () => {
     }
     toast.success("Welcome back");
     setSubmitting(false);
-    // Navigate handled by isStaff effect above
+    navigate(next, { replace: true });
   };
 
   return (
@@ -104,6 +113,7 @@ const AdminLogin = () => {
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onBlur={(e) => setEmail(e.target.value.trim().toLowerCase())}
               placeholder="admin@yourstore.com"
             />
           </div>

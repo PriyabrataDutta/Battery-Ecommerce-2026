@@ -207,17 +207,84 @@ const PROMO_CODES: Promo[] = [
 ];
 
 /**
- * Available delivery time slots. The minimum lead-time per delivery method
- * gates which calendar dates are selectable (e.g. installation needs 2 days
- * to dispatch a technician). Slots themselves are the same across methods.
+ * Standard delivery slots — drop-off only, no technician.
  */
-type SlotId = "morning" | "midday" | "afternoon" | "evening";
-const TIME_SLOTS: { id: SlotId; label: string; window: string }[] = [
-  { id: "morning", label: "Morning", window: "8:00 AM – 11:00 AM" },
-  { id: "midday", label: "Midday", window: "11:00 AM – 2:00 PM" },
-  { id: "afternoon", label: "Afternoon", window: "2:00 PM – 5:00 PM" },
-  { id: "evening", label: "Evening", window: "5:00 PM – 8:00 PM" },
+type SlotId =
+  | "morning"
+  | "midday"
+  | "afternoon"
+  | "evening"
+  // Installation-only slots:
+  | "install_early"
+  | "install_morning"
+  | "install_midday"
+  | "install_afternoon"
+  | "install_evening";
+
+interface Slot {
+  id: SlotId;
+  label: string;
+  window: string;
+  /** Minimum delivery-notes length the customer must provide for this slot.
+   *  0 means notes are optional. Higher values represent slots that need more
+   *  context (e.g. evening installs need parking/lift access details). */
+  notesMin: number;
+  /** Helper text shown beside the notes requirement. */
+  notesHint?: string;
+}
+
+const STANDARD_SLOTS: Slot[] = [
+  { id: "morning", label: "Morning", window: "8:00 AM – 11:00 AM", notesMin: 0 },
+  { id: "midday", label: "Midday", window: "11:00 AM – 2:00 PM", notesMin: 0 },
+  { id: "afternoon", label: "Afternoon", window: "2:00 PM – 5:00 PM", notesMin: 0 },
+  { id: "evening", label: "Evening", window: "5:00 PM – 8:00 PM", notesMin: 0 },
 ];
+
+const INSTALLATION_SLOTS: Slot[] = [
+  {
+    id: "install_early",
+    label: "Early Morning Install",
+    window: "7:00 AM – 9:00 AM",
+    notesMin: 20,
+    notesHint:
+      "Early-morning slot needs gate/lift access details so the technician can enter without delay.",
+  },
+  {
+    id: "install_morning",
+    label: "Morning Install",
+    window: "9:00 AM – 12:00 PM",
+    notesMin: 10,
+    notesHint: "Add vehicle make/model and parking spot.",
+  },
+  {
+    id: "install_midday",
+    label: "Midday Install",
+    window: "12:00 PM – 3:00 PM",
+    notesMin: 10,
+    notesHint: "Add vehicle make/model and parking spot.",
+  },
+  {
+    id: "install_afternoon",
+    label: "Afternoon Install",
+    window: "3:00 PM – 6:00 PM",
+    notesMin: 10,
+    notesHint: "Add vehicle make/model and parking spot.",
+  },
+  {
+    id: "install_evening",
+    label: "Evening Install",
+    window: "6:00 PM – 8:30 PM",
+    notesMin: 25,
+    notesHint:
+      "Evening slot requires parking, lift availability, building access (gate code/intercom) and contact at site.",
+  },
+];
+
+const slotsForDelivery = (d: DeliveryId): Slot[] =>
+  d === "installation" ? INSTALLATION_SLOTS : STANDARD_SLOTS;
+
+const findSlot = (id: SlotId | "" | undefined): Slot | undefined =>
+  id ? [...STANDARD_SLOTS, ...INSTALLATION_SLOTS].find((s) => s.id === id) : undefined;
 
 // Earliest day a method can deliver, counted from "today".
 const DELIVERY_LEAD_DAYS: Record<DeliveryId, number> = {
@@ -252,11 +319,25 @@ const validateSchedule = (
   date: Date | undefined,
   slotId: SlotId | "",
   d: DeliveryId,
+  notes: string,
 ): string => {
   if (!date) return "Please pick a delivery date.";
   if (!slotId) return "Please pick a delivery time slot.";
   if (isDateDisabled(date, d)) {
     return `That date isn't available for ${d} delivery. Please pick another.`;
+  }
+  // Slot must belong to the currently chosen delivery method.
+  const validIds = slotsForDelivery(d).map((s) => s.id);
+  if (!validIds.includes(slotId)) {
+    return "Selected time slot isn't valid for this delivery method.";
+  }
+  // Notes requirement is now driven by the chosen slot, not the method itself.
+  const slotMeta = findSlot(slotId);
+  if (slotMeta && slotMeta.notesMin > 0) {
+    const len = notes.trim().length;
+    if (len < slotMeta.notesMin) {
+      return `"${slotMeta.label}" needs delivery notes (≥${slotMeta.notesMin} chars). ${slotMeta.notesHint ?? ""}`.trim();
+    }
   }
   return "";
 };
@@ -342,13 +423,14 @@ const Checkout = () => {
   }
 
   /**
-   * Run the zod schema and apply context-sensitive rules:
-   *   - When delivery method is "installation", `notes` becomes mandatory
-   *     so the installer knows model/parking/access details.
+   * Run the zod schema. Notes requirements are no longer enforced here — they
+   * are now driven by the chosen installation slot in the Delivery step (see
+   * `validateSchedule`), because different slots demand different levels of
+   * detail (e.g. evening installs need access/lift info).
    * Returns a normalised address (trimmed, GSTIN uppercased) on success, or
    * `null` if validation failed (errors are written to state).
    */
-  const validateAddress = (a: Address, deliveryId: DeliveryId): Address | null => {
+  const validateAddress = (a: Address, _deliveryId: DeliveryId): Address | null => {
     const result = addressSchema.safeParse(a);
     const fieldErrors: AddressErrors = {};
 
@@ -356,15 +438,6 @@ const Checkout = () => {
       for (const issue of result.error.issues) {
         const key = issue.path[0] as keyof Address | undefined;
         if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
-      }
-    }
-
-    // Conditional rule: installation requires notes.
-    if (deliveryId === "installation") {
-      const trimmed = a.notes.trim();
-      if (trimmed.length < 10) {
-        fieldErrors.notes =
-          "Installation orders need delivery notes (≥10 chars): vehicle/model, parking, access.";
       }
     }
 
@@ -385,23 +458,20 @@ const Checkout = () => {
       if (!ok) return;
       setAddress(ok); // persist normalised values
     }
-    // If the user changed delivery to "installation" after passing step 0,
-    // re-check notes when leaving the Delivery step.
-    if (step === 1 && delivery === "installation" && address.notes.trim().length < 10) {
-      setErrors((e) => ({
-        ...e,
-        notes:
-          "Installation orders need delivery notes (≥10 chars): vehicle/model, parking, access.",
-      }));
-      toast.error("Please add delivery notes for installation, then go back to Address.");
-      return;
-    }
-    // Schedule must be selected before leaving the Delivery step.
+    // Schedule (and slot-driven notes) must be valid before leaving Delivery.
     if (step === 1) {
-      const err = validateSchedule(deliveryDate, slot, delivery);
+      const err = validateSchedule(deliveryDate, slot, delivery, address.notes);
       if (err) {
         setScheduleError(err);
         toast.error(err);
+        // If the failure is the notes rule, also flag the field on Address.
+        const slotMeta = findSlot(slot);
+        if (slotMeta && slotMeta.notesMin > 0 && address.notes.trim().length < slotMeta.notesMin) {
+          setErrors((e) => ({
+            ...e,
+            notes: `"${slotMeta.label}" needs delivery notes (≥${slotMeta.notesMin} chars).`,
+          }));
+        }
         return;
       }
       setScheduleError("");
@@ -423,7 +493,7 @@ const Checkout = () => {
       setStep(0);
       return;
     }
-    const schedErr = validateSchedule(deliveryDate, slot, delivery);
+    const schedErr = validateSchedule(deliveryDate, slot, delivery, address.notes);
     if (schedErr) {
       setScheduleError(schedErr);
       toast.error(schedErr);
@@ -449,8 +519,8 @@ const Checkout = () => {
         date: deliveryDate!.toISOString(),
         dateLabel: format(deliveryDate!, "EEE, dd MMM yyyy"),
         slot,
-        slotLabel: TIME_SLOTS.find((s) => s.id === slot)!.label,
-        slotWindow: TIME_SLOTS.find((s) => s.id === slot)!.window,
+        slotLabel: findSlot(slot)!.label,
+        slotWindow: findSlot(slot)!.window,
       },
       payment: PAYMENT_OPTIONS.find((p) => p.id === payment)!,
       totals: {
@@ -533,11 +603,15 @@ const Checkout = () => {
                 // method, drop it so the user must reconfirm.
                 if (deliveryDate && isDateDisabled(deliveryDate, d)) {
                   setDeliveryDate(undefined);
+                }
+                // Slot lists differ between standard and installation, so
+                // always reset the slot when the method changes.
+                if (slot && !slotsForDelivery(d).some((s) => s.id === slot)) {
                   setSlot("");
                 }
                 setScheduleError("");
               }}
-              hasNotes={address.notes.trim().length >= 10}
+              notesLength={address.notes.trim().length}
               deliveryDate={deliveryDate}
               setDeliveryDate={(d) => {
                 setDeliveryDate(d);
@@ -564,8 +638,8 @@ const Checkout = () => {
                 deliveryDate && slot
                   ? {
                       dateLabel: format(deliveryDate, "EEE, dd MMM yyyy"),
-                      slotLabel: TIME_SLOTS.find((s) => s.id === slot)!.label,
-                      slotWindow: TIME_SLOTS.find((s) => s.id === slot)!.window,
+                      slotLabel: findSlot(slot)!.label,
+                      slotWindow: findSlot(slot)!.window,
                     }
                   : null
               }
@@ -913,7 +987,7 @@ const AddressStep = ({
 const DeliveryStep = ({
   delivery,
   setDelivery,
-  hasNotes,
+  notesLength,
   deliveryDate,
   setDeliveryDate,
   slot,
@@ -922,15 +996,20 @@ const DeliveryStep = ({
 }: {
   delivery: DeliveryId;
   setDelivery: (d: DeliveryId) => void;
-  hasNotes: boolean;
+  notesLength: number;
   deliveryDate: Date | undefined;
   setDeliveryDate: (d: Date | undefined) => void;
   slot: SlotId | "";
   setSlot: (s: SlotId | "") => void;
   scheduleError: string;
 }) => {
-  const showNotesWarning = delivery === "installation" && !hasNotes;
   const earliest = earliestDeliveryDate(delivery);
+  const slots = slotsForDelivery(delivery);
+  const selectedSlot = findSlot(slot);
+  const notesShortfall =
+    selectedSlot && selectedSlot.notesMin > 0
+      ? Math.max(0, selectedSlot.notesMin - notesLength)
+      : 0;
   return (
     <div>
       <div className="flex items-center gap-2">
@@ -968,27 +1047,15 @@ const DeliveryStep = ({
         })}
       </RadioGroup>
 
-      {showNotesWarning && (
-        <div
-          role="alert"
-          className="mt-4 flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-400"
-        >
-          <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
-          <div>
-            <div className="font-semibold">Delivery notes required</div>
-            <div>
-              Installation orders need at least 10 characters of notes (vehicle, parking, access).
-              Please go back and update the Address step before continuing.
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Schedule */}
       <div className="mt-8 border-t border-line pt-6">
         <div className="flex items-center gap-2">
           <CalendarIcon className="h-5 w-5 text-primary" />
-          <h3 className="font-display-tight text-lg font-bold">Schedule your delivery</h3>
+          <h3 className="font-display-tight text-lg font-bold">
+            {delivery === "installation"
+              ? "Schedule your installation"
+              : "Schedule your delivery"}
+          </h3>
         </div>
         <p className="text-sm text-muted-foreground mt-1">
           Earliest available date for this method:{" "}
@@ -1033,14 +1100,20 @@ const DeliveryStep = ({
 
           <div>
             <Label className="text-xs font-display font-semibold uppercase tracking-wide">
-              Preferred time slot <span className="text-primary">*</span>
+              {delivery === "installation"
+                ? "Installation time slot"
+                : "Preferred time slot"}{" "}
+              <span className="text-primary">*</span>
             </Label>
             <RadioGroup
               value={slot}
               onValueChange={(v) => setSlot(v as SlotId)}
-              className="mt-1.5 grid grid-cols-2 gap-2"
+              className={cn(
+                "mt-1.5 grid gap-2",
+                delivery === "installation" ? "grid-cols-1" : "grid-cols-2",
+              )}
             >
-              {TIME_SLOTS.map((s) => {
+              {slots.map((s) => {
                 const active = slot === s.id;
                 return (
                   <label
@@ -1054,12 +1127,22 @@ const DeliveryStep = ({
                     ].join(" ")}
                   >
                     <RadioGroupItem id={`slot-${s.id}`} value={s.id} className="mt-0.5" />
-                    <div className="min-w-0">
-                      <div className="text-sm font-display font-semibold flex items-center gap-1">
-                        <Clock className="h-3 w-3 text-ink-soft" />
-                        {s.label}
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-display font-semibold flex items-center gap-1.5 flex-wrap">
+                        <Clock className="h-3 w-3 text-ink-soft shrink-0" />
+                        <span>{s.label}</span>
+                        {s.notesMin > 0 && (
+                          <span className="ml-auto text-[10px] font-display font-bold uppercase tracking-wide text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5">
+                            Notes ≥ {s.notesMin}
+                          </span>
+                        )}
                       </div>
                       <div className="text-[11px] text-muted-foreground">{s.window}</div>
+                      {s.notesHint && active && (
+                        <div className="mt-1 text-[11px] text-amber-700 dark:text-amber-400">
+                          {s.notesHint}
+                        </div>
+                      )}
                     </div>
                   </label>
                 );
@@ -1067,6 +1150,32 @@ const DeliveryStep = ({
             </RadioGroup>
           </div>
         </div>
+
+        {/* Slot-driven notes status */}
+        {selectedSlot && selectedSlot.notesMin > 0 && (
+          <div
+            role={notesShortfall > 0 ? "alert" : undefined}
+            className={cn(
+              "mt-4 flex items-start gap-2 rounded-md border p-3 text-xs",
+              notesShortfall > 0
+                ? "border-amber-500/30 bg-amber-500/5 text-amber-700 dark:text-amber-400"
+                : "border-success/30 bg-success/5 text-success",
+            )}
+          >
+            <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
+            <div>
+              <div className="font-semibold">
+                {notesShortfall > 0
+                  ? `Add ${notesShortfall} more character${notesShortfall === 1 ? "" : "s"} to delivery notes`
+                  : "Delivery notes meet this slot's requirement"}
+              </div>
+              <div>
+                "{selectedSlot.label}" requires at least {selectedSlot.notesMin} characters of
+                notes (currently {notesLength}). Edit them in the Address step.
+              </div>
+            </div>
+          </div>
+        )}
 
         {scheduleError && (
           <p className="mt-3 text-xs text-destructive font-medium" role="alert">

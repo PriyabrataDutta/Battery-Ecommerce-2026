@@ -1,4 +1,3 @@
-import { NavLink, Outlet, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Package,
@@ -11,28 +10,49 @@ import {
   Shield,
   ShoppingBag,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { RequireAuth } from "@/components/auth/RequireAuth";
+import { useAccountTab, type AccountTab } from "@/stores/dashboardTabs";
+import AccountOverview from "@/pages/account/AccountOverview";
+import AccountOrders from "@/pages/account/AccountOrders";
+import AccountAddresses from "@/pages/account/AccountAddresses";
+import AccountProfile from "@/pages/account/AccountProfile";
+import {
+  AccountWishlist,
+  AccountQuotes,
+  AccountSupport,
+} from "@/pages/account/AccountPlaceholder";
 
 /**
- * Customer dashboard shell. The sidebar nav uses NavLink so the active route
- * is highlighted by react-router. Layout matches the storefront tone — flat
- * panels, hairline dividers, no card shadows. Uses semantic tokens only.
+ * Single-route customer dashboard. Active section is driven by a persisted
+ * zustand store (`useAccountTab`) instead of nested routes.
  */
-const NAV: { to: string; label: string; icon: typeof Package; end?: boolean }[] = [
-  { to: "/account", label: "Overview", icon: LayoutDashboard, end: true },
-  { to: "/account/orders", label: "Orders", icon: Package },
-  { to: "/account/addresses", label: "Addresses", icon: MapPin },
-  { to: "/account/wishlist", label: "Wishlist", icon: Heart },
-  { to: "/account/quotes", label: "Quote Requests", icon: FileText },
-  { to: "/account/support", label: "Support", icon: MessageSquare },
-  { to: "/account/profile", label: "Profile", icon: User },
+const NAV: { tab: AccountTab; label: string; icon: typeof Package }[] = [
+  { tab: "overview", label: "Overview", icon: LayoutDashboard },
+  { tab: "orders", label: "Orders", icon: Package },
+  { tab: "addresses", label: "Addresses", icon: MapPin },
+  { tab: "wishlist", label: "Wishlist", icon: Heart },
+  { tab: "quotes", label: "Quote Requests", icon: FileText },
+  { tab: "support", label: "Support", icon: MessageSquare },
+  { tab: "profile", label: "Profile", icon: User },
 ];
+
+const PANELS: Record<AccountTab, () => JSX.Element> = {
+  overview: AccountOverview,
+  orders: AccountOrders,
+  addresses: AccountAddresses,
+  wishlist: AccountWishlist,
+  quotes: AccountQuotes,
+  support: AccountSupport,
+  profile: AccountProfile,
+};
 
 const AccountLayout = () => {
   const { user, isStaff, signOut } = useAuth();
-  const location = useLocation();
+  const { tab, setTab } = useAccountTab();
+  const ActivePanel = PANELS[tab] ?? AccountOverview;
 
   return (
     <RequireAuth>
@@ -49,40 +69,41 @@ const AccountLayout = () => {
           <aside className="bg-white border border-line p-3 h-fit lg:sticky lg:top-32">
             <nav>
               <ul className="space-y-0.5">
-                {NAV.map(({ to, label, icon: Icon, end }) => (
-                  <li key={to}>
-                    <NavLink
-                      to={to}
-                      end={end}
-                      className={({ isActive }) =>
-                        [
-                          "flex items-center gap-3 px-3 py-2 text-sm font-display font-semibold border-l-2 transition-colors",
-                          isActive
+                {NAV.map(({ tab: t, label, icon: Icon }) => {
+                  const active = tab === t;
+                  return (
+                    <li key={t}>
+                      <button
+                        type="button"
+                        onClick={() => setTab(t)}
+                        className={[
+                          "w-full flex items-center gap-3 px-3 py-2 text-sm font-display font-semibold border-l-2 transition-colors text-left",
+                          active
                             ? "bg-primary/10 text-primary border-primary"
                             : "border-transparent text-ink-soft hover:text-ink hover:bg-muted/50",
-                        ].join(" ")
-                      }
-                    >
-                      <Icon className="h-4 w-4 shrink-0" />
-                      <span>{label}</span>
-                    </NavLink>
-                  </li>
-                ))}
+                        ].join(" ")}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        <span>{label}</span>
+                      </button>
+                    </li>
+                  );
+                })}
               </ul>
             </nav>
 
             <div className="border-t border-line mt-3 pt-3 space-y-1">
               {isStaff && (
                 <Button asChild variant="outline" size="sm" className="w-full justify-start">
-                  <NavLink to="/admin">
+                  <Link to="/admin">
                     <Shield className="h-4 w-4 mr-2" /> Open Admin
-                  </NavLink>
+                  </Link>
                 </Button>
               )}
               <Button asChild variant="ghost" size="sm" className="w-full justify-start">
-                <NavLink to="/shop">
+                <Link to="/shop">
                   <ShoppingBag className="h-4 w-4 mr-2" /> Continue Shopping
-                </NavLink>
+                </Link>
               </Button>
               <Button
                 variant="ghost"
@@ -96,8 +117,8 @@ const AccountLayout = () => {
           </aside>
 
           {/* Content */}
-          <main key={location.pathname} className="min-w-0">
-            <Outlet />
+          <main key={tab} className="min-w-0">
+            <ActivePanel />
           </main>
         </div>
       </div>

@@ -607,7 +607,7 @@ const Checkout = () => {
                 }
                 setScheduleError("");
               }}
-              hasNotes={address.notes.trim().length >= 10}
+              notesLength={address.notes.trim().length}
               deliveryDate={deliveryDate}
               setDeliveryDate={(d) => {
                 setDeliveryDate(d);

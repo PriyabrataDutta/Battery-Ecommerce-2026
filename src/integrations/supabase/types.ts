@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_log: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          created_at: string
+          diff: Json
+          entity_id: string | null
+          entity_type: string
+          id: string
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          diff?: Json
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          diff?: Json
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+        }
+        Relationships: []
+      }
       battery_brands: {
         Row: {
           created_at: string
@@ -291,6 +324,54 @@ export type Database = {
           phone?: string | null
           status?: Database["public"]["Enums"]["request_status"]
           subject?: string | null
+        }
+        Relationships: []
+      }
+      offers: {
+        Row: {
+          applies_to: Json
+          code: string
+          created_at: string
+          description: string | null
+          ends_at: string | null
+          id: string
+          is_active: boolean
+          min_order_total: number
+          starts_at: string | null
+          title: string
+          type: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          applies_to?: Json
+          code: string
+          created_at?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean
+          min_order_total?: number
+          starts_at?: string | null
+          title: string
+          type: string
+          updated_at?: string
+          value: number
+        }
+        Update: {
+          applies_to?: Json
+          code?: string
+          created_at?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean
+          min_order_total?: number
+          starts_at?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+          value?: number
         }
         Relationships: []
       }
@@ -626,6 +707,27 @@ export type Database = {
         }
         Relationships: []
       }
+      site_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -652,11 +754,47 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_list_users: {
+        Args: never
+        Returns: {
+          company: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          phone: string
+          roles: string[]
+        }[]
+      }
+      admin_log: {
+        Args: {
+          _action: string
+          _diff?: Json
+          _entity_id?: string
+          _entity_type: string
+        }
+        Returns: undefined
+      }
       admin_order_status_counts: {
         Args: never
         Returns: {
           status: string
           value: number
+        }[]
+      }
+      admin_set_user_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
+      admin_storage_usage: {
+        Args: never
+        Returns: {
+          bucket_id: string
+          file_count: number
+          total_bytes: number
         }[]
       }
       has_role: {

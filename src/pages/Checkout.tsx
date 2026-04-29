@@ -18,6 +18,8 @@ import {
   Banknote,
   Smartphone,
   Lock,
+  Tag,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -178,6 +180,26 @@ const PAYMENT_OPTIONS: {
 
 const STEPS = ["Address", "Delivery", "Payment", "Review"] as const;
 
+/**
+ * Promo codes (frontend mockup). Each code applies to the cart subtotal,
+ * which then flows into GST and the final total.
+ *  - `percent`: % off subtotal
+ *  - `flat`: flat ₹ off subtotal
+ * `minSubtotal` lets us gate higher discounts behind a minimum order value.
+ */
+type Promo = {
+  code: string;
+  label: string;
+  type: "percent" | "flat";
+  value: number;
+  minSubtotal?: number;
+};
+const PROMO_CODES: Promo[] = [
+  { code: "KACHI10", label: "10% off your order", type: "percent", value: 10 },
+  { code: "FLAT500", label: "₹500 off orders above ₹5,000", type: "flat", value: 500, minSubtotal: 5000 },
+  { code: "FESTIVE15", label: "15% off orders above ₹8,000", type: "percent", value: 15, minSubtotal: 8000 },
+];
+
 const Checkout = () => {
   const navigate = useNavigate();
   const { items, subtotal, clear } = useCart();
@@ -187,15 +209,69 @@ const Checkout = () => {
   const [delivery, setDelivery] = useState<DeliveryId>("standard");
   const [payment, setPayment] = useState<PaymentId>("upi");
   const [submitting, setSubmitting] = useState(false);
+  const [promoInput, setPromoInput] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<Promo | null>(null);
+  const [promoError, setPromoError] = useState<string>("");
 
   const deliveryOption = useMemo(
     () => DELIVERY_OPTIONS.find((o) => o.id === delivery)!,
     [delivery],
   );
 
-  // GST 18% on goods only (typical for batteries in India). Frontend mockup math.
-  const tax = useMemo(() => Math.round(subtotal * 0.18), [subtotal]);
-  const total = subtotal + tax + deliveryOption.price;
+  // Discount applies to subtotal. GST recomputes against the discounted
+  // subtotal so the customer also saves the tax on the discounted amount.
+  const discount = useMemo(() => {
+    if (!appliedPromo) return 0;
+    if (appliedPromo.minSubtotal && subtotal < appliedPromo.minSubtotal) return 0;
+    const raw =
+      appliedPromo.type === "percent"
+        ? Math.round((subtotal * appliedPromo.value) / 100)
+        : appliedPromo.value;
+    // Never let discount exceed subtotal.
+    return Math.min(raw, subtotal);
+  }, [appliedPromo, subtotal]);
+
+  const discountedSubtotal = Math.max(0, subtotal - discount);
+  const tax = useMemo(() => Math.round(discountedSubtotal * 0.18), [discountedSubtotal]);
+  const total = discountedSubtotal + tax + deliveryOption.price;
+
+  // If cart drops below the promo's minimum after edits, auto-clear it.
+  if (appliedPromo?.minSubtotal && subtotal < appliedPromo.minSubtotal && discount === 0) {
+    // schedule clear in microtask to avoid setState during render
+    queueMicrotask(() => {
+      setAppliedPromo(null);
+      setPromoError(`"${appliedPromo.code}" requires a minimum subtotal of ${formatINR(appliedPromo.minSubtotal!)}.`);
+    });
+  }
+
+  const applyPromo = () => {
+    setPromoError("");
+    const code = promoInput.trim().toUpperCase();
+    if (!code) {
+      setPromoError("Enter a promo code.");
+      return;
+    }
+    const match = PROMO_CODES.find((p) => p.code === code);
+    if (!match) {
+      setPromoError("Invalid promo code.");
+      return;
+    }
+    if (match.minSubtotal && subtotal < match.minSubtotal) {
+      setPromoError(
+        `This code requires a minimum subtotal of ${formatINR(match.minSubtotal)}.`,
+      );
+      return;
+    }
+    setAppliedPromo(match);
+    setPromoInput("");
+    toast.success(`Promo "${match.code}" applied — ${match.label}`);
+  };
+
+  const removePromo = () => {
+    setAppliedPromo(null);
+    setPromoError("");
+    toast.message("Promo code removed");
+  };
 
   if (items.length === 0) {
     return <Navigate to="/cart" replace />;
@@ -289,7 +365,16 @@ const Checkout = () => {
       address: ok,
       delivery: deliveryOption,
       payment: PAYMENT_OPTIONS.find((p) => p.id === payment)!,
-      totals: { subtotal, tax, shipping: deliveryOption.price, total },
+      totals: {
+        subtotal,
+        discount,
+        promo: appliedPromo
+          ? { code: appliedPromo.code, label: appliedPromo.label }
+          : null,
+        tax,
+        shipping: deliveryOption.price,
+        total,
+      },
     };
     sessionStorage.setItem("kachi_last_order", JSON.stringify(order));
     clear();
@@ -425,11 +510,96 @@ const Checkout = () => {
             })}
           </ul>
 
+          {/* Promo code */}
+          <div className="border-t border-line mt-4 pt-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Tag className="h-4 w-4 text-primary" />
+              <span className="text-xs font-display font-semibold uppercase tracking-wide">
+                Promo code
+              </span>
+            </div>
+
+            {appliedPromo ? (
+              <div className="flex items-center justify-between gap-2 bg-success/10 border border-success/30 px-3 py-2">
+                <div className="min-w-0">
+                  <div className="text-sm font-mono font-bold tracking-wider text-success">
+                    {appliedPromo.code}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground truncate">
+                    {appliedPromo.label}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={removePromo}
+                  className="text-muted-foreground hover:text-destructive shrink-0"
+                  aria-label="Remove promo code"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex gap-2">
+                  <Input
+                    value={promoInput}
+                    onChange={(e) => {
+                      setPromoInput(e.target.value.toUpperCase().slice(0, 20));
+                      if (promoError) setPromoError("");
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        applyPromo();
+                      }
+                    }}
+                    placeholder="Enter code"
+                    className="font-mono uppercase tracking-wider"
+                    maxLength={20}
+                    aria-invalid={!!promoError}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={applyPromo}
+                    disabled={!promoInput.trim()}
+                  >
+                    Apply
+                  </Button>
+                </div>
+                {promoError && (
+                  <p className="mt-1 text-xs text-destructive font-medium" role="alert">
+                    {promoError}
+                  </p>
+                )}
+                <p className="mt-1.5 text-[11px] text-muted-foreground">
+                  Try{" "}
+                  <button
+                    type="button"
+                    className="font-mono font-semibold text-primary hover:underline"
+                    onClick={() => setPromoInput("KACHI10")}
+                  >
+                    KACHI10
+                  </button>{" "}
+                  for 10% off.
+                </p>
+              </>
+            )}
+          </div>
+
           <div className="border-t border-line mt-4 pt-4 space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Subtotal</span>
               <span className="font-semibold">{formatINR(subtotal)}</span>
             </div>
+            {discount > 0 && (
+              <div className="flex justify-between">
+                <span className="text-success">
+                  Discount{appliedPromo ? ` (${appliedPromo.code})` : ""}
+                </span>
+                <span className="font-semibold text-success">−{formatINR(discount)}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span className="text-muted-foreground">GST (18%)</span>
               <span className="font-semibold">{formatINR(tax)}</span>
@@ -445,6 +615,11 @@ const Checkout = () => {
             <span>Total</span>
             <span>{formatINR(total)}</span>
           </div>
+          {discount > 0 && (
+            <div className="mt-1 text-xs text-success font-medium text-right">
+              You saved {formatINR(discount + Math.round((subtotal * 0.18) - tax))} on this order
+            </div>
+          )}
 
           <div className="mt-5 flex items-center gap-2 text-[11px] text-muted-foreground">
             <Lock className="h-3 w-3" />

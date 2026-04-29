@@ -20,6 +20,16 @@ import NotFound from "./pages/NotFound";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminLogin from "./pages/admin/AdminLogin";
 import Dashboard from "./pages/admin/Dashboard";
+import {
+  AdminProducts,
+  AdminOrders,
+  AdminUsers,
+  AdminBrands,
+  AdminCategories,
+  AdminQuotes,
+  AdminMessages,
+  AdminSettings,
+} from "./pages/admin/Placeholder";
 
 const queryClient = new QueryClient();
 

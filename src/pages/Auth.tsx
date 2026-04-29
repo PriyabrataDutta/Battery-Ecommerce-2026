@@ -9,13 +9,26 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+const phoneRegex = /^\+?\d{10,15}$/;
+
 const signInSchema = z.object({
-  email: z.string().trim().email("Invalid email").max(255),
+  identifier: z
+    .string()
+    .trim()
+    .min(1, "Enter your email or mobile")
+    .max(255),
   password: z.string().min(6, "Min 6 characters").max(72),
 });
 
-const signUpSchema = signInSchema.extend({
+const signUpSchema = z.object({
   fullName: z.string().trim().min(1, "Full name required").max(100),
+  phone: z
+    .string()
+    .trim()
+    .transform((v) => (v.startsWith("+") ? v : `+91${v.replace(/\D/g, "")}`))
+    .pipe(z.string().regex(phoneRegex, "Enter a valid mobile (10-15 digits)")),
+  email: z.string().trim().email("Invalid email").max(255),
+  password: z.string().min(6, "Min 6 characters").max(72),
 });
 
 const emailOnlySchema = z.object({
@@ -25,7 +38,7 @@ const emailOnlySchema = z.object({
 const Auth = () => {
   const [params] = useSearchParams();
   const next = params.get("next") || "/account";
-  const { user, signIn, signUp, signInWithGoogle, resetPassword, loading } = useAuth();
+  const { user, signInWithIdentifier, signUp, signInWithGoogle, resetPassword, loading } = useAuth();
   const [busy, setBusy] = useState(false);
   const [forgot, setForgot] = useState(false);
 
@@ -49,13 +62,16 @@ const Auth = () => {
       return;
     }
     setBusy(true);
-    const adminMsg = await checkNotAdmin(parsed.data.email);
-    if (adminMsg) {
-      setBusy(false);
-      toast.error(adminMsg);
-      return;
+    // Only run admin-check when an email was typed; for a phone we don't have it.
+    if (parsed.data.identifier.includes("@")) {
+      const adminMsg = await checkNotAdmin(parsed.data.identifier);
+      if (adminMsg) {
+        setBusy(false);
+        toast.error(adminMsg);
+        return;
+      }
     }
-    const { error } = await signIn(parsed.data.email, parsed.data.password);
+    const { error } = await signInWithIdentifier(parsed.data.identifier, parsed.data.password);
     setBusy(false);
     if (error) toast.error(error);
     else toast.success("Welcome back");
@@ -76,10 +92,15 @@ const Auth = () => {
       toast.error(adminMsg);
       return;
     }
-    const { error } = await signUp(parsed.data.email, parsed.data.password, parsed.data.fullName);
+    const { error } = await signUp(
+      parsed.data.email,
+      parsed.data.password,
+      parsed.data.fullName,
+      parsed.data.phone,
+    );
     setBusy(false);
     if (error) toast.error(error);
-    else toast.success("Check your inbox to confirm your email");
+    else toast.success("Account created. Check your email to confirm, then verify your mobile.");
   };
 
   const handleGoogle = async () => {
@@ -171,7 +192,13 @@ const Auth = () => {
 
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-3 mt-4">
-                  <Input name="email" type="email" placeholder="Email" required autoComplete="email" />
+                  <Input
+                    name="identifier"
+                    type="text"
+                    placeholder="Email or mobile number"
+                    required
+                    autoComplete="username"
+                  />
                   <Input name="password" type="password" placeholder="Password" required autoComplete="current-password" />
                   <Button type="submit" className="w-full" disabled={busy}>
                     {busy && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
@@ -189,7 +216,15 @@ const Auth = () => {
 
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-3 mt-4">
-                  <Input name="fullName" placeholder="Full name" required maxLength={100} />
+                  <Input name="fullName" placeholder="Full name" required maxLength={100} autoComplete="name" />
+                  <Input
+                    name="phone"
+                    type="tel"
+                    inputMode="tel"
+                    placeholder="Mobile number (e.g. +91 98xxx xxxxx)"
+                    required
+                    autoComplete="tel"
+                  />
                   <Input name="email" type="email" placeholder="Email" required autoComplete="email" />
                   <Input name="password" type="password" placeholder="Password (min 6)" required autoComplete="new-password" />
                   <Button type="submit" className="w-full" disabled={busy}>

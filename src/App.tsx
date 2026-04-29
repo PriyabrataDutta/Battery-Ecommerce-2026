@@ -19,10 +19,13 @@ import { About, JumpStart, Catalog, Blog } from "./pages/SimplePages";
 import Auth from "./pages/Auth";
 import AccountLayout from "./pages/account/AccountLayout";
 import ResetPassword from "./pages/ResetPassword";
+import VerifyPhone from "./pages/VerifyPhone";
+import AddPhone from "./pages/AddPhone";
 import NotFound from "./pages/NotFound";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminLogin from "./pages/admin/AdminLogin";
 import { PostLogoutRedirect } from "./components/auth/PostLogoutRedirect";
+import { RequirePhoneVerified } from "./components/auth/RequirePhoneVerified";
 
 const queryClient = new QueryClient();
 
@@ -41,7 +44,10 @@ const App = () => (
             <Route path="/brands" element={<Brands />} />
             <Route path="/product/:slug" element={<ProductDetail />} />
             <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
+            <Route element={<RequirePhoneVerified />}>
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/account" element={<AccountLayout />} />
+            </Route>
             <Route path="/order-confirmation" element={<OrderConfirmation />} />
             <Route path="/quote" element={<Quote />} />
             <Route path="/contact" element={<Contact />} />
@@ -51,7 +57,8 @@ const App = () => (
             <Route path="/blog" element={<Blog />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/account" element={<AccountLayout />} />
+            <Route path="/verify-phone" element={<VerifyPhone />} />
+            <Route path="/add-phone" element={<AddPhone />} />
           </Route>
           <Route element={<PostLogoutRedirect />}>
             <Route path="/admin/login" element={<AdminLogin />} />

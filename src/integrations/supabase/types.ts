@@ -603,6 +603,30 @@ export type Database = {
         }
         Relationships: []
       }
+      phone_verification_codes: {
+        Row: {
+          attempts: number
+          code_hash: string
+          created_at: string
+          expires_at: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          code_hash: string
+          created_at?: string
+          expires_at: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          code_hash?: string
+          created_at?: string
+          expires_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       product_fitment: {
         Row: {
           car_model_id: string
@@ -774,6 +798,8 @@ export type Database = {
           full_name: string | null
           id: string
           phone: string | null
+          phone_verified: boolean
+          phone_verified_at: string | null
           updated_at: string
         }
         Insert: {
@@ -782,6 +808,8 @@ export type Database = {
           full_name?: string | null
           id: string
           phone?: string | null
+          phone_verified?: boolean
+          phone_verified_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -790,6 +818,8 @@ export type Database = {
           full_name?: string | null
           id?: string
           phone?: string | null
+          phone_verified?: boolean
+          phone_verified_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -970,6 +1000,8 @@ export type Database = {
       }
       is_admin_email: { Args: { _email: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      lookup_email_by_phone: { Args: { _phone: string }; Returns: string }
+      verify_phone_code: { Args: { _code: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "staff" | "customer"

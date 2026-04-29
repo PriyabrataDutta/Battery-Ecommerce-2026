@@ -28,7 +28,18 @@ const AdminLogin = () => {
     document.title = "Admin Login";
   }, []);
 
-  if (!loading && user && isStaff) {
+  // While auth is still resolving, render a stable loader instead of the form.
+  // Without this, the form mounts → useAuth resolves → redirect, causing a
+  // visible "dancing" flash of the login UI.
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-muted/40 via-background to-muted/40 p-4">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (user && isStaff) {
     return <Navigate to={next} replace />;
   }
 

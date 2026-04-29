@@ -914,12 +914,23 @@ const DeliveryStep = ({
   delivery,
   setDelivery,
   hasNotes,
+  deliveryDate,
+  setDeliveryDate,
+  slot,
+  setSlot,
+  scheduleError,
 }: {
   delivery: DeliveryId;
   setDelivery: (d: DeliveryId) => void;
   hasNotes: boolean;
+  deliveryDate: Date | undefined;
+  setDeliveryDate: (d: Date | undefined) => void;
+  slot: SlotId | "";
+  setSlot: (s: SlotId | "") => void;
+  scheduleError: string;
 }) => {
   const showNotesWarning = delivery === "installation" && !hasNotes;
+  const earliest = earliestDeliveryDate(delivery);
   return (
     <div>
       <div className="flex items-center gap-2">
@@ -972,6 +983,97 @@ const DeliveryStep = ({
           </div>
         </div>
       )}
+
+      {/* Schedule */}
+      <div className="mt-8 border-t border-line pt-6">
+        <div className="flex items-center gap-2">
+          <CalendarIcon className="h-5 w-5 text-primary" />
+          <h3 className="font-display-tight text-lg font-bold">Schedule your delivery</h3>
+        </div>
+        <p className="text-sm text-muted-foreground mt-1">
+          Earliest available date for this method:{" "}
+          <span className="font-semibold text-ink">{format(earliest, "EEE, dd MMM yyyy")}</span>
+          {delivery === "installation" && " · Sundays unavailable for installation"}
+        </p>
+
+        <div className="mt-4 grid sm:grid-cols-2 gap-4">
+          <div>
+            <Label className="text-xs font-display font-semibold uppercase tracking-wide">
+              Preferred date <span className="text-primary">*</span>
+            </Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "mt-1.5 w-full justify-start text-left font-normal",
+                    !deliveryDate && "text-muted-foreground",
+                  )}
+                  aria-invalid={!!scheduleError && !deliveryDate}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {deliveryDate
+                    ? format(deliveryDate, "EEE, dd MMM yyyy")
+                    : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={deliveryDate}
+                  onSelect={setDeliveryDate}
+                  disabled={(date) => isDateDisabled(date, delivery)}
+                  defaultMonth={deliveryDate ?? earliest}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div>
+            <Label className="text-xs font-display font-semibold uppercase tracking-wide">
+              Preferred time slot <span className="text-primary">*</span>
+            </Label>
+            <RadioGroup
+              value={slot}
+              onValueChange={(v) => setSlot(v as SlotId)}
+              className="mt-1.5 grid grid-cols-2 gap-2"
+            >
+              {TIME_SLOTS.map((s) => {
+                const active = slot === s.id;
+                return (
+                  <label
+                    key={s.id}
+                    htmlFor={`slot-${s.id}`}
+                    className={[
+                      "flex items-start gap-2 p-3 border cursor-pointer transition-colors text-left",
+                      active
+                        ? "border-primary bg-primary/5"
+                        : "border-line hover:border-ink-soft",
+                    ].join(" ")}
+                  >
+                    <RadioGroupItem id={`slot-${s.id}`} value={s.id} className="mt-0.5" />
+                    <div className="min-w-0">
+                      <div className="text-sm font-display font-semibold flex items-center gap-1">
+                        <Clock className="h-3 w-3 text-ink-soft" />
+                        {s.label}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">{s.window}</div>
+                    </div>
+                  </label>
+                );
+              })}
+            </RadioGroup>
+          </div>
+        </div>
+
+        {scheduleError && (
+          <p className="mt-3 text-xs text-destructive font-medium" role="alert">
+            {scheduleError}
+          </p>
+        )}
+      </div>
     </div>
   );
 };

@@ -62,7 +62,6 @@ const PANELS: Record<AdminTab, () => JSX.Element> = {
 
 const AdminLayout = () => {
   const { user } = useAuth();
-  const { pathname } = useLocation();
   const [role, setRole] = useState<string>("");
 
   useEffect(() => {

@@ -139,9 +139,8 @@ const AdminLogin = () => {
         </div>
 
         {params.get("reason") && (
-          <div className="mb-4 flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-400">
-            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-            <span>{params.get("reason")}</span>
+          <div className="mb-4">
+            <AccessExpired reason={params.get("reason")!} variant="banner" loginPath="#" />
           </div>
         )}
 

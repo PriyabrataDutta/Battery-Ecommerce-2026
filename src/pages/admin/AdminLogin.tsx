@@ -181,6 +181,22 @@ const AdminLogin = () => {
             />
           </div>
 
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="remember"
+              checked={remember}
+              onCheckedChange={(v) => setRemember(v === true)}
+            />
+            <Label htmlFor="remember" className="text-sm font-normal cursor-pointer select-none">
+              Remember me on this browser
+            </Label>
+          </div>
+          <p className="text-xs text-muted-foreground -mt-2">
+            {remember
+              ? "Stay signed in across browser restarts."
+              : "Sign out automatically when you close the browser or after 30 min idle."}
+          </p>
+
           {error && (
             <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />

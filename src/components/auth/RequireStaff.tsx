@@ -120,7 +120,7 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
         } else {
           await signOut();
         }
-        setForcedOut("Your session has expired. Please sign in again.");
+        setForcedOut("session-invalid");
         toast.error("Session expired", { description: "Please sign in again." });
         return;
       }

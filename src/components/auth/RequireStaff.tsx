@@ -19,7 +19,7 @@ const REVERIFY_INTERVAL_MS = 60_000; // re-check every 60s
 export function RequireStaff({ children }: { children: React.ReactNode }) {
   const { user, isStaff, loading, signOut } = useAuth();
   const location = useLocation();
-  const [forcedOut, setForcedOut] = useState<string | null>(null);
+  const [forcedOut, setForcedOut] = useState<AccessExpiredCause | null>(null);
 
   useEffect(() => {
     if (!user) return;

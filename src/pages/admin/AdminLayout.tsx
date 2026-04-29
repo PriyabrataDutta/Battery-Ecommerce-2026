@@ -185,8 +185,8 @@ const AdminLayout = () => {
               </div>
             </header>
 
-            <main className="flex-1 p-4 md:p-6 overflow-x-auto">
-              <Outlet />
+            <main key={tab} className="flex-1 p-4 md:p-6 overflow-x-auto">
+              <ActivePanel />
             </main>
 
             {/* Floating action stack */}

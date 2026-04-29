@@ -652,6 +652,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_order_status_counts: {
+        Args: never
+        Returns: {
+          status: string
+          value: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

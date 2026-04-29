@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatINR } from "@/lib/format";
 import { Package, MapPin, Heart, FileText, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAccountTab, type AccountTab } from "@/stores/dashboardTabs";
 
 interface OrderRow {
   id: string;
@@ -52,28 +53,30 @@ const AccountOverview = () => {
     })();
   }, [user]);
 
-  const tiles = [
-    { label: "Orders", value: counts.orders, icon: Package, to: "/account/orders" },
-    { label: "Addresses", value: counts.addresses, icon: MapPin, to: "/account/addresses" },
-    { label: "Wishlist", value: counts.wishlist, icon: Heart, to: "/account/wishlist" },
-    { label: "Quotes", value: counts.quotes, icon: FileText, to: "/account/quotes" },
+  const setTab = useAccountTab((s) => s.setTab);
+  const tiles: { label: string; value: number; icon: typeof Package; tab: AccountTab }[] = [
+    { label: "Orders", value: counts.orders, icon: Package, tab: "orders" },
+    { label: "Addresses", value: counts.addresses, icon: MapPin, tab: "addresses" },
+    { label: "Wishlist", value: counts.wishlist, icon: Heart, tab: "wishlist" },
+    { label: "Quotes", value: counts.quotes, icon: FileText, tab: "quotes" },
   ];
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {tiles.map((t) => (
-          <Link
+          <button
             key={t.label}
-            to={t.to}
-            className="bg-white border border-line p-4 hover:border-primary transition-colors group"
+            type="button"
+            onClick={() => setTab(t.tab)}
+            className="bg-white border border-line p-4 hover:border-primary transition-colors group text-left"
           >
             <t.icon className="h-5 w-5 text-primary" />
             <div className="mt-3 text-2xl font-display-tight font-bold">{t.value}</div>
             <div className="text-xs uppercase tracking-wider text-muted-foreground font-display font-semibold">
               {t.label}
             </div>
-          </Link>
+          </button>
         ))}
       </div>
 
@@ -82,10 +85,8 @@ const AccountOverview = () => {
           <h2 className="font-display font-bold uppercase tracking-wide text-sm">
             Recent orders
           </h2>
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/account/orders">
-              View all <ArrowRight className="h-3 w-3 ml-1" />
-            </Link>
+          <Button variant="ghost" size="sm" onClick={() => setTab("orders")}>
+            View all <ArrowRight className="h-3 w-3 ml-1" />
           </Button>
         </div>
         {orders === null ? (

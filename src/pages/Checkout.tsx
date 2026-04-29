@@ -180,6 +180,26 @@ const PAYMENT_OPTIONS: {
 
 const STEPS = ["Address", "Delivery", "Payment", "Review"] as const;
 
+/**
+ * Promo codes (frontend mockup). Each code applies to the cart subtotal,
+ * which then flows into GST and the final total.
+ *  - `percent`: % off subtotal
+ *  - `flat`: flat ₹ off subtotal
+ * `minSubtotal` lets us gate higher discounts behind a minimum order value.
+ */
+type Promo = {
+  code: string;
+  label: string;
+  type: "percent" | "flat";
+  value: number;
+  minSubtotal?: number;
+};
+const PROMO_CODES: Promo[] = [
+  { code: "KACHI10", label: "10% off your order", type: "percent", value: 10 },
+  { code: "FLAT500", label: "₹500 off orders above ₹5,000", type: "flat", value: 500, minSubtotal: 5000 },
+  { code: "FESTIVE15", label: "15% off orders above ₹8,000", type: "percent", value: 15, minSubtotal: 8000 },
+];
+
 const Checkout = () => {
   const navigate = useNavigate();
   const { items, subtotal, clear } = useCart();

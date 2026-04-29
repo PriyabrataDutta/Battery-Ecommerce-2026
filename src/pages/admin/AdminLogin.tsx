@@ -114,10 +114,13 @@ const AdminLogin = () => {
       );
     }
 
-    // Stage 6: Redirect (always /admin or explicit /admin/* next)
+    // Stage 6: Persist remember-me preference, then redirect
+    setRememberMe(remember);
     const target = next.startsWith("/admin") ? next : "/admin";
-    console.info("[AdminLogin] success — redirecting to", target);
-    toast.success("Welcome back");
+    console.info("[AdminLogin] success — redirecting to", target, { remember });
+    toast.success("Welcome back", {
+      description: remember ? "You'll stay signed in on this browser." : "Session-only login (30 min idle timeout).",
+    });
     setSubmitting(false);
     navigate(target, { replace: true });
   };

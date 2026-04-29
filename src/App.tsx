@@ -21,6 +21,7 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import AdminLogin from "./pages/admin/AdminLogin";
 import Dashboard from "./pages/admin/Dashboard";
 import AuditLog from "./pages/admin/AuditLog";
+import { PostLogoutRedirect } from "./components/auth/PostLogoutRedirect";
 import {
   AdminProducts,
   AdminOrders,

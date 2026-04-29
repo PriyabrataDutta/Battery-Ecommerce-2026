@@ -28,54 +28,88 @@ const AdminLogin = () => {
     return <Navigate to={next} replace />;
   }
 
+  const fail = (stageLabel: string, message: string, details?: unknown) => {
+    console.error(`[AdminLogin] ${stageLabel} failed:`, message, details ?? "");
+    setStage(stageLabel);
+    setError(message);
+    setSubmitting(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setStage(null);
     setSubmitting(true);
     const normalizedEmail = email.trim().toLowerCase();
+    console.info("[AdminLogin] attempt", { email: normalizedEmail });
 
+    // Stage 1: Email validation
     if (!normalizedEmail) {
-      setError("Please enter your admin email.");
-      setSubmitting(false);
-      return;
+      return fail("email-validation", "Please enter your admin email.");
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      return fail("email-validation", "Please enter a valid email address.");
+    }
+    if (!password) {
+      return fail("email-validation", "Please enter your password.");
     }
 
-    // Verify the email is registered as an admin BEFORE signing in
+    // Stage 2: Admin check
+    console.info("[AdminLogin] stage: admin-check");
     const { data: isAdmin, error: rpcError } = await supabase.rpc("is_admin_email", {
       _email: normalizedEmail,
     });
     if (rpcError) {
-      setError("Could not verify admin status. Please try again.");
-      setSubmitting(false);
-      return;
+      return fail(
+        "admin-check",
+        `Could not verify admin status: ${rpcError.message}`,
+        rpcError,
+      );
     }
     if (!isAdmin) {
-      setError("This email is not registered as an admin account.");
-      setSubmitting(false);
-      return;
+      return fail(
+        "admin-check",
+        "This email is not registered as an admin account. Use the customer sign-in instead.",
+      );
     }
 
+    // Stage 3: Sign in
+    console.info("[AdminLogin] stage: sign-in");
     const { error: signInError } = await signIn(normalizedEmail, password);
     if (signInError) {
-      setError(signInError);
-      setSubmitting(false);
-      return;
+      const lower = signInError.toLowerCase();
+      const friendly = lower.includes("invalid")
+        ? "Incorrect password for this admin account."
+        : lower.includes("confirm")
+          ? "This admin email has not been confirmed yet."
+          : signInError;
+      return fail("sign-in", friendly, signInError);
     }
-    // Double-check staff role on the resulting session
-    const { data: sessionData } = await supabase.auth.getSession();
+
+    // Stage 4: Session / staff verification
+    console.info("[AdminLogin] stage: session-verify");
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) {
+      return fail("session-verify", `Session error: ${sessionError.message}`, sessionError);
+    }
     const uid = sessionData.session?.user.id;
     if (!uid) {
-      setError("Sign-in failed. Please try again.");
-      setSubmitting(false);
-      return;
+      return fail("session-verify", "Sign-in succeeded but no session was returned.");
     }
-    const { data: staff } = await supabase.rpc("is_staff", { _user_id: uid });
+    const { data: staff, error: staffError } = await supabase.rpc("is_staff", { _user_id: uid });
+    if (staffError) {
+      return fail("session-verify", `Could not verify staff role: ${staffError.message}`, staffError);
+    }
     if (!staff) {
       await supabase.auth.signOut();
-      setError("This account doesn't have admin access.");
-      setSubmitting(false);
-      return;
+      return fail(
+        "session-verify",
+        "Signed in, but this account has no admin/staff role assigned.",
+      );
     }
+
+    // Stage 5: Redirect
+    console.info("[AdminLogin] success — redirecting to", next);
     toast.success("Welcome back");
     setSubmitting(false);
     navigate(next, { replace: true });

@@ -15,13 +15,45 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
     if (!user) return;
     let cancelled = false;
 
+    const auditAndSignOut = async (
+      action: "admin.session_expired" | "admin.access_revoked",
+      userId: string,
+      details: Record<string, unknown>,
+    ) => {
+      // Audit FIRST — admin_log() requires is_staff(auth.uid()), so we must
+      // log before signOut() invalidates the session.
+      try {
+        await supabase.rpc("admin_log", {
+          _action: action,
+          _entity_type: "session",
+          _entity_id: userId,
+          _diff: {
+            user_id: userId,
+            at: new Date().toISOString(),
+            path: location.pathname,
+            ...details,
+          },
+        });
+      } catch (e) {
+        console.error("[RequireStaff] audit log failed", e);
+      }
+      await signOut();
+    };
+
     const verify = async (reason: string) => {
       // 1. Server-verified session check
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       if (cancelled) return;
       if (sessionError || !sessionData.session) {
         console.warn("[RequireStaff] session invalid", { reason, sessionError });
-        await signOut();
+        if (user) {
+          await auditAndSignOut("admin.session_expired", user.id, {
+            reason,
+            error: sessionError?.message,
+          });
+        } else {
+          await signOut();
+        }
         setForcedOut("Your session has expired. Please sign in again.");
         toast.error("Session expired", { description: "Please sign in again." });
         return;
@@ -34,7 +66,10 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
       if (cancelled) return;
       if (staffError || !staff) {
         console.warn("[RequireStaff] staff role revoked", { reason, staffError });
-        await signOut();
+        await auditAndSignOut("admin.access_revoked", sessionData.session.user.id, {
+          reason,
+          error: staffError?.message,
+        });
         setForcedOut("Your admin access has been revoked.");
         toast.error("Access revoked", { description: "Your staff role is no longer active." });
       }

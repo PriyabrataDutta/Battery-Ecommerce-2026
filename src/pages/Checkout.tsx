@@ -424,6 +424,13 @@ const Checkout = () => {
   if (items.length === 0) {
     return <Navigate to="/cart" replace />;
   }
+  if (authLoading) {
+    return <div className="container-x py-20 text-center text-sm text-muted-foreground">Loading…</div>;
+  }
+  if (!user) {
+    // Customers must be signed in to place orders.
+    return <Navigate to="/auth?next=/checkout" replace />;
+  }
 
   /**
    * Run the zod schema. Notes requirements are no longer enforced here — they

@@ -96,7 +96,7 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
       sub.subscription.unsubscribe();
       window.removeEventListener("focus", onFocus);
     };
-  }, [user, signOut]);
+  }, [user, signOut, location.pathname]);
 
   if (loading) {
     return <div className="container-x py-20 text-center text-muted-foreground">Loading…</div>;

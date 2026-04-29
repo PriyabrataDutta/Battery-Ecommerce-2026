@@ -4,10 +4,22 @@ import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { RequireStaff } from "@/components/auth/RequireStaff";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Bell, ExternalLink, LogOut, MessageSquare, Settings as SettingsIcon } from "lucide-react";
+import { Bell, ExternalLink, LogOut, MessageSquare, Settings as SettingsIcon, ShieldOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { clearAdminSessionFlags } from "@/lib/adminSession";
 
 const titleMap: Record<string, { title: string; subtitle?: string }> = {
   "/admin": { title: "Sales Dashboard" },

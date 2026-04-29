@@ -192,7 +192,13 @@ const Auth = () => {
 
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-3 mt-4">
-                  <Input name="email" type="email" placeholder="Email" required autoComplete="email" />
+                  <Input
+                    name="identifier"
+                    type="text"
+                    placeholder="Email or mobile number"
+                    required
+                    autoComplete="username"
+                  />
                   <Input name="password" type="password" placeholder="Password" required autoComplete="current-password" />
                   <Button type="submit" className="w-full" disabled={busy}>
                     {busy && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
@@ -210,7 +216,15 @@ const Auth = () => {
 
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-3 mt-4">
-                  <Input name="fullName" placeholder="Full name" required maxLength={100} />
+                  <Input name="fullName" placeholder="Full name" required maxLength={100} autoComplete="name" />
+                  <Input
+                    name="phone"
+                    type="tel"
+                    inputMode="tel"
+                    placeholder="Mobile number (e.g. +91 98xxx xxxxx)"
+                    required
+                    autoComplete="tel"
+                  />
                   <Input name="email" type="email" placeholder="Email" required autoComplete="email" />
                   <Input name="password" type="password" placeholder="Password (min 6)" required autoComplete="new-password" />
                   <Button type="submit" className="w-full" disabled={busy}>

@@ -50,6 +50,7 @@ const App = () => (
             <Route path="/catalog" element={<Catalog />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/account" element={<AccountLayout />} />
           </Route>
           <Route element={<PostLogoutRedirect />}>

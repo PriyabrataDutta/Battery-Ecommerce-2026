@@ -551,9 +551,67 @@ const Checkout = () => {
     }
 
     setSubmitting(true);
-    // Frontend-only mockup — simulate order placement
-    await new Promise((r) => setTimeout(r, 1200));
     const orderNumber = `KCH-${Date.now().toString().slice(-8)}`;
+    const slotMeta = findSlot(slot)!;
+    const paymentMeta = PAYMENT_OPTIONS.find((p) => p.id === payment)!;
+    const scheduledDateOnly = format(deliveryDate!, "yyyy-MM-dd");
+
+    // Persist order in two writes: order header, then items. order_items has
+    // no unique constraint we can rely on for upsert, so a second insert is
+    // simplest. RLS guarantees user_id = auth.uid().
+    const { data: orderRow, error: orderErr } = await supabase
+      .from("orders")
+      .insert({
+        user_id: user!.id,
+        order_number: orderNumber,
+        status: "pending",
+        customer_name: ok.fullName,
+        customer_email: ok.email,
+        customer_phone: ok.phone,
+        address: { ...ok } as unknown as Record<string, unknown>,
+        notes: ok.notes || null,
+        subtotal,
+        discount,
+        tax,
+        shipping: deliveryOption.price,
+        total,
+        promo_code: appliedPromo?.code ?? null,
+        promo_label: appliedPromo?.label ?? null,
+        payment_method: paymentMeta.label,
+        delivery_method: deliveryOption.id,
+        delivery_label: deliveryOption.label,
+        scheduled_date: scheduledDateOnly,
+        scheduled_slot: slot,
+        scheduled_slot_label: slotMeta.label,
+        scheduled_slot_window: slotMeta.window,
+      })
+      .select("id, order_number")
+      .single();
+
+    if (orderErr || !orderRow) {
+      setSubmitting(false);
+      toast.error(orderErr?.message ?? "Could not place order. Please try again.");
+      return;
+    }
+
+    const itemRows = items.map((it) => ({
+      order_id: orderRow.id,
+      product_id: it.id,
+      product_name: it.name + (it.withExchange ? " (with exchange)" : ""),
+      product_sku: it.sku,
+      qty: it.qty,
+      unit_price: lineUnitPrice(it),
+    }));
+    const { error: itemsErr } = await supabase.from("order_items").insert(itemRows);
+    if (itemsErr) {
+      setSubmitting(false);
+      toast.error("Order placed but items failed to save: " + itemsErr.message);
+      return;
+    }
+
+    // Mirror to sessionStorage so the OrderConfirmation page can render
+    // immediately without re-fetching, and so guests who logged in mid-flow
+    // still see the success screen.
     const order = {
       orderNumber,
       placedAt: new Date().toISOString(),
@@ -568,10 +626,10 @@ const Checkout = () => {
         date: deliveryDate!.toISOString(),
         dateLabel: format(deliveryDate!, "EEE, dd MMM yyyy"),
         slot,
-        slotLabel: findSlot(slot)!.label,
-        slotWindow: findSlot(slot)!.window,
+        slotLabel: slotMeta.label,
+        slotWindow: slotMeta.window,
       },
-      payment: PAYMENT_OPTIONS.find((p) => p.id === payment)!,
+      payment: paymentMeta,
       totals: {
         subtotal,
         discount,

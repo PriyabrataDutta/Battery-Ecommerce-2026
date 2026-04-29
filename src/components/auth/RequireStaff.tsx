@@ -8,6 +8,8 @@ import {
   isIdleExpired,
   touchActivity,
   clearAdminSessionFlags,
+  setIdleTimeoutMinutes,
+  getIdleTimeoutMs,
 } from "@/lib/adminSession";
 
 const REVERIFY_INTERVAL_MS = 60_000; // re-check every 60s
@@ -20,6 +22,21 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
+
+    // Load admin idle-timeout override from site_settings (key: admin_idle_timeout_minutes).
+    // Failing silently keeps the 30-min default.
+    supabase
+      .from("site_settings")
+      .select("value")
+      .eq("key", "admin_idle_timeout_minutes")
+      .maybeSingle()
+      .then(({ data }) => {
+        const minutes = (data?.value as { minutes?: number } | null)?.minutes;
+        if (typeof minutes === "number" && minutes > 0) {
+          setIdleTimeoutMinutes(minutes);
+          console.info("[RequireStaff] idle timeout set to", getIdleTimeoutMs() / 60000, "min");
+        }
+      });
 
     const auditAndSignOut = async (
       action: "admin.session_expired" | "admin.access_revoked",

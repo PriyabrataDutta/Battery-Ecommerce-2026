@@ -15,7 +15,26 @@ const REMEMBER_KEY = "admin.remember_me";          // localStorage: "1" | absent
 const EPHEMERAL_KEY = "admin.session_ephemeral";    // sessionStorage marker
 const ACTIVITY_KEY = "admin.last_activity";         // localStorage timestamp
 
-export const IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+// Default 30 minutes. Override at runtime by writing a row to public.site_settings
+// with key='admin_idle_timeout_minutes' and value={"minutes": <number>}.
+const DEFAULT_IDLE_TIMEOUT_MS = 30 * 60 * 1000;
+const MIN_TIMEOUT_MS = 60 * 1000;          // 1 minute floor (sanity)
+const MAX_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hour ceiling
+
+let currentTimeoutMs = DEFAULT_IDLE_TIMEOUT_MS;
+
+export function getIdleTimeoutMs(): number {
+  return currentTimeoutMs;
+}
+
+export function setIdleTimeoutMinutes(minutes: number) {
+  if (typeof minutes !== "number" || !isFinite(minutes)) return;
+  const ms = minutes * 60 * 1000;
+  currentTimeoutMs = Math.min(MAX_TIMEOUT_MS, Math.max(MIN_TIMEOUT_MS, ms));
+}
+
+/** Back-compat constant — prefer getIdleTimeoutMs(). */
+export const IDLE_TIMEOUT_MS = DEFAULT_IDLE_TIMEOUT_MS;
 
 export function setRememberMe(remember: boolean) {
   if (remember) {
@@ -58,7 +77,7 @@ export function isIdleExpired(): boolean {
   if (isRemembered()) return false; // remembered sessions don't idle-expire
   const last = Number(localStorage.getItem(ACTIVITY_KEY) ?? 0);
   if (!last) return false;
-  return Date.now() - last > IDLE_TIMEOUT_MS;
+  return Date.now() - last > getIdleTimeoutMs();
 }
 
 export function clearAdminSessionFlags() {

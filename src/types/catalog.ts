@@ -1,0 +1,68 @@
+export type Money = number;
+
+export interface BatteryBrand {
+  id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+  description: string | null;
+}
+
+export interface CarBrand {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface CarModel {
+  id: string;
+  car_brand_id: string;
+  name: string;
+  slug: string;
+  years: string | null;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  image_url: string | null;
+  icon: string | null;
+}
+
+export interface Product {
+  id: string;
+  sku: string;
+  name: string;
+  slug: string;
+  brand_id: string | null;
+  category_id: string | null;
+  price: number;
+  mrp: number | null;
+  stock: number;
+  warranty_months: number | null;
+  capacity_ah: number | null;
+  short_description: string | null;
+  description: string | null;
+  specs: Record<string, string>;
+  badges: string[];
+  is_featured: boolean;
+  is_bestseller: boolean;
+  is_new: boolean;
+  is_on_sale: boolean;
+  status: string;
+  primary_image_url: string | null;
+  battery_brands?: BatteryBrand | null;
+  categories?: Category | null;
+}
+
+export interface CartItem {
+  id: string;
+  name: string;
+  slug: string;
+  sku: string;
+  price: number;
+  qty: number;
+  image: string | null;
+}

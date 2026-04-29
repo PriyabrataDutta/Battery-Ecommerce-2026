@@ -1,0 +1,77 @@
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ShoppingCart, FileText } from "lucide-react";
+import type { Product } from "@/types/catalog";
+import { formatINR, discountPct } from "@/lib/format";
+import { useCart } from "@/hooks/useCart";
+import { toast } from "sonner";
+
+export function ProductCard({ product }: { product: Product }) {
+  const { addItem } = useCart();
+  const dpct = discountPct(product.price, product.mrp);
+
+  const handleAdd = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addItem({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      sku: product.sku,
+      price: product.price,
+      image: product.primary_image_url,
+    });
+    toast.success("Added to cart", { description: product.name });
+  };
+
+  return (
+    <Link
+      to={`/product/${product.slug}`}
+      className="group bg-card border border-line hover:border-ink transition-all hover-lift flex flex-col overflow-hidden"
+    >
+      <div className="relative aspect-square bg-white overflow-hidden">
+        {product.primary_image_url && (
+          <img
+            src={product.primary_image_url}
+            alt={product.name}
+            loading="lazy"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        )}
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
+          {product.is_bestseller && <span className="badge-pill bg-ink text-white">Bestseller</span>}
+          {product.is_new && <span className="badge-pill bg-success text-white">New</span>}
+          {dpct && <span className="badge-pill bg-primary text-white">{dpct}% Off</span>}
+        </div>
+      </div>
+
+      <div className="p-4 flex-1 flex flex-col">
+        <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          {product.battery_brands?.name ?? "Genuine"}
+        </div>
+        <h3 className="mt-1 font-display font-medium text-base text-ink line-clamp-2 leading-snug">
+          {product.name}
+        </h3>
+        <div className="text-xs text-muted-foreground mt-1">SKU: {product.sku}</div>
+
+        <div className="mt-3 flex items-baseline gap-2">
+          <span className="font-display text-xl font-bold text-ink">{formatINR(product.price)}</span>
+          {product.mrp && product.mrp > product.price && (
+            <span className="text-xs text-muted-foreground line-through">{formatINR(product.mrp)}</span>
+          )}
+        </div>
+
+        <div className="mt-auto pt-3 grid grid-cols-2 gap-2">
+          <Button size="sm" variant="outline" className="text-xs" onClick={handleAdd}>
+            <ShoppingCart className="h-3.5 w-3.5 mr-1" /> Add
+          </Button>
+          <Button asChild size="sm" className="text-xs">
+            <Link to="/quote" onClick={(e) => e.stopPropagation()}>
+              <FileText className="h-3.5 w-3.5 mr-1" /> Quote
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </Link>
+  );
+}

@@ -1,0 +1,200 @@
+import { Link, NavLink } from "react-router-dom";
+import { Search, ShoppingCart, User, Menu, Phone, MessageCircle, ChevronDown, X } from "lucide-react";
+import { useState } from "react";
+import logo from "@/assets/kachi-logo.png";
+import { useCart } from "@/hooks/useCart";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
+
+const mainNav = [
+  { label: "Home", to: "/" },
+  { label: "Brands", to: "/brands" },
+  { label: "Jump Start", to: "/jump-start" },
+  { label: "Blog", to: "/blog" },
+  { label: "About", to: "/about" },
+  { label: "Contact", to: "/contact" },
+];
+
+export function Header() {
+  const { count } = useCart();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const navigate = useNavigate();
+
+  const onSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (search.trim()) navigate(`/shop?q=${encodeURIComponent(search.trim())}`);
+  };
+
+  return (
+    <header className="sticky top-0 z-40 bg-white border-b border-line">
+      {/* Utility bar */}
+      <div className="bg-ink text-white text-xs">
+        <div className="container-x flex items-center justify-between h-9">
+          <div className="hidden sm:flex items-center gap-4">
+            <a href="tel:+919999999999" className="flex items-center gap-1.5 hover:text-primary transition-colors">
+              <Phone className="h-3 w-3" /> +91 99999 99999
+            </a>
+            <a href="https://wa.me/919999999999" target="_blank" rel="noopener" className="flex items-center gap-1.5 hover:text-primary transition-colors">
+              <MessageCircle className="h-3 w-3" /> WhatsApp
+            </a>
+          </div>
+          <div className="flex items-center gap-4 ml-auto">
+            <Link to="/quote" className="hover:text-primary">Have a Question?</Link>
+            <Link to="/auth" className="hover:text-primary">Sign in</Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Main header */}
+      <div className="container-x flex items-center gap-4 lg:gap-8 h-20">
+        <Link to="/" className="flex-shrink-0">
+          <img src={logo} alt="Kachi Batteries" className="h-12 w-auto" />
+        </Link>
+
+        <form onSubmit={onSearch} className="hidden md:flex flex-1 max-w-2xl relative">
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search batteries, brands, models..."
+            className="h-11 pr-12 border-line focus-visible:ring-primary"
+          />
+          <button type="submit" className="absolute right-0 top-0 h-11 w-11 grid place-items-center text-ink hover:text-primary">
+            <Search className="h-5 w-5" />
+          </button>
+        </form>
+
+        <div className="ml-auto flex items-center gap-2">
+          <Button asChild variant="ghost" size="icon" className="hidden sm:inline-flex">
+            <Link to="/account" aria-label="Account">
+              <User className="h-5 w-5" />
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" size="icon" className="relative">
+            <Link to="/cart" aria-label="Cart">
+              <ShoppingCart className="h-5 w-5" />
+              {count > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full h-5 min-w-5 px-1 grid place-items-center">
+                  {count}
+                </span>
+              )}
+            </Link>
+          </Button>
+          <Button asChild className="hidden lg:inline-flex" size="sm">
+            <Link to="/quote">Request Call Back</Link>
+          </Button>
+          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menu">
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+        </div>
+      </div>
+
+      {/* Main menu */}
+      <nav className="hidden lg:block border-t border-line bg-white">
+        <div className="container-x flex items-center gap-1 h-12">
+          {mainNav.slice(0, 1).map((item) => (
+            <NavLink key={item.to} to={item.to} className={({ isActive }) => `px-4 h-12 inline-flex items-center text-sm font-medium hover:text-primary transition-colors ${isActive ? "text-primary" : "text-ink"}`}>
+              {item.label}
+            </NavLink>
+          ))}
+
+          {/* Shop with mega menu */}
+          <div className="relative" onMouseEnter={() => setShopOpen(true)} onMouseLeave={() => setShopOpen(false)}>
+            <button className="px-4 h-12 inline-flex items-center gap-1 text-sm font-medium text-ink hover:text-primary">
+              Shop <ChevronDown className="h-3.5 w-3.5" />
+            </button>
+            {shopOpen && (
+              <div className="absolute left-0 top-full bg-white border border-line shadow-elevated w-[640px] p-6 grid grid-cols-3 gap-6 animate-fade-in z-50">
+                <MegaCol title="Car Batteries" items={[
+                  { label: "All Car Batteries", to: "/category/car-batteries" },
+                  { label: "Sedans & SUVs", to: "/shop?type=car-batteries" },
+                  { label: "Hatchbacks", to: "/shop?type=car-batteries" },
+                ]} />
+                <MegaCol title="Inverter & UPS" items={[
+                  { label: "All Inverter Batteries", to: "/category/inverter-ups" },
+                  { label: "Tubular", to: "/category/tubular" },
+                  { label: "SMF", to: "/category/smf" },
+                  { label: "Lithium", to: "/category/lithium" },
+                ]} />
+                <MegaCol title="Battery by Brand" items={[
+                  { label: "Amaron", to: "/brand/amaron" },
+                  { label: "Exide", to: "/brand/exide" },
+                  { label: "Power Zone", to: "/brand/power-zone" },
+                  { label: "Elito", to: "/brand/elito" },
+                ]} />
+              </div>
+            )}
+          </div>
+
+          {mainNav.slice(1).map((item) => (
+            <NavLink key={item.to} to={item.to} className={({ isActive }) => `px-4 h-12 inline-flex items-center text-sm font-medium hover:text-primary transition-colors ${isActive ? "text-primary" : "text-ink"}`}>
+              {item.label}
+            </NavLink>
+          ))}
+          <NavLink to="/category/clearance" className="ml-auto px-4 h-12 inline-flex items-center text-sm font-bold text-primary uppercase tracking-wide">
+            Clearance Sale
+          </NavLink>
+        </div>
+      </nav>
+
+      {/* Mobile drawer */}
+      {mobileOpen && (
+        <div className="lg:hidden border-t border-line bg-white animate-fade-in">
+          <form onSubmit={onSearch} className="p-4 border-b border-line">
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search..." />
+          </form>
+          <div className="flex flex-col py-2">
+            <MobileLink to="/" label="Home" onClick={() => setMobileOpen(false)} />
+            <MobileLink to="/shop" label="Shop" onClick={() => setMobileOpen(false)} />
+            <MobileLink to="/brands" label="Brands" onClick={() => setMobileOpen(false)} />
+            <MobileLink to="/jump-start" label="Jump Start" onClick={() => setMobileOpen(false)} />
+            <MobileLink to="/blog" label="Blog" onClick={() => setMobileOpen(false)} />
+            <MobileLink to="/about" label="About" onClick={() => setMobileOpen(false)} />
+            <MobileLink to="/contact" label="Contact" onClick={() => setMobileOpen(false)} />
+            <MobileLink to="/category/clearance" label="Clearance Sale" highlight onClick={() => setMobileOpen(false)} />
+            <div className="p-4 border-t border-line">
+              <Button asChild className="w-full">
+                <Link to="/quote" onClick={() => setMobileOpen(false)}>Request Call Back</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}
+
+function MegaCol({ title, items }: { title: string; items: { label: string; to: string }[] }) {
+  return (
+    <div>
+      <h4 className="text-xs font-bold uppercase tracking-wider text-primary mb-3">{title}</h4>
+      <ul className="space-y-2">
+        {items.map((it) => (
+          <li key={it.to + it.label}>
+            <Link to={it.to} className="text-sm text-ink-soft hover:text-primary transition-colors">
+              {it.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function MobileLink({ to, label, highlight, onClick }: { to: string; label: string; highlight?: boolean; onClick: () => void }) {
+  return (
+    <NavLink
+      to={to}
+      onClick={onClick}
+      className={({ isActive }) =>
+        `px-4 py-3 text-sm font-medium border-b border-line ${
+          highlight ? "text-primary uppercase tracking-wide" : isActive ? "text-primary" : "text-ink"
+        }`
+      }
+    >
+      {label}
+    </NavLink>
+  );
+}

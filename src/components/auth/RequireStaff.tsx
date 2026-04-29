@@ -148,6 +148,12 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
     // React to auth events (token refresh failures, sign-out from another tab)
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_OUT" || (event === "TOKEN_REFRESHED" && !session)) {
+        // Intentional logout (user clicked the Sign out button) → just redirect
+        // back to the login page, don't show the "Access expired" banner.
+        if (consumeIntentionalSignOut()) {
+          setForcedOut(null);
+          return;
+        }
         setForcedOut("Your session has expired. Please sign in again.");
       }
     });

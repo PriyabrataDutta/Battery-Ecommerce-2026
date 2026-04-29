@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ShieldCheck, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { setRememberMe } from "@/lib/adminSession";
 
 const AdminLogin = () => {
   const { user, isStaff, loading, signIn } = useAuth();
@@ -16,6 +18,7 @@ const AdminLogin = () => {
   const next = params.get("next") || "/admin";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [stage, setStage] = useState<string | null>(null);
@@ -111,10 +114,13 @@ const AdminLogin = () => {
       );
     }
 
-    // Stage 6: Redirect (always /admin or explicit /admin/* next)
+    // Stage 6: Persist remember-me preference, then redirect
+    setRememberMe(remember);
     const target = next.startsWith("/admin") ? next : "/admin";
-    console.info("[AdminLogin] success — redirecting to", target);
-    toast.success("Welcome back");
+    console.info("[AdminLogin] success — redirecting to", target, { remember });
+    toast.success("Welcome back", {
+      description: remember ? "You'll stay signed in on this browser." : "Session-only login (30 min idle timeout).",
+    });
     setSubmitting(false);
     navigate(target, { replace: true });
   };
@@ -174,6 +180,22 @@ const AdminLogin = () => {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
+
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="remember"
+              checked={remember}
+              onCheckedChange={(v) => setRemember(v === true)}
+            />
+            <Label htmlFor="remember" className="text-sm font-normal cursor-pointer select-none">
+              Remember me on this browser
+            </Label>
+          </div>
+          <p className="text-xs text-muted-foreground -mt-2">
+            {remember
+              ? "Stay signed in across browser restarts."
+              : "Sign out automatically when you close the browser or after 30 min idle."}
+          </p>
 
           {error && (
             <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">

@@ -4,10 +4,22 @@ import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { RequireStaff } from "@/components/auth/RequireStaff";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Bell, ExternalLink, LogOut, MessageSquare, Settings as SettingsIcon } from "lucide-react";
+import { Bell, ExternalLink, LogOut, MessageSquare, Settings as SettingsIcon, ShieldOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { clearAdminSessionFlags } from "@/lib/adminSession";
 
 const titleMap: Record<string, { title: string; subtitle?: string }> = {
   "/admin": { title: "Sales Dashboard" },
@@ -92,7 +104,55 @@ const AdminLayout = () => {
                   <Button asChild variant="ghost" size="icon" className="hidden sm:inline-flex">
                     <Link to="/" target="_blank" aria-label="View store"><ExternalLink className="h-4 w-4" /></Link>
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={signOut} aria-label="Sign out">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" aria-label="Sign out from all devices" title="Sign out everywhere">
+                        <ShieldOff className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Sign out from all devices?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will revoke every active session for your admin account on every browser and device.
+                          You'll need to sign in again everywhere.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={async () => {
+                            try {
+                              if (user) {
+                                await supabase.rpc("admin_log", {
+                                  _action: "admin.global_signout",
+                                  _entity_type: "session",
+                                  _entity_id: user.id,
+                                  _diff: { user_id: user.id, at: new Date().toISOString() },
+                                });
+                              }
+                            } catch (e) {
+                              console.error("[AdminLayout] global signout audit failed", e);
+                            }
+                            await supabase.auth.signOut({ scope: "global" });
+                            clearAdminSessionFlags();
+                            toast.success("Signed out from all devices");
+                          }}
+                        >
+                          Sign out everywhere
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={async () => {
+                      await signOut();
+                      clearAdminSessionFlags();
+                    }}
+                    aria-label="Sign out"
+                  >
                     <LogOut className="h-4 w-4" />
                   </Button>
                 </div>

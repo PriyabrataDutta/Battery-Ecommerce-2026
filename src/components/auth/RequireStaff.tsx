@@ -3,6 +3,12 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  isOrphanedEphemeralSession,
+  isIdleExpired,
+  touchActivity,
+  clearAdminSessionFlags,
+} from "@/lib/adminSession";
 
 const REVERIFY_INTERVAL_MS = 60_000; // re-check every 60s
 
@@ -41,6 +47,33 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
     };
 
     const verify = async (reason: string) => {
+      // 0. Client-side ephemeral / idle checks (cheap, run first)
+      if (isOrphanedEphemeralSession()) {
+        console.warn("[RequireStaff] orphaned ephemeral session — browser was closed");
+        if (user) {
+          await auditAndSignOut("admin.session_expired", user.id, {
+            reason: "ephemeral-orphan",
+          });
+        } else {
+          await signOut();
+        }
+        clearAdminSessionFlags();
+        setForcedOut("You were signed out because the browser was closed.");
+        return;
+      }
+      if (isIdleExpired()) {
+        console.warn("[RequireStaff] idle timeout exceeded");
+        if (user) {
+          await auditAndSignOut("admin.session_expired", user.id, { reason: "idle-timeout" });
+        } else {
+          await signOut();
+        }
+        clearAdminSessionFlags();
+        setForcedOut("You were signed out after 30 minutes of inactivity.");
+        toast.error("Idle timeout", { description: "Please sign in again." });
+        return;
+      }
+
       // 1. Server-verified session check
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       if (cancelled) return;
@@ -90,11 +123,27 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
     const onFocus = () => verify("focus");
     window.addEventListener("focus", onFocus);
 
+    // Track user activity for idle-timeout (throttled to 1/30s)
+    let lastTouch = 0;
+    const onActivity = () => {
+      const now = Date.now();
+      if (now - lastTouch > 30_000) {
+        lastTouch = now;
+        touchActivity();
+      }
+    };
+    window.addEventListener("mousemove", onActivity);
+    window.addEventListener("keydown", onActivity);
+    window.addEventListener("click", onActivity);
+
     return () => {
       cancelled = true;
       window.clearInterval(interval);
       sub.subscription.unsubscribe();
       window.removeEventListener("focus", onFocus);
+      window.removeEventListener("mousemove", onActivity);
+      window.removeEventListener("keydown", onActivity);
+      window.removeEventListener("click", onActivity);
     };
   }, [user, signOut, location.pathname]);
 

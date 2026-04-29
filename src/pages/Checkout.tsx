@@ -793,6 +793,12 @@ const ReviewStep = ({
           <div className="mt-1 text-muted-foreground">
             {address.phone} · {address.email}
           </div>
+          {address.gstin && (
+            <div className="mt-1 text-xs">
+              <span className="text-muted-foreground">GSTIN:</span>{" "}
+              <span className="font-mono font-semibold tracking-wider">{address.gstin}</span>
+            </div>
+          )}
           {address.notes && (
             <div className="mt-2 text-xs italic text-muted-foreground">"{address.notes}"</div>
           )}

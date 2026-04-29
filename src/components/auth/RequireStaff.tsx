@@ -102,7 +102,7 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
           await signOut();
         }
         clearAdminSessionFlags();
-        setForcedOut("You were signed out after 30 minutes of inactivity.");
+        setForcedOut("idle-timeout");
         toast.error("Idle timeout", { description: "Please sign in again." });
         return;
       }

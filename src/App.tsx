@@ -69,6 +69,7 @@ const App = () => (
             <Route path="quotes" element={<AdminQuotes />} />
             <Route path="messages" element={<AdminMessages />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="audit-log" element={<AuditLog />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

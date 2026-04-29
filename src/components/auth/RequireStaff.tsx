@@ -3,7 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AccessExpired } from "@/components/auth/AccessExpired";
+import { AccessExpired, type AccessExpiredCause } from "@/components/auth/AccessExpired";
 import {
   isOrphanedEphemeralSession,
   isIdleExpired,
@@ -19,7 +19,7 @@ const REVERIFY_INTERVAL_MS = 60_000; // re-check every 60s
 export function RequireStaff({ children }: { children: React.ReactNode }) {
   const { user, isStaff, loading, signOut } = useAuth();
   const location = useLocation();
-  const [forcedOut, setForcedOut] = useState<string | null>(null);
+  const [forcedOut, setForcedOut] = useState<AccessExpiredCause | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -91,7 +91,7 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
           await signOut();
         }
         clearAdminSessionFlags();
-        setForcedOut("You were signed out because the browser was closed.");
+        setForcedOut("ephemeral-orphan");
         return;
       }
       if (isIdleExpired()) {
@@ -102,7 +102,7 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
           await signOut();
         }
         clearAdminSessionFlags();
-        setForcedOut("You were signed out after 30 minutes of inactivity.");
+        setForcedOut("idle-timeout");
         toast.error("Idle timeout", { description: "Please sign in again." });
         return;
       }
@@ -120,7 +120,7 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
         } else {
           await signOut();
         }
-        setForcedOut("Your session has expired. Please sign in again.");
+        setForcedOut("session-invalid");
         toast.error("Session expired", { description: "Please sign in again." });
         return;
       }
@@ -136,7 +136,7 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
           reason,
           error: staffError?.message,
         });
-        setForcedOut("Your admin access has been revoked.");
+        setForcedOut("role-revoked");
         toast.error("Access revoked", { description: "Your staff role is no longer active." });
       }
     };
@@ -154,7 +154,7 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
           setForcedOut(null);
           return;
         }
-        setForcedOut("Your session has expired. Please sign in again.");
+        setForcedOut("token-refresh");
       }
     });
 
@@ -194,7 +194,7 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
   // before the user re-authenticates. Same component is reused inside AdminLogin
   // as a banner for consistent messaging.
   if (forcedOut) {
-    return <AccessExpired reason={forcedOut} />;
+    return <AccessExpired cause={forcedOut} />;
   }
 
   if (!user || !isStaff) {

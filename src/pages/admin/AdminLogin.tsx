@@ -18,6 +18,7 @@ const AdminLogin = () => {
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [stage, setStage] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = "Admin Login";

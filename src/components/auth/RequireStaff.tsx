@@ -3,6 +3,12 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  isOrphanedEphemeralSession,
+  isIdleExpired,
+  touchActivity,
+  clearAdminSessionFlags,
+} from "@/lib/adminSession";
 
 const REVERIFY_INTERVAL_MS = 60_000; // re-check every 60s
 

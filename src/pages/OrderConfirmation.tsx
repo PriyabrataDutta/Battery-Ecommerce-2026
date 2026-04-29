@@ -12,6 +12,7 @@ import {
   ArrowRight,
   ShieldCheck,
   CalendarClock,
+  Tag,
 } from "lucide-react";
 import { lineKey } from "@/hooks/useCart";
 

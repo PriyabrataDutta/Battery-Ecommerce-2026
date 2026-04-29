@@ -30,13 +30,28 @@ const AdminLogin = () => {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
+    // Verify the email is registered as an admin BEFORE signing in
+    const { data: isAdmin, error: rpcError } = await supabase.rpc("is_admin_email", {
+      _email: email,
+    });
+    if (rpcError) {
+      setError("Could not verify admin status. Please try again.");
+      setSubmitting(false);
+      return;
+    }
+    if (!isAdmin) {
+      setError("This email is not registered as an admin account.");
+      setSubmitting(false);
+      return;
+    }
+
     const { error: signInError } = await signIn(email, password);
     if (signInError) {
       setError(signInError);
       setSubmitting(false);
       return;
     }
-    // Verify staff role
+    // Double-check staff role on the resulting session
     const { data: sessionData } = await supabase.auth.getSession();
     const uid = sessionData.session?.user.id;
     if (!uid) {

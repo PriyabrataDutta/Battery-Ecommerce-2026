@@ -43,7 +43,14 @@ interface SavedOrder {
   };
   delivery: { id: string; label: string; eta: string; price: number };
   payment: { id: string; label: string; hint: string };
-  totals: { subtotal: number; tax: number; shipping: number; total: number };
+  totals: {
+    subtotal: number;
+    discount?: number;
+    promo?: { code: string; label: string } | null;
+    tax: number;
+    shipping: number;
+    total: number;
+  };
 }
 
 const OrderConfirmation = () => {

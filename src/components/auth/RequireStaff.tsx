@@ -194,7 +194,7 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
   // before the user re-authenticates. Same component is reused inside AdminLogin
   // as a banner for consistent messaging.
   if (forcedOut) {
-    return <AccessExpired reason={forcedOut} />;
+    return <AccessExpired cause={forcedOut} />;
   }
 
   if (!user || !isStaff) {

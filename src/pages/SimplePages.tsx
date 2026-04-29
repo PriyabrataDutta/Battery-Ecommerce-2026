@@ -30,11 +30,3 @@ export const Catalog = () => (
 export const Blog = () => (
   <SimplePage title="Blog & Resources" body={<p>Articles, guides and battery tips — coming soon.</p>} />
 );
-
-export const Auth = () => (
-  <SimplePage title="Sign In" body={<p>Authentication coming soon. For now, you can browse the store, place quote requests, and contact us without an account.</p>} />
-);
-
-export const Account = () => (
-  <SimplePage title="My Account" body={<p>Sign in to view your orders. Coming soon.</p>} />
-);

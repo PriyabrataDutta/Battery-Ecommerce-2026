@@ -124,11 +124,23 @@ const AdminLayout = () => {
                           onClick={async () => {
                             try {
                               if (user) {
+                                let ip = "unknown";
+                                try {
+                                  const { data } = await supabase.functions.invoke("client-ip");
+                                  ip = (data as { ip?: string })?.ip ?? "unknown";
+                                } catch {
+                                  /* non-fatal */
+                                }
                                 await supabase.rpc("admin_log", {
                                   _action: "admin.global_signout",
                                   _entity_type: "session",
                                   _entity_id: user.id,
-                                  _diff: { user_id: user.id, at: new Date().toISOString() },
+                                  _diff: {
+                                    user_id: user.id,
+                                    at: new Date().toISOString(),
+                                    ip,
+                                    user_agent: navigator.userAgent,
+                                  },
                                 });
                               }
                             } catch (e) {

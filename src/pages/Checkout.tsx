@@ -365,7 +365,16 @@ const Checkout = () => {
       address: ok,
       delivery: deliveryOption,
       payment: PAYMENT_OPTIONS.find((p) => p.id === payment)!,
-      totals: { subtotal, tax, shipping: deliveryOption.price, total },
+      totals: {
+        subtotal,
+        discount,
+        promo: appliedPromo
+          ? { code: appliedPromo.code, label: appliedPromo.label }
+          : null,
+        tax,
+        shipping: deliveryOption.price,
+        total,
+      },
     };
     sessionStorage.setItem("kachi_last_order", JSON.stringify(order));
     clear();

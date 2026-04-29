@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, Navigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -9,13 +9,26 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
+const phoneRegex = /^\+?\d{10,15}$/;
+
 const signInSchema = z.object({
-  email: z.string().trim().email("Invalid email").max(255),
+  identifier: z
+    .string()
+    .trim()
+    .min(1, "Enter your email or mobile")
+    .max(255),
   password: z.string().min(6, "Min 6 characters").max(72),
 });
 
-const signUpSchema = signInSchema.extend({
+const signUpSchema = z.object({
   fullName: z.string().trim().min(1, "Full name required").max(100),
+  phone: z
+    .string()
+    .trim()
+    .transform((v) => (v.startsWith("+") ? v : `+91${v.replace(/\D/g, "")}`))
+    .pipe(z.string().regex(phoneRegex, "Enter a valid mobile (10-15 digits)")),
+  email: z.string().trim().email("Invalid email").max(255),
+  password: z.string().min(6, "Min 6 characters").max(72),
 });
 
 const emailOnlySchema = z.object({

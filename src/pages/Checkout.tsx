@@ -209,15 +209,69 @@ const Checkout = () => {
   const [delivery, setDelivery] = useState<DeliveryId>("standard");
   const [payment, setPayment] = useState<PaymentId>("upi");
   const [submitting, setSubmitting] = useState(false);
+  const [promoInput, setPromoInput] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<Promo | null>(null);
+  const [promoError, setPromoError] = useState<string>("");
 
   const deliveryOption = useMemo(
     () => DELIVERY_OPTIONS.find((o) => o.id === delivery)!,
     [delivery],
   );
 
-  // GST 18% on goods only (typical for batteries in India). Frontend mockup math.
-  const tax = useMemo(() => Math.round(subtotal * 0.18), [subtotal]);
-  const total = subtotal + tax + deliveryOption.price;
+  // Discount applies to subtotal. GST recomputes against the discounted
+  // subtotal so the customer also saves the tax on the discounted amount.
+  const discount = useMemo(() => {
+    if (!appliedPromo) return 0;
+    if (appliedPromo.minSubtotal && subtotal < appliedPromo.minSubtotal) return 0;
+    const raw =
+      appliedPromo.type === "percent"
+        ? Math.round((subtotal * appliedPromo.value) / 100)
+        : appliedPromo.value;
+    // Never let discount exceed subtotal.
+    return Math.min(raw, subtotal);
+  }, [appliedPromo, subtotal]);
+
+  const discountedSubtotal = Math.max(0, subtotal - discount);
+  const tax = useMemo(() => Math.round(discountedSubtotal * 0.18), [discountedSubtotal]);
+  const total = discountedSubtotal + tax + deliveryOption.price;
+
+  // If cart drops below the promo's minimum after edits, auto-clear it.
+  if (appliedPromo?.minSubtotal && subtotal < appliedPromo.minSubtotal && discount === 0) {
+    // schedule clear in microtask to avoid setState during render
+    queueMicrotask(() => {
+      setAppliedPromo(null);
+      setPromoError(`"${appliedPromo.code}" requires a minimum subtotal of ${formatINR(appliedPromo.minSubtotal!)}.`);
+    });
+  }
+
+  const applyPromo = () => {
+    setPromoError("");
+    const code = promoInput.trim().toUpperCase();
+    if (!code) {
+      setPromoError("Enter a promo code.");
+      return;
+    }
+    const match = PROMO_CODES.find((p) => p.code === code);
+    if (!match) {
+      setPromoError("Invalid promo code.");
+      return;
+    }
+    if (match.minSubtotal && subtotal < match.minSubtotal) {
+      setPromoError(
+        `This code requires a minimum subtotal of ${formatINR(match.minSubtotal)}.`,
+      );
+      return;
+    }
+    setAppliedPromo(match);
+    setPromoInput("");
+    toast.success(`Promo "${match.code}" applied — ${match.label}`);
+  };
+
+  const removePromo = () => {
+    setAppliedPromo(null);
+    setPromoError("");
+    toast.message("Promo code removed");
+  };
 
   if (items.length === 0) {
     return <Navigate to="/cart" replace />;

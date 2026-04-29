@@ -1211,6 +1211,15 @@ const ReviewStep = ({
             {delivery.price === 0 ? <span className="text-success">FREE</span> : formatINR(delivery.price)}
           </div>
         </div>
+        {schedule && (
+          <div className="mt-3 pt-3 border-t border-line text-sm flex items-center gap-2 text-muted-foreground">
+            <CalendarIcon className="h-4 w-4 text-primary shrink-0" />
+            <span>
+              <span className="font-semibold text-ink">{schedule.dateLabel}</span> ·{" "}
+              {schedule.slotLabel} ({schedule.slotWindow})
+            </span>
+          </div>
+        )}
       </ReviewBlock>
 
       <ReviewBlock title="Payment" icon={payment.icon}>

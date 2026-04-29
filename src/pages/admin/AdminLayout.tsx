@@ -20,6 +20,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { clearAdminSessionFlags, markIntentionalSignOut } from "@/lib/adminSession";
+import { performAdminLogout } from "@/components/auth/PostLogoutRedirect";
 
 const titleMap: Record<string, { title: string; subtitle?: string }> = {
   "/admin": { title: "Sales Dashboard" },

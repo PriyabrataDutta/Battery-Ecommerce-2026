@@ -3,6 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { AccessExpired } from "@/components/auth/AccessExpired";
 import {
   isOrphanedEphemeralSession,
   isIdleExpired,
@@ -167,12 +168,18 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
   if (loading) {
     return <div className="container-x py-20 text-center text-muted-foreground">Loading…</div>;
   }
-  if (!user || !isStaff || forcedOut) {
+
+  // Forced out (idle, revoked, expired) → show the reusable AccessExpired page
+  // before the user re-authenticates. Same component is reused inside AdminLogin
+  // as a banner for consistent messaging.
+  if (forcedOut) {
+    return <AccessExpired reason={forcedOut} />;
+  }
+
+  if (!user || !isStaff) {
     return (
       <Navigate
-        to={`/admin/login?next=${encodeURIComponent(location.pathname)}${
-          forcedOut ? `&reason=${encodeURIComponent(forcedOut)}` : ""
-        }`}
+        to={`/admin/login?next=${encodeURIComponent(location.pathname)}`}
         replace
       />
     );

@@ -527,8 +527,28 @@ const Checkout = () => {
           {step === 1 && (
             <DeliveryStep
               delivery={delivery}
-              setDelivery={setDelivery}
+              setDelivery={(d) => {
+                setDelivery(d);
+                // If the previously chosen date is no longer valid for the new
+                // method, drop it so the user must reconfirm.
+                if (deliveryDate && isDateDisabled(deliveryDate, d)) {
+                  setDeliveryDate(undefined);
+                  setSlot("");
+                }
+                setScheduleError("");
+              }}
               hasNotes={address.notes.trim().length >= 10}
+              deliveryDate={deliveryDate}
+              setDeliveryDate={(d) => {
+                setDeliveryDate(d);
+                setScheduleError("");
+              }}
+              slot={slot}
+              setSlot={(s) => {
+                setSlot(s);
+                setScheduleError("");
+              }}
+              scheduleError={scheduleError}
             />
           )}
           {step === 2 && (
@@ -540,6 +560,15 @@ const Checkout = () => {
               address={address}
               delivery={deliveryOption}
               payment={PAYMENT_OPTIONS.find((p) => p.id === payment)!}
+              schedule={
+                deliveryDate && slot
+                  ? {
+                      dateLabel: format(deliveryDate, "EEE, dd MMM yyyy"),
+                      slotLabel: TIME_SLOTS.find((s) => s.id === slot)!.label,
+                      slotWindow: TIME_SLOTS.find((s) => s.id === slot)!.window,
+                    }
+                  : null
+              }
             />
           )}
 

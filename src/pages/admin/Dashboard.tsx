@@ -114,12 +114,12 @@ const Dashboard = () => {
   const { data: statusDist = [] } = useQuery({
     queryKey: ["admin-status-dist"],
     queryFn: async () => {
-      const { data } = await supabase.from("orders").select("status");
-      const counts: Record<string, number> = {};
-      (data ?? []).forEach((o: any) => {
-        counts[o.status] = (counts[o.status] ?? 0) + 1;
-      });
-      let entries = Object.entries(counts).map(([name, value]) => ({ name, value }));
+      const { data, error } = await supabase.rpc("admin_order_status_counts");
+      if (error) throw error;
+      let entries = (data ?? []).map((r: any) => ({
+        name: r.status as string,
+        value: Number(r.value),
+      }));
       if (entries.length === 0) {
         entries = [
           { name: "ordered", value: 7 },

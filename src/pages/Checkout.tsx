@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, Navigate } from "react-router-dom";
-import { format, addDays, isSameDay } from "date-fns";
+import { format, addDays } from "date-fns";
 import { useCart, lineKey, lineUnitPrice } from "@/hooks/useCart";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

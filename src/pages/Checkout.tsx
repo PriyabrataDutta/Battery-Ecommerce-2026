@@ -519,8 +519,8 @@ const Checkout = () => {
         date: deliveryDate!.toISOString(),
         dateLabel: format(deliveryDate!, "EEE, dd MMM yyyy"),
         slot,
-        slotLabel: TIME_SLOTS.find((s) => s.id === slot)!.label,
-        slotWindow: TIME_SLOTS.find((s) => s.id === slot)!.window,
+        slotLabel: findSlot(slot)!.label,
+        slotWindow: findSlot(slot)!.window,
       },
       payment: PAYMENT_OPTIONS.find((p) => p.id === payment)!,
       totals: {

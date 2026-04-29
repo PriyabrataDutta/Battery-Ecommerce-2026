@@ -154,7 +154,7 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
           setForcedOut(null);
           return;
         }
-        setForcedOut("Your session has expired. Please sign in again.");
+        setForcedOut("token-refresh");
       }
     });
 

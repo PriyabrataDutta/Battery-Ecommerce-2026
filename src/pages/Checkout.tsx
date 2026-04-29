@@ -240,6 +240,9 @@ const Checkout = () => {
   const [promoInput, setPromoInput] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<Promo | null>(null);
   const [promoError, setPromoError] = useState<string>("");
+  const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(undefined);
+  const [slot, setSlot] = useState<SlotId | "">("");
+  const [scheduleError, setScheduleError] = useState<string>("");
 
   const deliveryOption = useMemo(
     () => DELIVERY_OPTIONS.find((o) => o.id === delivery)!,

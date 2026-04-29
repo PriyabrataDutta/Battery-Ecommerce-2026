@@ -18,6 +18,7 @@ import Brands from "./pages/Brands";
 import { About, JumpStart, Catalog, Blog } from "./pages/SimplePages";
 import Auth from "./pages/Auth";
 import AccountLayout from "./pages/account/AccountLayout";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminLogin from "./pages/admin/AdminLogin";

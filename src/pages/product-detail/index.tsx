@@ -3,20 +3,7 @@
  *
  * URL: /product/:slug
  *
- * Data in (all React Query hooks → src/api/products.ts):
- *   - useProductBySlug(slug)        — the product + its category + brand
- *   - useProductImages(productId)   — gallery images
- *   - useRelatedProducts(brandId, productId) — same-brand suggestions
- *
- * Page-local state (qty, withExchange) is intentionally kept here rather
- * than in a store: it only matters until the user clicks "Add to Cart".
- *
- * Layout:
- *   - Breadcrumbs
- *   - 12-col grid: gallery (5) · info (4) · price breakup (3)
- *   - Tabs: details, specs, warranty, delivery
- *   - Related products
- *   - Sticky mobile bottom bar
+ * Layout: 2-column on desktop (gallery 7 | info 5), stacked on mobile.
  */
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -31,7 +18,6 @@ import {
 
 import { ProductGallery } from "./components/ProductGallery";
 import { ProductInfo } from "./components/ProductInfo";
-import { PriceBreakup } from "./components/PriceBreakup";
 import { DetailsTabs } from "./components/DetailsTabs";
 import { RelatedProducts } from "./components/RelatedProducts";
 import { MobileBottomBar } from "./components/MobileBottomBar";
@@ -46,8 +32,6 @@ const ProductDetail = () => {
   const { data: gallery = [] } = useProductImages(product?.id);
   const { data: related = [] } = useRelatedProducts(product?.brand_id, product?.id);
 
-  // Build a deduped image list. Primary image goes first, then any extras
-  // from the gallery table, then a brand-derived placeholder if both empty.
   const allImages = useMemo(() => {
     if (!product) return [] as string[];
     const set = new Set<string>();
@@ -64,10 +48,10 @@ const ProductDetail = () => {
   if (!product)
     return <div className="container-x py-20 text-center">Product not found.</div>;
 
-  const showExchange = product.has_exchange && product.exchange_rebate > 0;
-  const effectiveUnit = withExchange
-    ? product.price - product.exchange_rebate
-    : product.price;
+  const withoutExchange = product.price_without_exchange || product.price;
+  const withExchangePrice = product.price_with_exchange || withoutExchange;
+  const showExchange = product.has_exchange && withExchangePrice < withoutExchange;
+  const effectiveUnit = withExchange ? withExchangePrice : withoutExchange;
   const lineTotal = effectiveUnit * qty;
 
   const handleAdd = () => {
@@ -78,6 +62,8 @@ const ProductDetail = () => {
         slug: product.slug,
         sku: product.sku,
         price: product.price,
+        priceWithExchange: withExchangePrice,
+        priceWithoutExchange: withoutExchange,
         image: product.primary_image_url,
         withExchange,
         exchangeRebate: product.exchange_rebate,
@@ -110,12 +96,12 @@ const ProductDetail = () => {
         <span className="text-ink">{product.name}</span>
       </nav>
 
-      <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-12 lg:col-span-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10">
+        <div>
           <ProductGallery images={allImages} alt={product.name} />
         </div>
 
-        <div className="col-span-12 lg:col-span-4">
+        <div>
           <ProductInfo
             product={product}
             qty={qty}
@@ -123,17 +109,10 @@ const ProductDetail = () => {
             withExchange={withExchange}
             setWithExchange={setWithExchange}
             onAddToCart={handleAdd}
-          />
-        </div>
-
-        <div className="col-span-12 lg:col-span-3">
-          <PriceBreakup
-            qty={qty}
-            unitPrice={product.price}
-            mrp={product.mrp}
-            exchangeRebate={product.exchange_rebate}
-            withExchange={withExchange}
+            lineTotal={lineTotal}
             showExchange={showExchange}
+            withoutExchangePrice={withoutExchange}
+            withExchangePrice={withExchangePrice}
           />
         </div>
       </div>

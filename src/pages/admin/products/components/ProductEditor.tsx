@@ -16,7 +16,9 @@ import { slugify } from "@/lib/adminLog";
 import { EMPTY_PRODUCT, PRODUCT_STATUSES } from "../lib/constants";
 import { useCreateProduct, useUpdateProduct, useDeleteProduct } from "../hooks/useAdminProducts";
 import { FitmentEditor } from "./FitmentEditor";
+import { ProductMediaSection } from "./ProductMediaSection";
 import { getProductFitmentModelIds, saveProductFitment } from "@/api/admin/productFitment";
+import { supabase } from "@/integrations/supabase/client";
 import type { AdminProductRow } from "@/api/admin/products";
 import type { BatteryBrand, Category } from "@/types/catalog";
 import type { ProductEditableFields } from "@/api/admin/products";
@@ -48,6 +50,7 @@ export function ProductEditor({
   const isEdit = !!product;
   const [form, setForm] = useState<ProductEditableFields>(EMPTY_PRODUCT);
   const [fitmentModelIds, setFitmentModelIds] = useState<string[]>([]);
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
 
   // Load existing fitment when editing
   const { data: existingFitment } = useQuery({
@@ -56,9 +59,28 @@ export function ProductEditor({
     enabled: !!product?.id && open,
   });
 
+  // Load existing gallery images when editing
+  const { data: existingGallery } = useQuery({
+    queryKey: ["product_images", product?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("product_images")
+        .select("url")
+        .eq("product_id", product!.id)
+        .order("sort_order");
+      if (error) throw error;
+      return (data ?? []).map((r) => r.url);
+    },
+    enabled: !!product?.id && open,
+  });
+
   useEffect(() => {
     if (existingFitment) setFitmentModelIds(existingFitment);
   }, [existingFitment]);
+
+  useEffect(() => {
+    if (existingGallery) setGalleryImages(existingGallery);
+  }, [existingGallery]);
 
   useEffect(() => {
     if (!open) return;
@@ -92,6 +114,7 @@ export function ProductEditor({
     } else {
       setForm(EMPTY_PRODUCT);
       setFitmentModelIds([]);
+      setGalleryImages([]);
     }
   }, [open, product]);
 
@@ -117,6 +140,16 @@ export function ProductEditor({
     }
     // Save fitment mappings
     await saveProductFitment(productId, fitmentModelIds);
+    // Save gallery images
+    await supabase.from("product_images").delete().eq("product_id", productId);
+    if (galleryImages.length > 0) {
+      const rows = galleryImages.map((url, i) => ({
+        product_id: productId,
+        url,
+        sort_order: i,
+      }));
+      await supabase.from("product_images").insert(rows);
+    }
     onOpenChange(false);
   };
 
@@ -274,13 +307,12 @@ export function ProductEditor({
 
       {/* Media */}
       <Section title="Media">
-        <Field label="Primary image URL" hint="Use the storage uploader on the product page for full management.">
-          <Input
-            value={form.primary_image_url ?? ""}
-            onChange={(e) => set("primary_image_url", e.target.value || null)}
-            placeholder="https://…"
-          />
-        </Field>
+        <ProductMediaSection
+          featuredImage={form.primary_image_url}
+          onFeaturedChange={(url) => set("primary_image_url", url)}
+          galleryImages={galleryImages}
+          onGalleryChange={setGalleryImages}
+        />
       </Section>
 
       {/* Flags */}

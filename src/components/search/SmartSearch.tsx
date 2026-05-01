@@ -312,38 +312,96 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
             })}
           </div>
           {filteredRecent.length === 0 ? (
-            <div className="px-4 py-6 text-sm text-muted-foreground">
+            <div className="px-4 py-8 text-sm text-muted-foreground text-center">
               No recent {recentFilter === "car" ? "car battery" : recentFilter === "inverter" ? "inverter" : ""} searches yet.
             </div>
           ) : (
-            filteredRecent.map((r) => (
-              <div
-                key={r.path}
-                className="group flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted/60"
-              >
-                <button
-                  type="button"
-                  onClick={() => { pushRecent(r); go(r.path); }}
-                  className="flex items-center gap-3 flex-1 min-w-0 text-left"
-                >
-                  <span className="h-8 w-8 grid place-items-center rounded-md flex-shrink-0 bg-muted">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                  </span>
-                  <span className="flex-1 min-w-0">
-                    <span className="block truncate text-ink font-medium">{r.label}</span>
-                    {r.sublabel && <span className="block truncate text-[11px] text-muted-foreground">{r.sublabel}</span>}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => removeRecent(r.path)}
-                  aria-label={`Remove ${r.label}`}
-                  className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-primary"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            ))
+            <>
+              {(() => {
+                const chipItems = filteredRecent.filter((r) => r.kind === "brand" || r.kind === "model" || r.kind === "car");
+                const rowItems = filteredRecent.filter((r) => !(r.kind === "brand" || r.kind === "model" || r.kind === "car"));
+                return (
+                  <>
+                    {chipItems.length > 0 && (
+                      <div className="px-3 pt-3 pb-2">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-1 pb-2">
+                          Tap a car to search again
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {chipItems.map((r) => (
+                            <div
+                              key={r.path}
+                              className="group inline-flex items-stretch rounded-full border border-line bg-white shadow-sm overflow-hidden hover:border-primary hover:shadow transition-colors"
+                            >
+                              <button
+                                type="button"
+                                onClick={() => { pushRecent(r); go(r.path); }}
+                                className="flex items-center gap-2 pl-3 pr-2 py-2 min-h-[40px] text-left active:bg-muted"
+                              >
+                                <span className="h-6 w-6 grid place-items-center rounded-full bg-primary/10 flex-shrink-0">
+                                  <Car className="h-3.5 w-3.5 text-primary" />
+                                </span>
+                                <span className="flex flex-col leading-tight max-w-[160px]">
+                                  <span className="truncate text-[13px] font-semibold text-ink">{r.label}</span>
+                                  {r.sublabel && (
+                                    <span className="truncate text-[10px] text-muted-foreground">{r.sublabel}</span>
+                                  )}
+                                </span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); removeRecent(r.path); }}
+                                aria-label={`Remove ${r.label}`}
+                                className="px-2.5 grid place-items-center text-muted-foreground hover:text-primary border-l border-line min-h-[40px] min-w-[40px]"
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {rowItems.length > 0 && (
+                      <div className={chipItems.length > 0 ? "border-t border-line pt-1" : ""}>
+                        {chipItems.length > 0 && (
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-4 pt-3 pb-1">
+                            Other recents
+                          </div>
+                        )}
+                        {rowItems.map((r) => (
+                          <div
+                            key={r.path}
+                            className="group flex items-center gap-3 px-3 py-3 text-sm hover:bg-muted/60 active:bg-muted"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => { pushRecent(r); go(r.path); }}
+                              className="flex items-center gap-3 flex-1 min-w-0 text-left min-h-[44px]"
+                            >
+                              <span className="h-9 w-9 grid place-items-center rounded-md flex-shrink-0 bg-muted">
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                              </span>
+                              <span className="flex-1 min-w-0">
+                                <span className="block truncate text-ink font-medium">{r.label}</span>
+                                {r.sublabel && <span className="block truncate text-[11px] text-muted-foreground">{r.sublabel}</span>}
+                              </span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeRecent(r.path)}
+                              aria-label={`Remove ${r.label}`}
+                              className="p-2 -mr-1 text-muted-foreground hover:text-primary md:opacity-0 md:group-hover:opacity-100 min-h-[40px] min-w-[40px] grid place-items-center"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </>
           )}
         </div>
       )}

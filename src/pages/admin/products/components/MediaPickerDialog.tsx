@@ -259,8 +259,30 @@ export function MediaPickerDialog({
             Upload
           </Button>
         </div>
+        {/* Upload progress panel */}
+        {uploadItems.length > 0 && (
+          <div className="mt-2 max-h-32 overflow-y-auto rounded-md border border-border bg-muted/30 p-2 space-y-1.5">
+            {uploadItems.map((item, idx) => (
+              <div key={idx} className="flex items-center gap-2 text-xs">
+                {item.status === "uploading" && <Loader2 className="h-3.5 w-3.5 animate-spin text-primary shrink-0" />}
+                {item.status === "done" && <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />}
+                {item.status === "error" && <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" />}
+                {item.status === "pending" && <div className="h-3.5 w-3.5 rounded-full border-2 border-muted-foreground/40 shrink-0" />}
+                <span className="truncate flex-1 min-w-0" title={item.name}>{item.name}</span>
+                <div className="w-20 shrink-0">
+                  {(item.status === "uploading" || item.status === "pending") ? (
+                    <Progress value={item.progress} className="h-1.5" />
+                  ) : item.status === "error" ? (
+                    <span className="text-destructive text-[10px]">Failed</span>
+                  ) : (
+                    <span className="text-green-600 text-[10px]">Done</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
-        <div
           className="flex-1 overflow-y-auto min-h-0 mt-3 relative"
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}

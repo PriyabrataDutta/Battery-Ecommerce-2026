@@ -131,12 +131,26 @@ export function MediaPickerDialog({
           const checksum = await computeSha256(file);
           updateItem(i, { progress: 20 });
 
-          // Check for existing file with same checksum or same name+size
-          const { data: existing } = await supabase
-            .from("media_files")
-            .select("file_url")
-            .or(`checksum.eq.${checksum},and(file_name.eq.${file.name},size_bytes.eq.${file.size})`)
-            .limit(1);
+          // Check for existing file with same checksum
+          let existingUrl: string | null = null;
+          if (checksum) {
+            const { data: byHash } = await supabase
+              .from("media_files")
+              .select("file_url")
+              .eq("checksum", checksum)
+              .limit(1);
+            if (byHash && byHash.length > 0) existingUrl = byHash[0].file_url;
+          }
+          // Fallback: check by filename + size
+          if (!existingUrl) {
+            const { data: byName } = await supabase
+              .from("media_files")
+              .select("file_url")
+              .eq("file_name", file.name)
+              .eq("size_bytes", file.size)
+              .limit(1);
+            if (byName && byName.length > 0) existingUrl = byName[0].file_url;
+          }
 
           if (existing && existing.length > 0) {
             // Duplicate found — skip upload, reuse existing URL

@@ -19,7 +19,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { Input } from "@/components/ui/input";
 import { discountPct, formatINR } from "@/lib/format";
 import { Trust } from "./Trust";

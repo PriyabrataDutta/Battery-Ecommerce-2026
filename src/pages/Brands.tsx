@@ -1,17 +1,8 @@
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import type { BatteryBrand } from "@/types/catalog";
+import { useBatteryBrands } from "@/hooks/queries/useBrands";
 
 const Brands = () => {
-  const { data: brands = [] } = useQuery({
-    queryKey: ["brands_all"],
-    queryFn: async (): Promise<BatteryBrand[]> => {
-      const { data, error } = await supabase.from("battery_brands").select("*").order("sort_order");
-      if (error) throw error;
-      return data as BatteryBrand[];
-    },
-  });
+  const { data: brands = [] } = useBatteryBrands();
 
   return (
     <div className="container-x py-12">

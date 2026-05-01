@@ -1,34 +1,13 @@
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { ProductCard } from "@/components/products/ProductCard";
-import type { Product } from "@/types/catalog";
+import { useBatteryBrandBySlug } from "@/hooks/queries/useBrands";
+import { useProducts } from "@/hooks/queries/useProducts";
 
 const BrandPage = () => {
   const { slug } = useParams();
 
-  const { data: brand } = useQuery({
-    queryKey: ["brand", slug],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("battery_brands").select("*").eq("slug", slug!).maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: products = [] } = useQuery({
-    queryKey: ["brand_products", slug],
-    enabled: !!brand,
-    queryFn: async (): Promise<Product[]> => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*, battery_brands(*)")
-        .eq("brand_id", brand!.id)
-        .eq("status", "active");
-      if (error) throw error;
-      return data as unknown as Product[];
-    },
-  });
+  const { data: brand } = useBatteryBrandBySlug(slug);
+  const { data: products = [] } = useProducts(brand ? { brandId: brand.id } : undefined);
 
   return (
     <div className="container-x py-10">

@@ -80,14 +80,13 @@ export function MediaPickerDialog({
     onOpenChange(false);
   };
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = e.target.files;
-    if (!selectedFiles?.length) return;
+  const processFiles = useCallback(async (fileList: File[]) => {
+    if (!fileList.length) return;
     setUploading(true);
 
     try {
       const uploadedUrls: string[] = [];
-      for (const file of Array.from(selectedFiles)) {
+      for (const file of fileList) {
         const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
         const path = `${Date.now()}_${safeName}`;
 
@@ -112,7 +111,7 @@ export function MediaPickerDialog({
         uploadedUrls.push(urlData.publicUrl);
       }
 
-      toast.success(`${selectedFiles.length} file(s) uploaded`);
+      toast.success(`${fileList.length} file(s) uploaded`);
       qc.invalidateQueries({ queryKey: ["media_files_picker"] });
       qc.invalidateQueries({ queryKey: ["media_files"] });
 
@@ -131,7 +130,44 @@ export function MediaPickerDialog({
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
     }
+  }, [multiple, onOpenChange, onSelect, picked, qc, user?.id]);
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = e.target.files;
+    if (!selectedFiles?.length) return;
+    processFiles(Array.from(selectedFiles));
   };
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    if (e.dataTransfer.types.includes("Files")) setDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current === 0) setDragging(false);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(false);
+    dragCounter.current = 0;
+    const droppedFiles = Array.from(e.dataTransfer.files).filter((f) =>
+      f.type.startsWith("image/")
+    );
+    if (droppedFiles.length) processFiles(droppedFiles);
+    else toast.error("Only image files are supported");
+  }, [processFiles]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

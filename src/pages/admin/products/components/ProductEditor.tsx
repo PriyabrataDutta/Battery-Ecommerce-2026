@@ -315,6 +315,14 @@ export function ProductEditor({
           />
         </Field>
       </Section>
+
+      {/* Car Fitment */}
+      <Section title="Car Fitment">
+        <FitmentEditor
+          selectedModelIds={fitmentModelIds}
+          onChange={setFitmentModelIds}
+        />
+      </Section>
     </EntityDrawer>
   );
 }

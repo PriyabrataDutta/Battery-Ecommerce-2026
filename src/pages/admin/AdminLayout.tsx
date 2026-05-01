@@ -23,9 +23,9 @@ import { performAdminLogout } from "@/components/auth/PostLogoutRedirect";
 import { useAdminTab, type AdminTab } from "@/stores/dashboardTabs";
 import Dashboard from "@/pages/admin/Dashboard";
 import AuditLog from "@/pages/admin/AuditLog";
+import AdminProducts from "@/pages/admin/products";
+import AdminOrders from "@/pages/admin/orders";
 import {
-  AdminProducts,
-  AdminOrders,
   AdminUsers,
   AdminBrands,
   AdminCategories,

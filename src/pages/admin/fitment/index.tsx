@@ -204,29 +204,87 @@ function BrandsModelsTab() {
   });
 
   /* ── bulk import ── */
-  const handleBulkImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  /* ── preview step: parse file & compare with DB ── */
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = "";
-    setShowImportDialog(false);
-    setImporting(true);
+    setPreviewing(true);
 
     try {
       const parsed = await parseBrandsModelsXlsx(file);
       if (!parsed.length) {
         toast.error("No data found in the file");
+        setPreviewing(false);
         return;
       }
 
-      toast.info(`Processing ${parsed.length} rows…`, { duration: 4000 });
-
-      // Collect unique brands
       const uniqueBrands = [...new Set(parsed.map((r) => r.brand))];
 
-      // Fetch existing brands
-      const { data: existingBrands } = await supabase.from("car_brands").select("id, name");
+      const { data: existingBrandsData } = await supabase.from("car_brands").select("id, name");
       const brandMap = new Map<string, string>();
-      for (const b of existingBrands ?? []) brandMap.set(b.name.toLowerCase(), b.id);
+      for (const b of existingBrandsData ?? []) brandMap.set(b.name.toLowerCase(), b.id);
+
+      const newBrands: string[] = [];
+      const existingBrands: string[] = [];
+      for (const name of uniqueBrands) {
+        if (brandMap.has(name.toLowerCase())) {
+          existingBrands.push(name);
+        } else {
+          newBrands.push(name);
+        }
+      }
+
+      const { data: existingModelsData } = await supabase
+        .from("car_models")
+        .select("id, name, car_brand_id");
+      const modelSet = new Set(
+        (existingModelsData ?? []).map((m) => `${m.car_brand_id}|${m.name.toLowerCase()}`)
+      );
+
+      const newModels: { brand: string; model: string }[] = [];
+      const existingModelsArr: { brand: string; model: string }[] = [];
+      const seen = new Set<string>();
+
+      for (const row of parsed) {
+        const dedupKey = `${row.brand.toLowerCase()}|${row.model.toLowerCase()}`;
+        if (seen.has(dedupKey)) continue;
+        seen.add(dedupKey);
+
+        const brandId = brandMap.get(row.brand.toLowerCase());
+        if (brandId) {
+          const key = `${brandId}|${row.model.toLowerCase()}`;
+          if (modelSet.has(key)) {
+            existingModelsArr.push(row);
+          } else {
+            newModels.push(row);
+          }
+        } else {
+          newModels.push(row);
+        }
+      }
+
+      setImportPreview({ parsed, newBrands, existingBrands, newModels, existingModels: existingModelsArr });
+      setShowImportDialog(false);
+    } catch (err: any) {
+      toast.error(`Failed to parse file: ${err.message ?? "Unknown error"}`);
+    } finally {
+      setPreviewing(false);
+    }
+  };
+
+  /* ── confirm import ── */
+  const handleConfirmImport = async () => {
+    if (!importPreview) return;
+    const { parsed } = importPreview;
+    setImportPreview(null);
+    setImporting(true);
+
+    try {
+      const uniqueBrands = [...new Set(parsed.map((r) => r.brand))];
+      const { data: existingBrandsData } = await supabase.from("car_brands").select("id, name");
+      const brandMap = new Map<string, string>();
+      for (const b of existingBrandsData ?? []) brandMap.set(b.name.toLowerCase(), b.id);
 
       let brandsCreated = 0;
       for (const name of uniqueBrands) {
@@ -240,7 +298,6 @@ function BrandsModelsTab() {
           brandMap.set(name.toLowerCase(), ins.id);
           brandsCreated++;
         } else if (error) {
-          // May already exist with slightly different casing
           const { data: ex } = await supabase
             .from("car_brands")
             .select("id")
@@ -250,12 +307,11 @@ function BrandsModelsTab() {
         }
       }
 
-      // Fetch existing models
-      const { data: existingModels } = await supabase
+      const { data: existingModelsData } = await supabase
         .from("car_models")
         .select("id, name, car_brand_id");
       const modelSet = new Set(
-        (existingModels ?? []).map((m) => `${m.car_brand_id}|${m.name.toLowerCase()}`)
+        (existingModelsData ?? []).map((m) => `${m.car_brand_id}|${m.name.toLowerCase()}`)
       );
 
       let modelsCreated = 0;
@@ -275,7 +331,7 @@ function BrandsModelsTab() {
       }
 
       toast.success(
-        `Import complete! ${brandsCreated} new brand${brandsCreated !== 1 ? "s" : ""}, ${modelsCreated} new model${modelsCreated !== 1 ? "s" : ""} added. Duplicates were skipped.`,
+        `Import complete! ${brandsCreated} new brand${brandsCreated !== 1 ? "s" : ""}, ${modelsCreated} new model${modelsCreated !== 1 ? "s" : ""} added.`,
         { duration: 6000 }
       );
       qc.invalidateQueries({ queryKey: ["admin-car-brands"] });

@@ -351,6 +351,9 @@ export function Header() {
           </div>
         </div>
       )}
+
+      {/* Mobile slide-in cart drawer */}
+      <CartDrawer open={cartDrawerOpen} onOpenChange={setCartDrawerOpen} />
     </header>
   );
 }

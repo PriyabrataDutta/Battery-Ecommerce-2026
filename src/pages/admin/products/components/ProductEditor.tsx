@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { EntityDrawer } from "@/components/admin/EntityDrawer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +15,8 @@ import {
 import { slugify } from "@/lib/adminLog";
 import { EMPTY_PRODUCT, PRODUCT_STATUSES } from "../lib/constants";
 import { useCreateProduct, useUpdateProduct, useDeleteProduct } from "../hooks/useAdminProducts";
+import { FitmentEditor } from "./FitmentEditor";
+import { getProductFitmentModelIds, saveProductFitment } from "@/api/admin/productFitment";
 import type { AdminProductRow } from "@/api/admin/products";
 import type { BatteryBrand, Category } from "@/types/catalog";
 import type { ProductEditableFields } from "@/api/admin/products";

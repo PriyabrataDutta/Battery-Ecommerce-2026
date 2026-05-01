@@ -1,19 +1,13 @@
-# `src/api/` — Backend Layer
+# `src/api/` — Backend layer
 
 This folder is the **single home for every backend call** in the app.
 When the backend gets rewritten, you edit files in here. Nothing else.
 
-## Why this exists
-
-Pages and components used to import the database client directly. That meant
-~32 files knew about Supabase. Swapping or extending the backend would have
-required touching all of them.
-
-Now there's exactly **one rule**:
+## The rule
 
 > Components, pages and hooks **never** import
 > `@/integrations/supabase/client`. They import from `@/api/*` (or, for
-> reads, from `@/hooks/queries/*`).
+> reads/mutations in components, from `@/hooks/queries/*`).
 
 If you find yourself reaching for `supabase.from(...)` inside a `.tsx` file,
 stop and add a function to the matching `src/api/*.ts` file instead.
@@ -25,13 +19,15 @@ src/api/
 ├── client.ts              ← single re-export of the supabase client
 ├── products.ts            ← list, getBySlug, getRelated, search, suggest
 ├── productImages.ts       ← gallery for one product
+├── productFitment.ts      ← which products fit which car models
 ├── categories.ts
 ├── batteryBrands.ts
 ├── carBrands.ts
 ├── carModels.ts
-├── productFitment.ts      ← which products fit which car models
 ├── orders.ts              ← createOrder, listMine, overview summary
 ├── addresses.ts           ← list, getDefault, create, setDefault, delete
+├── profile.ts             ← getMine, updateMine
+├── auth.ts                ← signIn, signUp, signOut, resetPassword, …
 ├── wishlist.ts
 ├── offers.ts
 ├── quotes.ts
@@ -39,8 +35,6 @@ src/api/
 ├── blog.ts
 ├── catalogs.ts
 ├── settings.ts            ← site_settings key/value
-├── profile.ts             ← getMine, updateMine
-├── auth.ts                ← signIn, signUp, signOut, resetPassword, ...
 ├── storage.ts             ← bucket upload helpers
 └── admin/
     ├── users.ts           ← admin_list_users, set_user_role, invite
@@ -88,57 +82,32 @@ for `qk.orders` and you'll find every place.
 3. If writes → add a `useMutation` hook with `onSuccess` invalidations.
 4. Use the hook from your component.
 
-## Migration status
+## Migration status (storefront)
 
-Migrated (use only `api/` + `hooks/queries/`):
+Fully migrated — these only touch `api/` + `hooks/queries/`:
 
 - `src/pages/Home.tsx`
+- `src/pages/Shop.tsx`
 - `src/pages/Brands.tsx`
 - `src/pages/BrandPage.tsx`
+- `src/pages/ProductDetail.tsx`
+- `src/pages/Checkout.tsx`
+- `src/pages/account/AccountOverview.tsx`
+- `src/pages/account/AccountOrders.tsx`
+- `src/pages/account/AccountProfile.tsx`
+- `src/pages/account/AccountAddresses.tsx`
+- `src/components/products/ShopFilters.tsx`
+- `src/components/products/ActiveFilters.tsx`
 
-Pending migration (api functions for these already exist — wiring is mechanical):
+Still using `supabase` directly (migrate when next touched — api functions
+already exist for all of these):
 
-- `src/pages/Shop.tsx` → use `useProducts`, `useCategoryBySlug`,
-  `useCarBrandIdBySlug`, `useCarModelIdBySlug`, `useProductIdsByModelIds`,
-  `resolveBrandSlugByName`, `resolveCarModelIdByName`,
-  `getCarModelIdsByBrandIds`, `getCarBrandIdsBySlugs`.
-- `src/pages/ProductDetail.tsx` → `useProductBySlug`, `useProductImages`,
-  `useRelatedProducts`.
-- `src/pages/SearchResults.tsx` → `searchCategories`, `searchBatteryBrands`,
-  `searchCarBrands`, `searchCarModels`, `searchProducts`.
-- `src/components/products/FitmentSearch.tsx` → `useCarBrands`,
-  `useCarModelsByBrandId`.
-- `src/components/products/ShopFilters.tsx` → `useCarBrands`,
-  `useCarModelsByBrandId`, `useBatteryBrands`.
-- `src/components/products/ActiveFilters.tsx` → `useCarBrandNameBySlug`,
-  `useCarModelNameBySlug`, `useBatteryBrandNameBySlug`, `useCarBrandNameMap`.
-- `src/components/search/SmartSearch.tsx` → `searchCategories`,
-  `searchBatteryBrands`, `searchCarBrands`, `searchCarModels`,
-  `suggestProducts`.
-- `src/pages/Checkout.tsx` → `useDefaultAddress(user.id)` for the prefill
-  `useEffect`, and `useCreateOrder` for `placeOrder` (input shape matches
-  `CreateOrderInput` in `api/orders.ts`).
-- `src/pages/account/AccountOverview.tsx` → `useAccountOverview`.
-- `src/pages/account/AccountOrders.tsx` → `useMyOrders`.
-- `src/pages/account/AccountAddresses.tsx` → `useMyAddresses`,
-  `useCreateAddress`, `useSetDefaultAddress`, `useDeleteAddress`.
-- `src/pages/account/AccountProfile.tsx` → `useMyProfile`,
-  `useUpdateMyProfile`.
-
-Still using `supabase` directly (no api wiring planned this round):
-
-- Auth pages, Admin pages, Contact, Quote, useAuth, RequireStaff,
-  PostLogoutRedirect, ImageUpload, StatusPicker, lib/adminLog.
-
-Still using `supabase` directly (will migrate when next touched):
-
-- Auth pages (`Auth.tsx`, `ResetPassword.tsx`, `AddPhone.tsx`, `VerifyPhone.tsx`)
-- Admin pages (`admin/AdminLayout.tsx`, `admin/AdminLogin.tsx`,
-  `admin/Dashboard.tsx`, `admin/AuditLog.tsx`)
-- Forms (`Contact.tsx`, `Quote.tsx`)
-- Misc (`useAuth.ts`, `RequireStaff.tsx`, `PostLogoutRedirect.tsx`,
-  `ImageUpload.tsx`, `StatusPicker.tsx`, `lib/adminLog.ts`)
-
-The api functions for these domains (`auth.ts`, `admin/*`, `contact.ts`,
-`quotes.ts`, `storage.ts`) **already exist** — wiring them in is a small
-mechanical change when you next visit those files.
+- Auth flows: `Auth.tsx`, `ResetPassword.tsx`, `AddPhone.tsx`, `VerifyPhone.tsx`,
+  `useAuth.ts`
+- Admin: `admin/AdminLayout.tsx`, `admin/AdminLogin.tsx`,
+  `admin/Dashboard.tsx`, `admin/AuditLog.tsx`
+- Forms: `Contact.tsx`, `Quote.tsx`
+- Misc: `RequireStaff.tsx`, `PostLogoutRedirect.tsx`, `ImageUpload.tsx`,
+  `StatusPicker.tsx`, `lib/adminLog.ts`,
+  `components/products/FitmentSearch.tsx`,
+  `components/search/SmartSearch.tsx`, `pages/SearchResults.tsx`

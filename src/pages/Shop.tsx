@@ -251,18 +251,73 @@ const Shop = () => {
           </div>
         </aside>
         <div>
+          {/* Toolbar: sort + view toggle */}
+          <div className="flex items-center justify-between gap-3 mb-4 bg-white border border-line p-2.5 sm:p-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="hidden sm:inline text-xs uppercase tracking-wider font-display font-bold text-muted-foreground">
+                Sort
+              </span>
+              <Select value={sort} onValueChange={(v) => setParam("sort", v === "relevance" ? null : v)}>
+                <SelectTrigger className="h-9 w-[180px] sm:w-[200px] border-line text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white z-50">
+                  {SORT_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center border border-line">
+              <button
+                type="button"
+                aria-label="Grid view"
+                aria-pressed={view === "grid"}
+                onClick={() => setParam("view", null)}
+                className={`p-2 transition-colors ${
+                  view === "grid"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-white text-ink hover:text-primary"
+                }`}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                aria-label="List view"
+                aria-pressed={view === "list"}
+                onClick={() => setParam("view", "list")}
+                className={`p-2 border-l border-line transition-colors ${
+                  view === "list"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-white text-ink hover:text-primary"
+                }`}
+              >
+                <List className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
           {isLoading ? (
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {Array.from({ length: 6 }).map((_, i) => <div key={i} className="aspect-[3/4] bg-muted animate-pulse" />)}
             </div>
-          ) : filtered.length === 0 ? (
+          ) : sorted.length === 0 ? (
             <div className="text-center py-16 sm:py-20 bg-white border border-line">
               <p className="text-muted-foreground">No products match your filters.</p>
               <Link to="/shop" className="text-primary font-bold underline mt-2 inline-block">Clear filters</Link>
             </div>
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {filtered.map((p) => <ProductCard key={p.id} product={p} />)}
+            <div
+              className={
+                view === "list"
+                  ? "grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4"
+                  : "grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
+              }
+            >
+              {sorted.map((p) => <ProductCard key={p.id} product={p} />)}
             </div>
           )}
         </div>

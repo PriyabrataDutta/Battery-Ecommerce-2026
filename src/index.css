@@ -134,31 +134,32 @@
     @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider;
   }
 
-  /* Global rounded corners — applied to common surface elements */
-  .group,
-  article,
-  section > .card,
-  [class*="border-line"],
-  input:not([type="checkbox"]):not([type="radio"]),
+  .hover-lift {
+    @apply transition-transform duration-200 hover:-translate-y-0.5;
+  }
+
+  .marquee {
+    animation: marquee 30s linear infinite;
+  }
+}
+
+@layer base {
+  /* Global rounded corners for common interactive & surface elements.
+     Components can opt out with `rounded-none`. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
   textarea,
-  select,
-  img {
+  select {
     border-radius: var(--radius);
   }
 
-  /* Keep full-bleed sections square */
-  section,
-  header,
-  footer,
-  nav,
-  main,
-  body,
-  html,
-  .container-x,
-  .marquee,
-  .rounded-none {
-    border-radius: 0 !important;
+  /* Apply rounding to standalone images that aren't inside an already-rounded
+     container with overflow-hidden. Components can override with rounded-none. */
+  img:not([class*="rounded"]):not([class*="object-cover"]) {
+    border-radius: calc(var(--radius) - 2px);
   }
+}
+
+@layer components {
 
   .hover-lift {
     @apply transition-transform duration-200 hover:-translate-y-0.5;

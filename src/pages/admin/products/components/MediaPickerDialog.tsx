@@ -106,124 +106,168 @@ export function MediaPickerDialog({
     onOpenChange(false);
   };
 
+  // Upload a single file, updating the item at `idx` in the `items` array
+  const uploadSingleFile = useCallback(async (
+    file: File,
+    idx: number,
+    items: UploadItem[],
+  ): Promise<string | null> => {
+    const updateItem = (patch: Partial<UploadItem>) => {
+      items[idx] = { ...items[idx], ...patch };
+      setUploadItems([...items]);
+    };
+
+    updateItem({ status: "uploading", progress: 5, error: undefined });
+
+    try {
+      const checksum = await computeSha256(file);
+      updateItem({ progress: 20 });
+
+      // Check for duplicate by checksum
+      let existingUrl: string | null = null;
+      if (checksum) {
+        const { data: byHash } = await supabase
+          .from("media_files")
+          .select("file_url")
+          .eq("checksum", checksum)
+          .limit(1);
+        if (byHash && byHash.length > 0) existingUrl = byHash[0].file_url;
+      }
+      if (!existingUrl) {
+        const { data: byName } = await supabase
+          .from("media_files")
+          .select("file_url")
+          .eq("file_name", file.name)
+          .eq("size_bytes", file.size)
+          .limit(1);
+        if (byName && byName.length > 0) existingUrl = byName[0].file_url;
+      }
+
+      if (existingUrl) {
+        updateItem({ status: "skipped", progress: 100, error: "Duplicate — reusing existing", resultUrl: existingUrl });
+        return existingUrl;
+      }
+
+      updateItem({ progress: 35 });
+
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const path = `${Date.now()}_${safeName}`;
+
+      const { error: uploadErr } = await supabase.storage
+        .from(BUCKET)
+        .upload(path, file, { contentType: file.type });
+      if (uploadErr) throw uploadErr;
+
+      updateItem({ progress: 75 });
+
+      const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
+
+      const { error: dbErr } = await supabase.from("media_files").insert({
+        file_name: file.name,
+        file_url: urlData.publicUrl,
+        bucket: BUCKET,
+        path,
+        size_bytes: file.size,
+        content_type: file.type,
+        uploaded_by: user?.id ?? null,
+        checksum,
+      });
+      if (dbErr) throw dbErr;
+
+      updateItem({ status: "done", progress: 100, resultUrl: urlData.publicUrl });
+      return urlData.publicUrl;
+    } catch (err: any) {
+      updateItem({ status: "error", progress: 0, error: err.message ?? "Failed" });
+      return null;
+    }
+  }, [user?.id]);
+
+  const handleBatchResult = useCallback((items: UploadItem[]) => {
+    const uploadedUrls = items
+      .filter((it) => it.status === "done" || it.status === "skipped")
+      .map((it) => it.resultUrl!)
+      .filter(Boolean);
+    const successCount = items.filter((it) => it.status === "done").length;
+    const skippedCount = items.filter((it) => it.status === "skipped").length;
+    const failCount = items.filter((it) => it.status === "error").length;
+
+    if (successCount > 0 || skippedCount > 0) {
+      const parts: string[] = [];
+      if (successCount) parts.push(`${successCount} uploaded`);
+      if (skippedCount) parts.push(`${skippedCount} duplicate(s) skipped`);
+      if (failCount) parts.push(`${failCount} failed`);
+      toast.success(parts.join(", "));
+      qc.invalidateQueries({ queryKey: ["media_files_picker"] });
+      qc.invalidateQueries({ queryKey: ["media_files"] });
+
+      if (!multiple && uploadedUrls.length === 1) {
+        onSelect(uploadedUrls);
+        onOpenChange(false);
+      } else if (uploadedUrls.length > 0) {
+        const next = new Set(picked);
+        uploadedUrls.forEach((u) => next.add(u));
+        setPicked(next);
+      }
+    } else if (failCount > 0) {
+      toast.error("All uploads failed");
+    }
+
+    // Auto-clear if no errors remain
+    if (failCount === 0) {
+      setTimeout(() => setUploadItems([]), 3000);
+    }
+  }, [multiple, onOpenChange, onSelect, picked, qc]);
+
   const processFiles = useCallback(async (fileList: File[]) => {
     if (!fileList.length) return;
     setUploading(true);
 
     const items: UploadItem[] = fileList.map((f) => ({
       name: f.name,
+      file: f,
       status: "pending" as const,
       progress: 0,
     }));
     setUploadItems([...items]);
 
-    const updateItem = (idx: number, patch: Partial<UploadItem>) => {
-      items[idx] = { ...items[idx], ...patch };
-      setUploadItems([...items]);
-    };
-
-    try {
-      const uploadedUrls: string[] = [];
-      for (let i = 0; i < fileList.length; i++) {
-        const file = fileList[i];
-        updateItem(i, { status: "uploading", progress: 5 });
-
-        try {
-          // Compute checksum for duplicate detection
-          const checksum = await computeSha256(file);
-          updateItem(i, { progress: 20 });
-
-          // Check for existing file with same checksum
-          let existingUrl: string | null = null;
-          if (checksum) {
-            const { data: byHash } = await supabase
-              .from("media_files")
-              .select("file_url")
-              .eq("checksum", checksum)
-              .limit(1);
-            if (byHash && byHash.length > 0) existingUrl = byHash[0].file_url;
-          }
-          // Fallback: check by filename + size
-          if (!existingUrl) {
-            const { data: byName } = await supabase
-              .from("media_files")
-              .select("file_url")
-              .eq("file_name", file.name)
-              .eq("size_bytes", file.size)
-              .limit(1);
-            if (byName && byName.length > 0) existingUrl = byName[0].file_url;
-          }
-
-          if (existingUrl) {
-            // Duplicate found — skip upload, reuse existing URL
-            updateItem(i, { status: "skipped", progress: 100, error: "Duplicate — reusing existing" });
-            uploadedUrls.push(existingUrl);
-            continue;
-          }
-
-          updateItem(i, { progress: 35 });
-
-          const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-          const path = `${Date.now()}_${safeName}`;
-
-          const { error: uploadErr } = await supabase.storage
-            .from(BUCKET)
-            .upload(path, file, { contentType: file.type });
-          if (uploadErr) throw uploadErr;
-
-          updateItem(i, { progress: 75 });
-
-          const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
-
-          const { error: dbErr } = await supabase.from("media_files").insert({
-            file_name: file.name,
-            file_url: urlData.publicUrl,
-            bucket: BUCKET,
-            path,
-            size_bytes: file.size,
-            content_type: file.type,
-            uploaded_by: user?.id ?? null,
-            checksum,
-          });
-          if (dbErr) throw dbErr;
-
-          updateItem(i, { status: "done", progress: 100 });
-          uploadedUrls.push(urlData.publicUrl);
-        } catch (err: any) {
-          updateItem(i, { status: "error", progress: 0, error: err.message ?? "Failed" });
-        }
-      }
-
-      const successCount = items.filter((it) => it.status === "done").length;
-      const skippedCount = items.filter((it) => it.status === "skipped").length;
-      const failCount = items.filter((it) => it.status === "error").length;
-
-      if (successCount > 0 || skippedCount > 0) {
-        const parts: string[] = [];
-        if (successCount) parts.push(`${successCount} uploaded`);
-        if (skippedCount) parts.push(`${skippedCount} duplicate(s) skipped`);
-        if (failCount) parts.push(`${failCount} failed`);
-        toast.success(parts.join(", "));
-        qc.invalidateQueries({ queryKey: ["media_files_picker"] });
-        qc.invalidateQueries({ queryKey: ["media_files"] });
-
-        if (!multiple && uploadedUrls.length === 1) {
-          onSelect(uploadedUrls);
-          onOpenChange(false);
-        } else {
-          const next = new Set(picked);
-          uploadedUrls.forEach((u) => next.add(u));
-          setPicked(next);
-        }
-      } else if (failCount > 0) {
-        toast.error("All uploads failed");
-      }
-    } finally {
-      setUploading(false);
-      setTimeout(() => setUploadItems([]), 3000);
-      if (fileRef.current) fileRef.current.value = "";
+    for (let i = 0; i < fileList.length; i++) {
+      await uploadSingleFile(fileList[i], i, items);
     }
-  }, [multiple, onOpenChange, onSelect, picked, qc, user?.id]);
+
+    handleBatchResult(items);
+    setUploading(false);
+    if (fileRef.current) fileRef.current.value = "";
+  }, [uploadSingleFile, handleBatchResult]);
+
+  // Retry a single failed upload
+  const retryUpload = useCallback(async (idx: number) => {
+    setUploading(true);
+    const items = [...uploadItems];
+    const file = items[idx].file;
+    await uploadSingleFile(file, idx, items);
+
+    // Check if there are still errors
+    const hasErrors = items.some((it) => it.status === "error");
+
+    // Auto-select successful retries
+    const url = items[idx].resultUrl;
+    if (url && (items[idx].status === "done" || items[idx].status === "skipped")) {
+      qc.invalidateQueries({ queryKey: ["media_files_picker"] });
+      qc.invalidateQueries({ queryKey: ["media_files"] });
+      if (!multiple && items.filter((it) => it.status === "done" || it.status === "skipped").length === 1) {
+        onSelect([url]);
+        onOpenChange(false);
+      } else {
+        setPicked((prev) => new Set([...prev, url]));
+      }
+      toast.success("Upload succeeded");
+    }
+
+    if (!hasErrors) {
+      setTimeout(() => setUploadItems([]), 3000);
+    }
+    setUploading(false);
+  }, [uploadItems, uploadSingleFile, multiple, onSelect, onOpenChange, qc]);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;

@@ -315,81 +315,141 @@ function BrandsModelsTab() {
   const handleConfirmImport = useCallback(async () => {
     if (!importPreview) return;
     const { parsed } = importPreview;
+    const isStrict = importMode === "strict";
     setImporting(true);
-    setImportProgress({ phase: "brands", current: 0, total: 0, brandsCreated: 0, modelsCreated: 0 });
+    const initProgress: ImportProgress = { phase: "brands", current: 0, total: 0, brandsCreated: 0, brandsUpdated: 0, modelsCreated: 0, modelsUpdated: 0 };
+    setImportProgress(initProgress);
 
     try {
       // --- Phase 1: Brands ---
       const uniqueBrands = [...new Set(parsed.map((r) => r.brand))];
-      const { data: existingBrandsData } = await supabase.from("car_brands").select("id, name");
+      const { data: existingBrandsData } = await supabase.from("car_brands").select("id, name, slug");
       const brandMap = new Map<string, string>();
-      for (const b of existingBrandsData ?? []) brandMap.set(b.name.toLowerCase(), b.id);
+      const brandSlugMap = new Map<string, { id: string; name: string }>();
+      for (const b of existingBrandsData ?? []) {
+        brandMap.set(b.name.toLowerCase(), b.id);
+        brandSlugMap.set(b.slug, { id: b.id, name: b.name });
+      }
 
-      const brandsToCreate = uniqueBrands.filter((n) => !brandMap.has(n.toLowerCase()));
+      const brandsToProcess = isStrict ? uniqueBrands : uniqueBrands.filter((n) => !brandMap.has(n.toLowerCase()));
       let brandsCreated = 0;
+      let brandsUpdated = 0;
 
-      setImportProgress({ phase: "brands", current: 0, total: brandsToCreate.length, brandsCreated: 0, modelsCreated: 0 });
+      setImportProgress({ ...initProgress, total: brandsToProcess.length });
 
-      for (let i = 0; i < brandsToCreate.length; i++) {
-        const name = brandsToCreate[i];
-        const { data: ins, error } = await supabase
-          .from("car_brands")
-          .insert({ name, slug: slugify(name) })
-          .select("id")
-          .single();
-        if (ins) {
-          brandMap.set(name.toLowerCase(), ins.id);
-          brandsCreated++;
-        } else if (error) {
-          const { data: ex } = await supabase
-            .from("car_brands")
-            .select("id")
-            .ilike("name", name)
-            .maybeSingle();
-          if (ex) brandMap.set(name.toLowerCase(), ex.id);
+      for (let i = 0; i < brandsToProcess.length; i++) {
+        const name = brandsToProcess[i];
+        const slug = slugify(name);
+
+        if (isStrict) {
+          const existing = brandSlugMap.get(slug);
+          if (existing) {
+            // Update name if it differs (e.g. casing fix)
+            if (existing.name !== name) {
+              await supabase.from("car_brands").update({ name }).eq("id", existing.id);
+              brandsUpdated++;
+            }
+            brandMap.set(name.toLowerCase(), existing.id);
+          } else {
+            const { data: ins } = await supabase
+              .from("car_brands")
+              .insert({ name, slug })
+              .select("id")
+              .single();
+            if (ins) {
+              brandMap.set(name.toLowerCase(), ins.id);
+              brandsCreated++;
+            }
+          }
+        } else {
+          // Append mode — only create new
+          if (brandMap.has(name.toLowerCase())) { /* skip */ }
+          else {
+            const { data: ins, error } = await supabase
+              .from("car_brands")
+              .insert({ name, slug })
+              .select("id")
+              .single();
+            if (ins) {
+              brandMap.set(name.toLowerCase(), ins.id);
+              brandsCreated++;
+            } else if (error) {
+              const { data: ex } = await supabase.from("car_brands").select("id").ilike("name", name).maybeSingle();
+              if (ex) brandMap.set(name.toLowerCase(), ex.id);
+            }
+          }
         }
-        setImportProgress((p) => p ? { ...p, current: i + 1, brandsCreated } : p);
+        setImportProgress((p) => p ? { ...p, current: i + 1, brandsCreated, brandsUpdated } : p);
       }
 
       // --- Phase 2: Models ---
       const { data: existingModelsData } = await supabase
         .from("car_models")
-        .select("id, name, car_brand_id");
-      const modelSet = new Set(
-        (existingModelsData ?? []).map((m) => `${m.car_brand_id}|${m.name.toLowerCase()}`)
-      );
+        .select("id, name, slug, car_brand_id");
+      const modelKeyMap = new Map<string, { id: string; name: string }>();
+      for (const m of existingModelsData ?? []) {
+        modelKeyMap.set(`${m.car_brand_id}|${m.slug}`, { id: m.id, name: m.name });
+      }
 
-      // Deduplicate models to create
-      const modelsToCreate: { brand: string; model: string }[] = [];
+      // Deduplicate
+      const modelsToProcess: { brand: string; model: string }[] = [];
       const seen = new Set<string>();
       for (const row of parsed) {
         const brandId = brandMap.get(row.brand.toLowerCase());
         if (!brandId) continue;
-        const key = `${brandId}|${row.model.toLowerCase()}`;
-        if (modelSet.has(key) || seen.has(key)) continue;
+        const slug = slugify(row.model);
+        const key = `${brandId}|${slug}`;
+        if (seen.has(key)) continue;
         seen.add(key);
-        modelsToCreate.push(row);
+
+        if (isStrict) {
+          modelsToProcess.push(row);
+        } else {
+          if (!modelKeyMap.has(key)) modelsToProcess.push(row);
+        }
       }
 
       let modelsCreated = 0;
-      setImportProgress({ phase: "models", current: 0, total: modelsToCreate.length, brandsCreated, modelsCreated: 0 });
+      let modelsUpdated = 0;
+      setImportProgress({ phase: "models", current: 0, total: modelsToProcess.length, brandsCreated, brandsUpdated, modelsCreated: 0, modelsUpdated: 0 });
 
-      for (let i = 0; i < modelsToCreate.length; i++) {
-        const row = modelsToCreate[i];
+      for (let i = 0; i < modelsToProcess.length; i++) {
+        const row = modelsToProcess[i];
         const brandId = brandMap.get(row.brand.toLowerCase());
         if (!brandId) continue;
+        const slug = slugify(row.model);
+        const key = `${brandId}|${slug}`;
 
-        const { error } = await supabase
-          .from("car_models")
-          .insert({ name: row.model, slug: slugify(row.model), car_brand_id: brandId });
-        if (!error) {
-          modelsCreated++;
+        if (isStrict) {
+          const existing = modelKeyMap.get(key);
+          if (existing) {
+            if (existing.name !== row.model) {
+              await supabase.from("car_models").update({ name: row.model }).eq("id", existing.id);
+              modelsUpdated++;
+            }
+          } else {
+            const { error } = await supabase
+              .from("car_models")
+              .insert({ name: row.model, slug, car_brand_id: brandId });
+            if (!error) modelsCreated++;
+          }
+        } else {
+          const { error } = await supabase
+            .from("car_models")
+            .insert({ name: row.model, slug, car_brand_id: brandId });
+          if (!error) modelsCreated++;
         }
-        setImportProgress((p) => p ? { ...p, current: i + 1, modelsCreated } : p);
+        setImportProgress((p) => p ? { ...p, current: i + 1, modelsCreated, modelsUpdated } : p);
       }
 
+      const parts: string[] = [];
+      if (brandsCreated) parts.push(`${brandsCreated} brand${brandsCreated !== 1 ? "s" : ""} added`);
+      if (brandsUpdated) parts.push(`${brandsUpdated} brand${brandsUpdated !== 1 ? "s" : ""} updated`);
+      if (modelsCreated) parts.push(`${modelsCreated} model${modelsCreated !== 1 ? "s" : ""} added`);
+      if (modelsUpdated) parts.push(`${modelsUpdated} model${modelsUpdated !== 1 ? "s" : ""} updated`);
+
       toast.success(
-        `Import complete! ${brandsCreated} brand${brandsCreated !== 1 ? "s" : ""}, ${modelsCreated} model${modelsCreated !== 1 ? "s" : ""} added.`,
+        parts.length ? `Import complete! ${parts.join(", ")}.` : "Import complete — everything was already up to date.",
         { duration: 6000 }
       );
       setImportPreview(null);
@@ -402,7 +462,7 @@ function BrandsModelsTab() {
     } finally {
       setImporting(false);
     }
-  }, [importPreview, qc]);
+  }, [importPreview, importMode, qc]);
 
   /* ── export (same format as example file so round-trip works) ── */
   const handleExport = () => {

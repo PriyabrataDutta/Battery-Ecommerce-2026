@@ -307,13 +307,12 @@ export function ProductEditor({
 
       {/* Media */}
       <Section title="Media">
-        <Field label="Primary image URL" hint="Use the storage uploader on the product page for full management.">
-          <Input
-            value={form.primary_image_url ?? ""}
-            onChange={(e) => set("primary_image_url", e.target.value || null)}
-            placeholder="https://…"
-          />
-        </Field>
+        <ProductMediaSection
+          featuredImage={form.primary_image_url}
+          onFeaturedChange={(url) => set("primary_image_url", url)}
+          galleryImages={galleryImages}
+          onGalleryChange={setGalleryImages}
+        />
       </Section>
 
       {/* Flags */}

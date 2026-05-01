@@ -60,6 +60,7 @@ const App = () => (
               <Route element={<RequirePhoneVerified />}>
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/account" element={<AccountLayout />} />
+                <Route path="/account/:tab" element={<AccountLayout />} />
               </Route>
               <Route path="/order-confirmation" element={<OrderConfirmation />} />
               <Route path="/quote" element={<Quote />} />
@@ -76,6 +77,7 @@ const App = () => (
             <Route element={<PostLogoutRedirect />}>
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin" element={<AdminLayout />} />
+              <Route path="/admin/:tab" element={<AdminLayout />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

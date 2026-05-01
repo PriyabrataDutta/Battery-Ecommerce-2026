@@ -10,11 +10,12 @@ import {
   Shield,
   ShoppingBag,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { RequireAuth } from "@/components/auth/RequireAuth";
-import { useAccountTab, type AccountTab } from "@/stores/dashboardTabs";
+import { useAccountTab, isAccountTab, type AccountTab } from "@/stores/dashboardTabs";
 import AccountOverview from "@/pages/account/AccountOverview";
 import AccountOrders from "@/pages/account/AccountOrders";
 import AccountAddresses from "@/pages/account/AccountAddresses";
@@ -51,7 +52,21 @@ const PANELS: Record<AccountTab, () => JSX.Element> = {
 
 const AccountLayout = () => {
   const { user, isStaff, signOut } = useAuth();
-  const { tab, setTab } = useAccountTab();
+  const { tab: urlTab } = useParams<{ tab?: string }>();
+  const { tab: storeTab, setTab } = useAccountTab();
+
+  // Invalid URL tab → redirect to bare /account
+  if (urlTab !== undefined && !isAccountTab(urlTab)) {
+    return <Navigate to="/account" replace />;
+  }
+
+  const tab: AccountTab = isAccountTab(urlTab) ? urlTab : storeTab;
+
+  // Keep persisted store in sync with URL so reopening /account lands on the same tab.
+  useEffect(() => {
+    if (tab !== storeTab) setTab(tab);
+  }, [tab, storeTab, setTab]);
+
   const ActivePanel = PANELS[tab] ?? AccountOverview;
 
   return (
@@ -73,8 +88,8 @@ const AccountLayout = () => {
                   const active = tab === t;
                   return (
                     <li key={t}>
-                      <button
-                        type="button"
+                      <Link
+                        to={`/account/${t}`}
                         onClick={() => setTab(t)}
                         className={[
                           "w-full flex items-center gap-3 px-3 py-2 text-sm font-display font-semibold border-l-2 transition-colors text-left",
@@ -85,7 +100,7 @@ const AccountLayout = () => {
                       >
                         <Icon className="h-4 w-4 shrink-0" />
                         <span>{label}</span>
-                      </button>
+                      </Link>
                     </li>
                   );
                 })}

@@ -135,8 +135,13 @@ const Shop = () => {
   const preBrandFiltered = useMemo(() => {
     let list = products;
     const useFitment = !!carModelSlug || !!qResolved?.carModelId || !!carBrandSlug;
-    if (useFitment && fitmentProductIds) {
-      list = list.filter((p) => fitmentProductIds.includes(p.id));
+    if (useFitment) {
+      if (!fitmentProductIds) {
+        list = [];
+      } else {
+        const set = new Set(fitmentProductIds);
+        list = list.filter((p) => set.has(p.id));
+      }
     }
     if (carBrandSlugs.length > 0) {
       if (!carBrandsProductIds) {

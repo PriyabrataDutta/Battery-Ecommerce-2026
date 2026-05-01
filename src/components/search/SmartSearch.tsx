@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Tag, Battery, Car, Package } from "lucide-react";
+import { Search, BatteryCharging, Car, CarFront, Package, LayoutGrid } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { formatINR } from "@/lib/format";
@@ -9,6 +9,7 @@ import { formatINR } from "@/lib/format";
 type Suggestion =
   | { kind: "category"; id: string; label: string; slug: string }
   | { kind: "brand"; id: string; label: string; slug: string }
+  | { kind: "car_brand"; id: string; label: string; slug: string }
   | { kind: "car_model"; id: string; label: string; sublabel?: string; slug: string }
   | { kind: "product"; id: string; label: string; slug: string; price: number; image: string | null; brand?: string };
 
@@ -49,10 +50,11 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
     enabled: debounced.length >= 2,
     queryFn: async () => {
       const like = `%${debounced}%`;
-      const [cats, brands, models, prods] = await Promise.all([
+      const [cats, brands, carBrands, models, prods] = await Promise.all([
         supabase.from("categories").select("id,name,slug").ilike("name", like).limit(4),
         supabase.from("battery_brands").select("id,name,slug").ilike("name", like).limit(4),
-        supabase.from("car_models").select("id,name,slug, car_brands(name)").ilike("name", like).limit(5),
+        supabase.from("car_brands").select("id,name,slug").ilike("name", like).limit(4),
+        supabase.from("car_models").select("id,name,slug, car_brands(name,slug)").ilike("name", like).limit(5),
         supabase
           .from("products")
           .select("id,name,slug,sku,price,primary_image_url, battery_brands(name)")
@@ -63,7 +65,8 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
       return {
         categories: (cats.data ?? []) as Array<{ id: string; name: string; slug: string }>,
         brands: (brands.data ?? []) as Array<{ id: string; name: string; slug: string }>,
-        models: (models.data ?? []) as Array<{ id: string; name: string; slug: string; car_brands: { name: string } | null }>,
+        carBrands: (carBrands.data ?? []) as Array<{ id: string; name: string; slug: string }>,
+        models: (models.data ?? []) as Array<{ id: string; name: string; slug: string; car_brands: { name: string; slug: string } | null }>,
         products: (prods.data ?? []) as Array<{
           id: string; name: string; slug: string; sku: string; price: number;
           primary_image_url: string | null; battery_brands: { name: string } | null;
@@ -76,6 +79,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
   if (data) {
     data.categories.forEach((c) => suggestions.push({ kind: "category", id: c.id, label: c.name, slug: c.slug }));
     data.brands.forEach((b) => suggestions.push({ kind: "brand", id: b.id, label: b.name, slug: b.slug }));
+    data.carBrands.forEach((b) => suggestions.push({ kind: "car_brand", id: b.id, label: b.name, slug: b.slug }));
     data.models.forEach((m) =>
       suggestions.push({ kind: "car_model", id: m.id, label: m.name, sublabel: m.car_brands?.name, slug: m.slug })
     );
@@ -103,6 +107,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
     switch (s.kind) {
       case "category": return go(`/category/${s.slug}`);
       case "brand": return go(`/brand/${s.slug}`);
+      case "car_brand": return go(`/shop?type=car-batteries&car_brand=${s.slug}`);
       case "car_model": return go(`/shop?type=car-batteries&car_model=${s.slug}`);
       case "product": return go(`/product/${s.slug}`);
     }
@@ -127,7 +132,12 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
   const showPanel = open && term.trim().length >= 2;
 
   let renderIdx = -1;
-  const renderRow = (s: Suggestion, icon: React.ReactNode, right?: React.ReactNode) => {
+  const renderRow = (
+    s: Suggestion,
+    icon: React.ReactNode,
+    iconWrap: string,
+    right?: React.ReactNode,
+  ) => {
     renderIdx++;
     const idx = renderIdx;
     const active = idx === activeIdx;
@@ -137,14 +147,29 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
         type="button"
         onMouseEnter={() => setActiveIdx(idx)}
         onClick={() => pick(s)}
-        className={`w-full flex items-center gap-3 px-4 py-2 text-left text-sm ${active ? "bg-muted" : "hover:bg-muted/60"}`}
+        className={`w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm border-l-2 ${
+          active ? "bg-muted border-primary" : "border-transparent hover:bg-muted/60"
+        }`}
       >
-        <span className="text-muted-foreground">{icon}</span>
-        <span className="flex-1 truncate text-ink">{s.label}{("sublabel" in s && s.sublabel) ? <span className="text-muted-foreground"> · {s.sublabel}</span> : null}</span>
+        <span className={`h-8 w-8 grid place-items-center rounded-md flex-shrink-0 ${iconWrap}`}>{icon}</span>
+        <span className="flex-1 min-w-0">
+          <span className="block truncate text-ink font-medium">{s.label}</span>
+          {"sublabel" in s && s.sublabel ? (
+            <span className="block truncate text-[11px] text-muted-foreground">{s.sublabel}</span>
+          ) : null}
+        </span>
         {right}
       </button>
     );
   };
+
+  const SectionHeader = ({ icon, label, count }: { icon: React.ReactNode; label: string; count: number }) => (
+    <div className="flex items-center gap-2 px-4 pt-3 pb-1.5 bg-muted/30 border-b border-line">
+      <span className="text-primary">{icon}</span>
+      <span className="text-[10px] font-bold uppercase tracking-wider text-ink">{label}</span>
+      <span className="text-[10px] text-muted-foreground">({count})</span>
+    </div>
+  );
 
   return (
     <div ref={wrapRef} className={`relative ${className}`}>
@@ -176,37 +201,64 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
 
           {data && data.categories.length > 0 && (
             <div>
-              <div className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Categories</div>
-              {data.categories.map((c) => renderRow({ kind: "category", id: c.id, label: c.name, slug: c.slug }, <Tag className="h-4 w-4" />))}
+              <SectionHeader icon={<LayoutGrid className="h-3.5 w-3.5" />} label="Battery Category" count={data.categories.length} />
+              {data.categories.map((c) =>
+                renderRow(
+                  { kind: "category", id: c.id, label: c.name, slug: c.slug },
+                  <LayoutGrid className="h-4 w-4 text-primary" />,
+                  "bg-primary/10",
+                )
+              )}
             </div>
           )}
           {data && data.brands.length > 0 && (
             <div>
-              <div className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Battery Brands</div>
-              {data.brands.map((b) => renderRow({ kind: "brand", id: b.id, label: b.name, slug: b.slug }, <Battery className="h-4 w-4" />))}
+              <SectionHeader icon={<BatteryCharging className="h-3.5 w-3.5" />} label="Battery Brand" count={data.brands.length} />
+              {data.brands.map((b) =>
+                renderRow(
+                  { kind: "brand", id: b.id, label: b.name, slug: b.slug },
+                  <BatteryCharging className="h-4 w-4 text-emerald-600" />,
+                  "bg-emerald-500/10",
+                )
+              )}
+            </div>
+          )}
+          {data && data.carBrands.length > 0 && (
+            <div>
+              <SectionHeader icon={<CarFront className="h-3.5 w-3.5" />} label="Car Brand" count={data.carBrands.length} />
+              {data.carBrands.map((b) =>
+                renderRow(
+                  { kind: "car_brand", id: b.id, label: b.name, slug: b.slug },
+                  <CarFront className="h-4 w-4 text-blue-600" />,
+                  "bg-blue-500/10",
+                  <span className="text-[11px] text-muted-foreground whitespace-nowrap">All {b.name} batteries</span>,
+                )
+              )}
             </div>
           )}
           {data && data.models.length > 0 && (
             <div>
-              <div className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Car Models</div>
+              <SectionHeader icon={<Car className="h-3.5 w-3.5" />} label="Car Model" count={data.models.length} />
               {data.models.map((m) =>
                 renderRow(
                   { kind: "car_model", id: m.id, label: m.name, sublabel: m.car_brands?.name, slug: m.slug },
-                  <Car className="h-4 w-4" />,
-                  <span className="text-[11px] text-muted-foreground">Batteries for {m.name}</span>
+                  <Car className="h-4 w-4 text-amber-600" />,
+                  "bg-amber-500/10",
+                  <span className="text-[11px] text-muted-foreground whitespace-nowrap">Batteries for {m.name}</span>
                 )
               )}
             </div>
           )}
           {data && data.products.length > 0 && (
             <div>
-              <div className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Products</div>
+              <SectionHeader icon={<Package className="h-3.5 w-3.5" />} label="Products" count={data.products.length} />
               {data.products.map((p) =>
                 renderRow(
                   { kind: "product", id: p.id, label: p.name, slug: p.slug, price: Number(p.price), image: p.primary_image_url, brand: p.battery_brands?.name },
                   p.primary_image_url
-                    ? <img src={p.primary_image_url} alt="" className="h-8 w-8 object-contain bg-muted" />
-                    : <Package className="h-4 w-4" />,
+                    ? <img src={p.primary_image_url} alt="" className="h-7 w-7 object-contain" />
+                    : <Package className="h-4 w-4 text-muted-foreground" />,
+                  "bg-muted",
                   <span className="text-xs font-bold text-ink whitespace-nowrap">{formatINR(Number(p.price))}</span>
                 )
               )}

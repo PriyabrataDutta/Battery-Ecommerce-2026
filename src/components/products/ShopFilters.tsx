@@ -1,9 +1,10 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import { X } from "lucide-react";
 import type { CarBrand, CarModel, BatteryBrand } from "@/types/catalog";
 
@@ -14,11 +15,12 @@ type Counts = {
 
 interface Props {
   counts?: Counts;
+  priceBounds?: { min: number; max: number };
 }
 
 const ALL = "__all__";
 
-export function ShopFilters({ counts }: Props) {
+export function ShopFilters({ counts, priceBounds }: Props) {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
 

@@ -11,14 +11,16 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, X, ImageIcon, Check, Upload, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Search, X, ImageIcon, Check, Upload, Loader2, CheckCircle2, AlertCircle, RotateCw } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 interface UploadItem {
   name: string;
+  file: File;
   status: "pending" | "uploading" | "done" | "error" | "skipped";
   progress: number; // 0-100
   error?: string;
+  resultUrl?: string;
 }
 
 async function computeSha256(file: File): Promise<string> {

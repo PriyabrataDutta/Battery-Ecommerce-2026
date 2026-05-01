@@ -28,10 +28,14 @@ export async function listProducts(opts: ListProductsOptions = {}): Promise<Prod
   return (data ?? []) as unknown as Product[];
 }
 
+/**
+ * Single product by slug — joins brand, category, AND images in one request.
+ * Eliminates the separate useProductImages waterfall query.
+ */
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   const { data, error } = await supabase
     .from("products")
-    .select("*, battery_brands(*), categories(*)")
+    .select("*, battery_brands(*), categories(*), product_images(id, url, alt, sort_order)")
     .eq("slug", slug)
     .maybeSingle();
   if (error) throw error;
@@ -44,6 +48,7 @@ export async function getRelatedProducts(brandId: string, excludeId: string, lim
     .select("*, battery_brands(*)")
     .eq("brand_id", brandId)
     .neq("id", excludeId)
+    .eq("status", "active")
     .limit(limit);
   if (error) throw error;
   return (data ?? []) as unknown as Product[];
@@ -51,7 +56,6 @@ export async function getRelatedProducts(brandId: string, excludeId: string, lim
 
 /**
  * Free-text search across name, sku, short_description.
- * Used by SearchResults page. Limit is generous (24) for the dedicated page.
  */
 export async function searchProducts(term: string, limit = 24): Promise<Product[]> {
   const like = `%${term}%`;
@@ -67,7 +71,6 @@ export async function searchProducts(term: string, limit = 24): Promise<Product[
 
 /**
  * Lightweight product search for autocomplete / smart search dropdown.
- * Returns only the fields needed to render a suggestion row.
  */
 export interface ProductSuggestion {
   id: string;

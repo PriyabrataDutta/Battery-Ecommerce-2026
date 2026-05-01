@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
 import { X } from "lucide-react";
 import type { CarBrand, CarModel, BatteryBrand } from "@/types/catalog";
 
@@ -27,6 +28,11 @@ export function ShopFilters({ counts, priceBounds }: Props) {
   const carBrandSlug = params.get("car_brand") ?? "";
   const carModelSlug = params.get("car_model") ?? "";
   const batteryBrandSlug = params.get("battery_brand") ?? "";
+  const carBrandsCsv = params.get("car_brands") ?? "";
+  const selectedCarBrands = useMemo(
+    () => new Set(carBrandsCsv.split(",").map((s) => s.trim()).filter(Boolean)),
+    [carBrandsCsv]
+  );
 
   const { data: carBrands = [] } = useQuery({
     queryKey: ["car_brands_filter"],
@@ -116,7 +122,14 @@ export function ShopFilters({ counts, priceBounds }: Props) {
   };
 
   const priceActive = urlMin !== minBound || urlMax !== maxBound;
-  const hasAny = !!(carBrandSlug || carModelSlug || batteryBrandSlug || priceActive);
+  const hasAny = !!(carBrandSlug || carModelSlug || batteryBrandSlug || priceActive || selectedCarBrands.size > 0);
+
+  const toggleCarBrand = (slug: string) => {
+    const next = new Set(selectedCarBrands);
+    if (next.has(slug)) next.delete(slug);
+    else next.add(slug);
+    update({ car_brands: next.size > 0 ? Array.from(next).join(",") : null });
+  };
 
   const fmt = (n: number) =>
     new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);

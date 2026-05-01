@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,8 @@ import {
   Download,
   FileSpreadsheet,
   Info,
+  AlertTriangle,
+  RotateCcw,
 } from "lucide-react";
 import { parseProductsXlsx } from "@/lib/parseProductsXlsx";
 import * as XLSX from "xlsx";
@@ -128,6 +130,15 @@ interface ImportPreview {
   existingModels: { brand: string; model: string }[];
 }
 
+interface ImportProgress {
+  phase: "brands" | "models";
+  current: number;
+  total: number;
+  brandsCreated: number;
+  modelsCreated: number;
+  error?: string;
+}
+
 function BrandsModelsTab() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
@@ -141,6 +152,7 @@ function BrandsModelsTab() {
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
   const [previewing, setPreviewing] = useState(false);
+  const [importProgress, setImportProgress] = useState<ImportProgress | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const { data: brands = [], isLoading: brandsLoading } = useQuery({
@@ -294,22 +306,27 @@ function BrandsModelsTab() {
     }
   };
 
-  /* ── confirm import ── */
-  const handleConfirmImport = async () => {
+  /* ── confirm import with progress & retry ── */
+  const handleConfirmImport = useCallback(async () => {
     if (!importPreview) return;
     const { parsed } = importPreview;
-    setImportPreview(null);
     setImporting(true);
+    setImportProgress({ phase: "brands", current: 0, total: 0, brandsCreated: 0, modelsCreated: 0 });
 
     try {
+      // --- Phase 1: Brands ---
       const uniqueBrands = [...new Set(parsed.map((r) => r.brand))];
       const { data: existingBrandsData } = await supabase.from("car_brands").select("id, name");
       const brandMap = new Map<string, string>();
       for (const b of existingBrandsData ?? []) brandMap.set(b.name.toLowerCase(), b.id);
 
+      const brandsToCreate = uniqueBrands.filter((n) => !brandMap.has(n.toLowerCase()));
       let brandsCreated = 0;
-      for (const name of uniqueBrands) {
-        if (brandMap.has(name.toLowerCase())) continue;
+
+      setImportProgress({ phase: "brands", current: 0, total: brandsToCreate.length, brandsCreated: 0, modelsCreated: 0 });
+
+      for (let i = 0; i < brandsToCreate.length; i++) {
+        const name = brandsToCreate[i];
         const { data: ins, error } = await supabase
           .from("car_brands")
           .insert({ name, slug: slugify(name) })
@@ -326,8 +343,10 @@ function BrandsModelsTab() {
             .maybeSingle();
           if (ex) brandMap.set(name.toLowerCase(), ex.id);
         }
+        setImportProgress((p) => p ? { ...p, current: i + 1, brandsCreated } : p);
       }
 
+      // --- Phase 2: Models ---
       const { data: existingModelsData } = await supabase
         .from("car_models")
         .select("id, name, car_brand_id");
@@ -335,35 +354,50 @@ function BrandsModelsTab() {
         (existingModelsData ?? []).map((m) => `${m.car_brand_id}|${m.name.toLowerCase()}`)
       );
 
-      let modelsCreated = 0;
+      // Deduplicate models to create
+      const modelsToCreate: { brand: string; model: string }[] = [];
+      const seen = new Set<string>();
       for (const row of parsed) {
         const brandId = brandMap.get(row.brand.toLowerCase());
         if (!brandId) continue;
         const key = `${brandId}|${row.model.toLowerCase()}`;
-        if (modelSet.has(key)) continue;
+        if (modelSet.has(key) || seen.has(key)) continue;
+        seen.add(key);
+        modelsToCreate.push(row);
+      }
+
+      let modelsCreated = 0;
+      setImportProgress({ phase: "models", current: 0, total: modelsToCreate.length, brandsCreated, modelsCreated: 0 });
+
+      for (let i = 0; i < modelsToCreate.length; i++) {
+        const row = modelsToCreate[i];
+        const brandId = brandMap.get(row.brand.toLowerCase());
+        if (!brandId) continue;
 
         const { error } = await supabase
           .from("car_models")
           .insert({ name: row.model, slug: slugify(row.model), car_brand_id: brandId });
         if (!error) {
-          modelSet.add(key);
           modelsCreated++;
         }
+        setImportProgress((p) => p ? { ...p, current: i + 1, modelsCreated } : p);
       }
 
       toast.success(
-        `Import complete! ${brandsCreated} new brand${brandsCreated !== 1 ? "s" : ""}, ${modelsCreated} new model${modelsCreated !== 1 ? "s" : ""} added.`,
+        `Import complete! ${brandsCreated} brand${brandsCreated !== 1 ? "s" : ""}, ${modelsCreated} model${modelsCreated !== 1 ? "s" : ""} added.`,
         { duration: 6000 }
       );
+      setImportPreview(null);
+      setImportProgress(null);
       qc.invalidateQueries({ queryKey: ["admin-car-brands"] });
       qc.invalidateQueries({ queryKey: ["admin-car-models"] });
     } catch (err: any) {
       console.error("Import failed:", err);
-      toast.error(`Import failed: ${err.message ?? "Unknown error"}`);
+      setImportProgress((p) => p ? { ...p, error: err.message ?? "Unknown error" } : p);
     } finally {
       setImporting(false);
     }
-  };
+  }, [importPreview, qc]);
 
   /* ── export (same format as example file so round-trip works) ── */
   const handleExport = () => {
@@ -686,23 +720,79 @@ function BrandsModelsTab() {
                 </div>
               )}
 
+              {/* Progress indicator */}
+              {importProgress && !importProgress.error && importing && (
+                <div className="space-y-2 rounded-lg border bg-muted/50 p-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-medium">
+                      {importProgress.phase === "brands" ? "Creating brands…" : "Creating models…"}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {importProgress.current} / {importProgress.total}
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all duration-300"
+                      style={{
+                        width: importProgress.total > 0
+                          ? `${Math.round((importProgress.current / importProgress.total) * 100)}%`
+                          : "0%",
+                      }}
+                    />
+                  </div>
+                  <div className="flex gap-3 text-xs text-muted-foreground">
+                    <span>{importProgress.brandsCreated} brand{importProgress.brandsCreated !== 1 ? "s" : ""} added</span>
+                    <span>•</span>
+                    <span>{importProgress.modelsCreated} model{importProgress.modelsCreated !== 1 ? "s" : ""} added</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Error with retry */}
+              {importProgress?.error && (
+                <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                    <div className="text-sm">
+                      <p className="font-medium text-destructive">Import failed</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{importProgress.error}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {importProgress.brandsCreated} brand{importProgress.brandsCreated !== 1 ? "s" : ""} and {importProgress.modelsCreated} model{importProgress.modelsCreated !== 1 ? "s" : ""} were added before the error. Retrying will skip already-created items.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Actions */}
               <div className="flex items-center gap-3 pt-2">
-                <Button variant="outline" className="flex-1" onClick={() => setImportPreview(null)}>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => { setImportPreview(null); setImportProgress(null); }}
+                  disabled={importing}
+                >
                   Cancel
                 </Button>
-                <Button
-                  className="flex-1"
-                  onClick={handleConfirmImport}
-                  disabled={importing || (importPreview.newBrands.length === 0 && importPreview.newModels.length === 0)}
-                >
-                  {importing ? (
-                    <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-                  ) : (
-                    <Upload className="h-4 w-4 mr-1.5" />
-                  )}
-                  {importing ? "Importing…" : "Confirm Import"}
-                </Button>
+                {importProgress?.error ? (
+                  <Button className="flex-1" onClick={() => { setImportProgress(null); handleConfirmImport(); }}>
+                    <RotateCcw className="h-4 w-4 mr-1.5" /> Retry Import
+                  </Button>
+                ) : (
+                  <Button
+                    className="flex-1"
+                    onClick={handleConfirmImport}
+                    disabled={importing || (importPreview.newBrands.length === 0 && importPreview.newModels.length === 0)}
+                  >
+                    {importing ? (
+                      <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                    ) : (
+                      <Upload className="h-4 w-4 mr-1.5" />
+                    )}
+                    {importing ? "Importing…" : "Confirm Import"}
+                  </Button>
+                )}
               </div>
             </div>
           )}

@@ -1,8 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { Product } from "@/types/catalog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -25,13 +22,11 @@ import { toast } from "sonner";
 import { ProductCard } from "@/components/products/ProductCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import gsap from "gsap";
-
-interface ProductImageRow {
-  id: string;
-  url: string;
-  alt: string | null;
-  sort_order: number;
-}
+import {
+  useProductBySlug,
+  useProductImages,
+  useRelatedProducts,
+} from "@/hooks/queries/useProducts";
 
 const ProductDetail = () => {
   const { slug } = useParams();
@@ -42,47 +37,9 @@ const ProductDetail = () => {
   const [activeImage, setActiveImage] = useState<string | null>(null);
   const mainImgRef = useRef<HTMLImageElement>(null);
 
-  const { data: product, isLoading } = useQuery({
-    queryKey: ["product", slug],
-    queryFn: async (): Promise<Product | null> => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*, battery_brands(*), categories(*)")
-        .eq("slug", slug!)
-        .maybeSingle();
-      if (error) throw error;
-      return data as unknown as Product;
-    },
-  });
-
-  const { data: gallery = [] } = useQuery({
-    queryKey: ["product-images", product?.id],
-    enabled: !!product?.id,
-    queryFn: async (): Promise<ProductImageRow[]> => {
-      const { data, error } = await supabase
-        .from("product_images")
-        .select("*")
-        .eq("product_id", product!.id)
-        .order("sort_order", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as ProductImageRow[];
-    },
-  });
-
-  const { data: related = [] } = useQuery({
-    queryKey: ["related", product?.brand_id, product?.id],
-    enabled: !!product,
-    queryFn: async (): Promise<Product[]> => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*, battery_brands(*)")
-        .eq("brand_id", product!.brand_id!)
-        .neq("id", product!.id)
-        .limit(4);
-      if (error) throw error;
-      return data as unknown as Product[];
-    },
-  });
+  const { data: product, isLoading } = useProductBySlug(slug);
+  const { data: gallery = [] } = useProductImages(product?.id);
+  const { data: related = [] } = useRelatedProducts(product?.brand_id, product?.id);
 
   const allImages = useMemo(() => {
     if (!product) return [] as string[];

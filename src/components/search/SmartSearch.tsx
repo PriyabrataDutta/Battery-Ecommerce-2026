@@ -7,16 +7,33 @@ import { Input } from "@/components/ui/input";
 import { formatINR } from "@/lib/format";
 
 const RECENT_KEY = "kachi.recentSearches";
-const RECENT_MAX = 6;
+const RECENT_MAX = 12;
 
-type RecentItem = { label: string; path: string; sublabel?: string; kind: string };
+type ProductType = "car" | "inverter" | "other";
+type RecentItem = { label: string; path: string; sublabel?: string; kind: string; productType: ProductType };
+
+function inferProductType(path: string, kind: string): ProductType {
+  const p = path.toLowerCase();
+  if (kind === "car_brand" || kind === "car_model") return "car";
+  if (p.includes("type=car-batteries") || p.includes("/category/car") || p.includes("car_brand=") || p.includes("car_model=")) return "car";
+  if (p.includes("type=inverter") || p.includes("/category/inverter") || p.includes("/category/tubular") || p.includes("/category/smf") || p.includes("/category/lithium")) return "inverter";
+  return "other";
+}
 
 function loadRecent(): RecentItem[] {
   try {
     const raw = localStorage.getItem(RECENT_KEY);
     if (!raw) return [];
     const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr.slice(0, RECENT_MAX) : [];
+    if (!Array.isArray(arr)) return [];
+    // Backfill productType for older saved items
+    return arr.slice(0, RECENT_MAX).map((r: any) => ({
+      label: r.label,
+      path: r.path,
+      sublabel: r.sublabel,
+      kind: r.kind ?? "query",
+      productType: r.productType ?? inferProductType(r.path ?? "", r.kind ?? ""),
+    }));
   } catch {
     return [];
   }

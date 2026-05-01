@@ -190,10 +190,11 @@ export function Header() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  sideOffset={8}
+                  sideOffset={4}
                   className="w-56 bg-white z-50"
                   onMouseEnter={openAccount}
                   onMouseLeave={scheduleCloseAccount}
+                  onCloseAutoFocus={(e) => e.preventDefault()}
                 >
                   <DropdownMenuLabel className="flex flex-col gap-0.5">
                     <span className="text-xs text-muted-foreground font-normal">Signed in as</span>

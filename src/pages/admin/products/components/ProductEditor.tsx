@@ -50,6 +50,7 @@ export function ProductEditor({
   const isEdit = !!product;
   const [form, setForm] = useState<ProductEditableFields>(EMPTY_PRODUCT);
   const [fitmentModelIds, setFitmentModelIds] = useState<string[]>([]);
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
 
   // Load existing fitment when editing
   const { data: existingFitment } = useQuery({
@@ -58,9 +59,28 @@ export function ProductEditor({
     enabled: !!product?.id && open,
   });
 
+  // Load existing gallery images when editing
+  const { data: existingGallery } = useQuery({
+    queryKey: ["product_images", product?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("product_images")
+        .select("url")
+        .eq("product_id", product!.id)
+        .order("sort_order");
+      if (error) throw error;
+      return (data ?? []).map((r) => r.url);
+    },
+    enabled: !!product?.id && open,
+  });
+
   useEffect(() => {
     if (existingFitment) setFitmentModelIds(existingFitment);
   }, [existingFitment]);
+
+  useEffect(() => {
+    if (existingGallery) setGalleryImages(existingGallery);
+  }, [existingGallery]);
 
   useEffect(() => {
     if (!open) return;

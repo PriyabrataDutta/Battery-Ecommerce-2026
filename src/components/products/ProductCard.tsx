@@ -111,18 +111,20 @@ export function ProductCard({ product }: { product: Product }) {
           <Button
             size="sm"
             variant="outline"
-            className="h-9 w-full px-2 text-[11px] sm:text-xs font-medium inline-flex items-center justify-center gap-1.5 min-w-0"
+            className="h-11 sm:h-10 w-full px-2 text-xs sm:text-sm font-medium inline-flex items-center justify-center gap-1.5 min-w-0 leading-none"
             onClick={handleAdd}
+            aria-label={`Add ${product.name} to cart`}
           >
-            <ShoppingCart className="h-3.5 w-3.5 shrink-0" />
+            <ShoppingCart className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="truncate">Add</span>
           </Button>
           <Button
             size="sm"
-            className="h-9 w-full px-2 text-[11px] sm:text-xs font-medium inline-flex items-center justify-center gap-1.5 min-w-0"
+            className="h-11 sm:h-10 w-full px-2 text-xs sm:text-sm font-medium inline-flex items-center justify-center gap-1.5 min-w-0 leading-none"
             onClick={handleBuyNow}
+            aria-label={`Buy ${product.name} now`}
           >
-            <Zap className="h-3.5 w-3.5 shrink-0" />
+            <Zap className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="truncate">Buy Now</span>
           </Button>
         </div>

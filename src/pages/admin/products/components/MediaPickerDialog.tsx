@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -57,6 +57,13 @@ export function MediaPickerDialog({
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [picked, setPicked] = useState<Set<string>>(new Set(selected));
+
+  // Sync picked state when dialog opens or selected prop changes
+  useEffect(() => {
+    if (open) {
+      setPicked(new Set(selected));
+    }
+  }, [open, selected]);
   const [uploading, setUploading] = useState(false);
   const [uploadItems, setUploadItems] = useState<UploadItem[]>([]);
   const [dragging, setDragging] = useState(false);
@@ -124,17 +131,31 @@ export function MediaPickerDialog({
           const checksum = await computeSha256(file);
           updateItem(i, { progress: 20 });
 
-          // Check for existing file with same checksum or same name+size
-          const { data: existing } = await supabase
-            .from("media_files")
-            .select("file_url")
-            .or(`checksum.eq.${checksum},and(file_name.eq.${file.name},size_bytes.eq.${file.size})`)
-            .limit(1);
+          // Check for existing file with same checksum
+          let existingUrl: string | null = null;
+          if (checksum) {
+            const { data: byHash } = await supabase
+              .from("media_files")
+              .select("file_url")
+              .eq("checksum", checksum)
+              .limit(1);
+            if (byHash && byHash.length > 0) existingUrl = byHash[0].file_url;
+          }
+          // Fallback: check by filename + size
+          if (!existingUrl) {
+            const { data: byName } = await supabase
+              .from("media_files")
+              .select("file_url")
+              .eq("file_name", file.name)
+              .eq("size_bytes", file.size)
+              .limit(1);
+            if (byName && byName.length > 0) existingUrl = byName[0].file_url;
+          }
 
-          if (existing && existing.length > 0) {
+          if (existingUrl) {
             // Duplicate found — skip upload, reuse existing URL
             updateItem(i, { status: "skipped", progress: 100, error: "Duplicate — reusing existing" });
-            uploadedUrls.push(existing[0].file_url);
+            uploadedUrls.push(existingUrl);
             continue;
           }
 

@@ -89,14 +89,28 @@ const AdminMedia = () => {
         const hashBuffer = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
         const checksum = Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, "0")).join("");
 
-        // Check for duplicate
-        const { data: existing } = await supabase
-          .from("media_files")
-          .select("id")
-          .or(`checksum.eq.${checksum},and(file_name.eq.${file.name},size_bytes.eq.${file.size})`)
-          .limit(1);
+        // Check for duplicate by checksum
+        let isDuplicate = false;
+        if (checksum) {
+          const { data: byHash } = await supabase
+            .from("media_files")
+            .select("id")
+            .eq("checksum", checksum)
+            .limit(1);
+          if (byHash && byHash.length > 0) isDuplicate = true;
+        }
+        // Fallback: check by filename + size
+        if (!isDuplicate) {
+          const { data: byName } = await supabase
+            .from("media_files")
+            .select("id")
+            .eq("file_name", file.name)
+            .eq("size_bytes", file.size)
+            .limit(1);
+          if (byName && byName.length > 0) isDuplicate = true;
+        }
 
-        if (existing && existing.length > 0) {
+        if (isDuplicate) {
           skipped++;
           continue;
         }

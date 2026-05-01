@@ -243,7 +243,7 @@ export function MediaPickerDialog({
           ) : filtered.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground text-sm">
               <ImageIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              {search ? "No files match your search." : "No media files yet. Click Upload to add images."}
+              {search ? "No files match your search." : "No media files yet. Drag & drop or click Upload to add images."}
             </div>
           ) : (
             <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">

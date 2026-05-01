@@ -51,7 +51,7 @@ export interface CreatedOrder {
 export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder> {
   const { data: orderRow, error: orderErr } = await supabase
     .from("orders")
-    .insert({
+    .insert([{
       user_id: input.userId,
       order_number: input.orderNumber,
       status: "pending",

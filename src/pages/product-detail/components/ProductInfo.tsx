@@ -41,7 +41,7 @@ type Props = {
     warranty_months: number | null;
     has_exchange: boolean;
     exchange_rebate: number;
-    battery_brands: { name: string } | null;
+    battery_brands?: { name: string } | null;
   };
   qty: number;
   setQty: (n: number) => void;

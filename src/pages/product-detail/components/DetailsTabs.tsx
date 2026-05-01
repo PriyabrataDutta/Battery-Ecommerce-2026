@@ -11,12 +11,12 @@ import { SpecRow } from "./SpecRow";
 type Props = {
   product: {
     sku: string;
-    description: string | null;
-    short_description: string | null;
-    warranty_months: number | null;
-    capacity_ah: number | null;
-    specs: Record<string, unknown> | null;
-    battery_brands: { name: string } | null;
+    description?: string | null;
+    short_description?: string | null;
+    warranty_months?: number | null;
+    capacity_ah?: number | null;
+    specs?: Record<string, unknown> | null;
+    battery_brands?: { name: string } | null;
   };
 };
 

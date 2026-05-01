@@ -7,14 +7,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { SmartSearch } from "@/components/search/SmartSearch";
 import { CartDrawer } from "@/components/cart/CartDrawer";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 const mainNav = [
   { label: "Home", to: "/" },
@@ -167,79 +159,95 @@ export function Header() {
           </Button>
           {user ? (
             <div
-              className="inline-flex"
+              className="relative inline-flex"
               onMouseEnter={openAccount}
               onMouseLeave={scheduleCloseAccount}
               onFocus={openAccount}
               onBlur={handleAccountBlur}
               onKeyDown={handleAccountKeyDown}
             >
-              <DropdownMenu open={accountOpen} onOpenChange={setAccountOpen}>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    asChild
-                    variant="ghost"
-                    size="icon"
-                    className="h-11 w-11 sm:h-10 sm:w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                    aria-label="Account menu"
-                  >
-                    <Link to="/account" onClick={() => setAccountOpen(false)}>
-                      <User className="h-5 w-5" />
-                    </Link>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  sideOffset={4}
-                  className="w-56 bg-white z-50"
-                  onMouseEnter={openAccount}
-                  onMouseLeave={scheduleCloseAccount}
-                  onCloseAutoFocus={(e) => e.preventDefault()}
+              <Button
+                asChild
+                variant="ghost"
+                size="icon"
+                className="h-11 w-11 sm:h-10 sm:w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                aria-label="Account menu"
+                aria-haspopup="menu"
+                aria-expanded={accountOpen}
+              >
+                <Link to="/account" onClick={closeAccountNow}>
+                  <User className="h-5 w-5" />
+                </Link>
+              </Button>
+
+              {accountOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-full w-56 bg-white border border-line rounded-md shadow-elevated z-50 py-1"
                 >
-                  <DropdownMenuLabel className="flex flex-col gap-0.5">
-                    <span className="text-xs text-muted-foreground font-normal">Signed in as</span>
-                    <span className="truncate text-sm">{user.email}</span>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/account" className="cursor-pointer">
-                      <UserCircle className="h-4 w-4 mr-2" /> My Account
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/account/orders" className="cursor-pointer">
-                      <Package className="h-4 w-4 mr-2" /> My Orders
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/account/addresses" className="cursor-pointer">
-                      <MapPin className="h-4 w-4 mr-2" /> Addresses
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/account/profile" className="cursor-pointer">
-                      <User className="h-4 w-4 mr-2" /> Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  {isStaff && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link to="/admin" className="cursor-pointer">
-                          <LayoutDashboard className="h-4 w-4 mr-2" /> Admin Dashboard
-                        </Link>
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={signOut}
-                    className="cursor-pointer text-primary focus:text-primary"
+                  {/* invisible hover bridge so the cursor can cross from trigger to menu without firing mouseleave */}
+                  <span className="absolute -top-2 left-0 right-0 h-2" aria-hidden="true" />
+
+                  <div className="px-3 py-2 flex flex-col gap-0.5 border-b border-line">
+                    <span className="text-[11px] text-muted-foreground">Signed in as</span>
+                    <span className="truncate text-sm font-medium text-ink">{user.email}</span>
+                  </div>
+
+                  <Link
+                    to="/account"
+                    onClick={closeAccountNow}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-ink hover:bg-muted hover:text-primary"
+                    role="menuitem"
                   >
-                    <LogOut className="h-4 w-4 mr-2" /> Sign out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <UserCircle className="h-4 w-4" /> My Account
+                  </Link>
+                  <Link
+                    to="/account/orders"
+                    onClick={closeAccountNow}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-ink hover:bg-muted hover:text-primary"
+                    role="menuitem"
+                  >
+                    <Package className="h-4 w-4" /> My Orders
+                  </Link>
+                  <Link
+                    to="/account/addresses"
+                    onClick={closeAccountNow}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-ink hover:bg-muted hover:text-primary"
+                    role="menuitem"
+                  >
+                    <MapPin className="h-4 w-4" /> Addresses
+                  </Link>
+                  <Link
+                    to="/account/profile"
+                    onClick={closeAccountNow}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-ink hover:bg-muted hover:text-primary"
+                    role="menuitem"
+                  >
+                    <User className="h-4 w-4" /> Profile
+                  </Link>
+                  {isStaff && (
+                    <Link
+                      to="/admin"
+                      onClick={closeAccountNow}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-ink hover:bg-muted hover:text-primary border-t border-line"
+                      role="menuitem"
+                    >
+                      <LayoutDashboard className="h-4 w-4" /> Admin Dashboard
+                    </Link>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeAccountNow();
+                      signOut();
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-primary hover:bg-muted border-t border-line text-left"
+                    role="menuitem"
+                  >
+                    <LogOut className="h-4 w-4" /> Sign out
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <Button

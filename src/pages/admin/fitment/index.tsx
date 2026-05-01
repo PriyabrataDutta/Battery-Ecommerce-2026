@@ -132,6 +132,15 @@ interface ImportPreview {
 
 type ImportMode = "append" | "strict";
 
+interface FailedBrand {
+  name: string;
+  error: string;
+}
+interface FailedModel {
+  brand: string;
+  model: string;
+  error: string;
+}
 interface ImportProgress {
   phase: "brands" | "models";
   current: number;
@@ -140,6 +149,8 @@ interface ImportProgress {
   brandsUpdated: number;
   modelsCreated: number;
   modelsUpdated: number;
+  failedBrands: FailedBrand[];
+  failedModels: FailedModel[];
   error?: string;
 }
 

@@ -42,7 +42,7 @@ function slugify(s: string) {
 }
 
 /** Generate & download a sample Excel file showing expected format */
-function downloadExampleFile() {
+function downloadExampleFile(format: "xlsx" | "csv" = "xlsx") {
   const sampleData = [
     ["Car Brand", "Car Model"],
     ["Maruti Suzuki", "Swift"],
@@ -56,6 +56,17 @@ function downloadExampleFile() {
     ["Honda", "City"],
     ["Honda", "Amaze"],
   ];
+  if (format === "csv") {
+    const csv = sampleData.map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "car_brands_models_example.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+    return;
+  }
   const ws = XLSX.utils.aoa_to_sheet(sampleData);
   ws["!cols"] = [{ wch: 20 }, { wch: 25 }];
   const wb = XLSX.utils.book_new();

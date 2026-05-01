@@ -29,20 +29,10 @@ import { Input } from "@/components/ui/input";
 import { discountPct, formatINR } from "@/lib/format";
 import { Trust } from "./Trust";
 
+import type { Product } from "@/types/catalog";
+
 type Props = {
-  product: {
-    id: string;
-    name: string;
-    sku: string;
-    price: number;
-    mrp: number | null;
-    stock: number;
-    short_description: string | null;
-    warranty_months: number | null;
-    has_exchange: boolean;
-    exchange_rebate: number;
-    battery_brands?: { name: string } | null;
-  };
+  product: Product;
   qty: number;
   setQty: (n: number) => void;
   withExchange: boolean;

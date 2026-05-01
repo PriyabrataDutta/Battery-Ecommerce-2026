@@ -6,18 +6,10 @@
  */
 import { ShieldCheck, Truck, Wrench } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SpecRow } from "./SpecRow";
+import type { Product } from "@/types/catalog";
 
 type Props = {
-  product: {
-    sku: string;
-    description?: string | null;
-    short_description?: string | null;
-    warranty_months?: number | null;
-    capacity_ah?: number | null;
-    specs?: Record<string, unknown> | null;
-    battery_brands?: { name: string } | null;
-  };
+  product: Product;
 };
 
 export const DetailsTabs = ({ product }: Props) => {

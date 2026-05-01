@@ -42,7 +42,7 @@ function slugify(s: string) {
 }
 
 /** Generate & download a sample Excel file showing expected format */
-function downloadExampleFile() {
+function downloadExampleFile(format: "xlsx" | "csv" = "xlsx") {
   const sampleData = [
     ["Car Brand", "Car Model"],
     ["Maruti Suzuki", "Swift"],
@@ -56,6 +56,17 @@ function downloadExampleFile() {
     ["Honda", "City"],
     ["Honda", "Amaze"],
   ];
+  if (format === "csv") {
+    const csv = sampleData.map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "car_brands_models_example.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+    return;
+  }
   const ws = XLSX.utils.aoa_to_sheet(sampleData);
   ws["!cols"] = [{ wch: 20 }, { wch: 25 }];
   const wb = XLSX.utils.book_new();
@@ -63,15 +74,25 @@ function downloadExampleFile() {
   XLSX.writeFile(wb, "car_brands_models_example.xlsx");
 }
 
-/** Parse an uploaded brands/models xlsx into [{brand, model}] */
-function parseBrandsModelsXlsx(file: File): Promise<{ brand: string; model: string }[]> {
+/** Parse an uploaded brands/models file (xlsx/xls/csv) into [{brand, model}] */
+function parseBrandsModelsFile(file: File): Promise<{ brand: string; model: string }[]> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const wb = XLSX.read(e.target?.result, { type: "array" });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        let rows: any[][];
+        const isCsv = file.name.toLowerCase().endsWith(".csv");
+
+        if (isCsv) {
+          const text = new TextDecoder().decode(e.target?.result as ArrayBuffer);
+          const wb = XLSX.read(text, { type: "string" });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        } else {
+          const wb = XLSX.read(e.target?.result, { type: "array" });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        }
 
         const result: { brand: string; model: string }[] = [];
         let lastBrand = "";
@@ -212,7 +233,7 @@ function BrandsModelsTab() {
     setPreviewing(true);
 
     try {
-      const parsed = await parseBrandsModelsXlsx(file);
+      const parsed = await parseBrandsModelsFile(file);
       if (!parsed.length) {
         toast.error("No data found in the file");
         setPreviewing(false);
@@ -394,7 +415,7 @@ function BrandsModelsTab() {
           <input
             ref={fileRef}
             type="file"
-            accept=".xlsx,.xls"
+            accept=".xlsx,.xls,.csv"
             className="hidden"
             onChange={handleFileSelect}
           />
@@ -558,16 +579,21 @@ function BrandsModelsTab() {
                   <li>First row should be the header (<strong>Car Brand</strong>, <strong>Car Model</strong>)</li>
                   <li>If brand column is empty, the model inherits the last brand above it</li>
                   <li>Duplicates are automatically skipped — safe to re-import</li>
-                  <li>Supports <code>.xlsx</code> and <code>.xls</code> files</li>
+                  <li>Supports <code>.xlsx</code>, <code>.xls</code>, and <code>.csv</code> files</li>
                 </ul>
               </div>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-3">
-              <Button variant="outline" className="flex-1" onClick={downloadExampleFile}>
-                <Download className="h-4 w-4 mr-1.5" /> Download Example File
-              </Button>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-3">
+                <Button variant="outline" className="flex-1" onClick={() => downloadExampleFile("xlsx")}>
+                  <Download className="h-4 w-4 mr-1.5" /> Example (.xlsx)
+                </Button>
+                <Button variant="outline" className="flex-1" onClick={() => downloadExampleFile("csv")}>
+                  <Download className="h-4 w-4 mr-1.5" /> Example (.csv)
+                </Button>
+              </div>
               <Button
                 className="flex-1"
                 onClick={() => fileRef.current?.click()}

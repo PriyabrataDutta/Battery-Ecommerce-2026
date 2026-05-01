@@ -1,52 +1,72 @@
 
-# Connect Products to Car Fitment
+# Restructure Pricing Model & Redesign Product Detail Page
 
-## Current State
+## What changes
 
-The frontend fitment search (`FitmentSearch`, `ShopFilters`, `Shop`) **already fetches car brands and car models from the database** and filters products via the `product_fitment` table. This is all working correctly.
+### 1. Pricing model simplification
 
-The issue: **the `product_fitment` table is empty** (0 rows). Your 12 active products have no car model mappings, so the "Find My Battery" search always returns zero results.
+The database already has `mrp`, `price_with_exchange`, and `price_without_exchange` columns on the `products` table. Currently the frontend ignores the explicit exchange/without-exchange columns and derives prices from `price` + `exchange_rebate`. We will switch to using the 3 explicit prices directly.
 
-There are 20+ car brands and 400+ car models already in the DB — they just aren't linked to any products.
+**New pricing display logic everywhere:**
+- **MRP** -- strikethrough price (was already `mrp`)
+- **Without Exchange Price** -- the main bold price shown next to MRP (`price_without_exchange`)
+- **With Exchange Price** -- highlighted lower price (`price_with_exchange`)
+- Discount % calculated from MRP vs Without Exchange Price
+- "You save" calculated as MRP - With Exchange Price (when exchange selected)
+
+The old `price` and `exchange_rebate` fields will remain in the DB but the storefront will stop relying on them.
+
+### 2. Update the Product type and cart logic
+
+- Add `price_with_exchange` and `price_without_exchange` to the `Product` type in `src/types/catalog.ts`
+- Update `CartItem` to carry both prices instead of `exchangeRebate`
+- Update `useCart` effective-price calculation
+
+### 3. Redesign the Product Detail page
+
+Current layout: 3-column (gallery 5 | info 4 | price breakup 3).
+
+**New layout: 2-column (gallery 6 | info+pricing 6)** on desktop, stacked on mobile.
+
+The right column will contain (top to bottom):
+- Brand label + Product name + SKU
+- Price block: MRP (strikethrough) + Without Exchange price + discount badge
+- With Exchange price in a highlighted card
+- Short description
+- Qty stepper + stock status
+- Old battery return toggle (checkbox)
+- Pincode check
+- CTA buttons (Add to Cart, Buy Now, Request Quote, WhatsApp)
+- Trust strip (warranty, genuine, free shipping)
+
+The separate PriceBreakup sticky column will be removed. Instead, a compact order summary will appear inline below the exchange toggle showing the line total based on qty and exchange selection.
+
+### 4. ProductCard update
+
+Update `ProductCard.tsx` to use `price_without_exchange` / `price_with_exchange` / `mrp` directly instead of deriving from `price - exchange_rebate`.
+
+### 5. MobileBottomBar update
+
+Show the selected price (with or without exchange) and keep Add to Cart CTA.
+
+### 6. Admin ProductEditor
+
+The editor already has fields for `price_with_exchange` and `price_without_exchange`. No structural changes needed there, but the Pricing section labels will be clarified to match the new naming (MRP, Without Exchange, With Exchange).
 
 ---
 
-## What We'll Build
+## Files to modify
 
-### 1. Add Fitment Section to Product Editor
+| File | Change |
+|------|--------|
+| `src/types/catalog.ts` | Add `price_with_exchange`, `price_without_exchange` to `Product`; update `CartItem` |
+| `src/hooks/useCart.ts` | Use new price fields |
+| `src/components/products/ProductCard.tsx` | Use new 3-price display |
+| `src/pages/product-detail/index.tsx` | Switch to 2-col layout, remove PriceBreakup, pass new price props |
+| `src/pages/product-detail/components/ProductInfo.tsx` | Rewrite with new price display and integrated order summary |
+| `src/pages/product-detail/components/PriceBreakup.tsx` | Remove (or repurpose as inline summary) |
+| `src/pages/product-detail/components/MobileBottomBar.tsx` | Use new price fields |
+| `src/pages/Cart.tsx` | Use new price fields |
+| `src/lib/format.ts` | Add `discountPct` variant for new fields if needed |
 
-Add a "Car Fitment" section to the product create/edit drawer so you can assign which car brands and models each battery fits:
-
-- **Car brand dropdown** → select a brand (e.g. "Maruti Suzuki")
-- **Car model multi-select** → pick models under that brand (e.g. "Swift", "Baleno", "Dzire")
-- **Add button** → adds the selected models to the fitment list
-- **Chip display** → shows all assigned fitment as removable chips grouped by brand
-- When saving the product, the system writes the correct `product_fitment` rows
-
-When editing an existing product, the drawer pre-loads its current fitment mappings.
-
-### 2. Bulk Fitment Assignment (Quick Map)
-
-Add a "Map Fitment" button on the Products list page that opens a streamlined dialog:
-
-- Pick a product from a dropdown
-- Select multiple car brands → their models appear as checkboxes
-- Check the models this battery fits → save
-- This is faster than opening each product's editor one by one
-
-### 3. Sort Order Fix for Car Brands
-
-The `FitmentSearch` component sorts by `sort_order`, but all brands currently have `sort_order = 0`. We'll update popular brands (Maruti Suzuki, Hyundai, Tata, Honda, etc.) to appear first in the dropdown.
-
----
-
-## Technical Details
-
-**Files to modify:**
-- `src/pages/admin/products/components/ProductEditor.tsx` — add fitment section with brand/model selection and chip display
-- `src/pages/admin/products/hooks/useAdminProducts.ts` — add hooks to fetch car brands, models, and product fitment; add mutation to save fitment
-- `src/pages/admin/products/index.tsx` — add "Map Fitment" dialog
-
-**No DB schema changes needed** — the `product_fitment` table already exists with the right structure (product_id + car_model_id). RLS policies are already in place (public read, staff write).
-
-**No edge function changes** — fitment writes go directly via the Supabase client (staff RLS allows it).
+No database migration needed -- the columns already exist.

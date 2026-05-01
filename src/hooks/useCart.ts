@@ -22,6 +22,13 @@ function write(items: CartItem[]) {
 
 // Effective per-unit price (with exchange rebate applied if chosen)
 export function lineUnitPrice(it: CartItem) {
+  if (it.withExchange && it.priceWithExchange) {
+    return it.priceWithExchange;
+  }
+  if (it.priceWithoutExchange) {
+    return it.priceWithoutExchange;
+  }
+  // fallback for old cart items
   return it.withExchange && it.exchangeRebate ? Math.max(0, it.price - it.exchangeRebate) : it.price;
 }
 
@@ -75,8 +82,8 @@ export function useCart() {
   return {
     items,
     addItem,
-    removeItem: removeLine, // kept for backwards compatibility, expects line key
-    setQty: setLineQty,     // expects line key
+    removeItem: removeLine,
+    setQty: setLineQty,
     clear,
     subtotal,
     count,

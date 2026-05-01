@@ -22,7 +22,7 @@ const ALL = "__all__";
 
 export function ShopFilters({ counts, priceBounds }: Props) {
   const [params, setParams] = useSearchParams();
-  const navigate = useNavigate();
+  
 
   const carBrandSlug = params.get("car_brand") ?? "";
   const carModelSlug = params.get("car_model") ?? "";

@@ -407,7 +407,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
       )}
 
       {showPanel && (
-        <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-line shadow-elevated z-50 max-h-[70vh] overflow-auto animate-fade-in">
+        <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-line rounded-md shadow-elevated z-50 max-h-[70vh] overflow-auto animate-fade-in">
           {isFetching && !hasResults && (
             <div className="px-4 py-6 text-sm text-muted-foreground">Searching…</div>
           )}

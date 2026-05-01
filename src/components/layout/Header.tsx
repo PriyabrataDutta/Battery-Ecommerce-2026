@@ -1,6 +1,6 @@
 import { Link, NavLink } from "react-router-dom";
-import { ShoppingCart, User, Menu, Phone, MessageCircle, ChevronDown, X, LogOut } from "lucide-react";
-import { useState } from "react";
+import { Search, ShoppingCart, User, Menu, Phone, MessageCircle, ChevronDown, X, LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
 import logo from "@/assets/kachi-logo.png";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,6 +21,15 @@ export function Header() {
   const { user, loading, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+
+  useEffect(() => {
+    if (mobileSearchOpen) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = prev; };
+    }
+  }, [mobileSearchOpen]);
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-line">
@@ -66,6 +75,15 @@ export function Header() {
         <SmartSearch className="hidden md:flex flex-1 min-w-0 md:max-w-[700px] mx-auto" />
 
         <div className="ml-auto flex flex-shrink-0 flex-nowrap items-center gap-2 whitespace-nowrap">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setMobileSearchOpen(true)}
+            aria-label="Search"
+          >
+            <Search className="h-5 w-5" />
+          </Button>
           <Button asChild variant="ghost" size="icon" className="hidden sm:inline-flex">
             <Link to={user ? "/account" : "/auth"} aria-label={user ? "Account" : "Sign in"}>
               <User className="h-5 w-5" />
@@ -89,6 +107,29 @@ export function Header() {
           </Button>
         </div>
       </div>
+
+      {/* Mobile full-screen search overlay */}
+      {mobileSearchOpen && (
+        <div className="fixed inset-0 z-50 bg-white md:hidden animate-fade-in flex flex-col">
+          <div className="flex items-center gap-2 p-3 border-b border-line">
+            <div className="flex-1 min-w-0">
+              <SmartSearch
+                autoFocus
+                placeholder="Search batteries, brands, models..."
+                onNavigate={() => setMobileSearchOpen(false)}
+              />
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileSearchOpen(false)}
+              aria-label="Close search"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Main menu */}
       <nav className="hidden lg:block border-t border-line bg-white">

@@ -40,7 +40,7 @@ export function Header() {
   };
   const scheduleCloseAccount = () => {
     if (accountCloseTimer) clearTimeout(accountCloseTimer);
-    const t = setTimeout(() => setAccountOpen(false), 150);
+    const t = setTimeout(() => setAccountOpen(false), 250);
     setAccountCloseTimer(t);
   };
   const closeAccountNow = () => {

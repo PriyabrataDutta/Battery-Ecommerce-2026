@@ -159,16 +159,6 @@
   }
 }
 
-@layer components {
-
-  .hover-lift {
-    @apply transition-transform duration-200 hover:-translate-y-0.5;
-  }
-
-  .marquee {
-    animation: marquee 30s linear infinite;
-  }
-}
 
 @layer utilities {
   .text-balance {

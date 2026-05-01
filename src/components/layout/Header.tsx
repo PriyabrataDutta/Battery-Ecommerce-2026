@@ -27,6 +27,21 @@ const mainNav = [
 export function Header() {
   const { count } = useCart();
   const { user, loading, signOut, isStaff } = useAuth();
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [accountCloseTimer, setAccountCloseTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+
+  const openAccount = () => {
+    if (accountCloseTimer) {
+      clearTimeout(accountCloseTimer);
+      setAccountCloseTimer(null);
+    }
+    setAccountOpen(true);
+  };
+  const scheduleCloseAccount = () => {
+    if (accountCloseTimer) clearTimeout(accountCloseTimer);
+    const t = setTimeout(() => setAccountOpen(false), 150);
+    setAccountCloseTimer(t);
+  };
   const [mobileOpen, setMobileOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);

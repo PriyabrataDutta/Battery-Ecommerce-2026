@@ -1,11 +1,19 @@
 import { Link, NavLink } from "react-router-dom";
-import { Search, ShoppingCart, User, Menu, Phone, MessageCircle, ChevronDown, X, LogOut } from "lucide-react";
+import { Search, ShoppingCart, User, Menu, Phone, MessageCircle, ChevronDown, X, LogOut, UserPlus, Package, MapPin, UserCircle, LayoutDashboard } from "lucide-react";
 import { useEffect, useState } from "react";
 import logo from "@/assets/kachi-logo.png";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { SmartSearch } from "@/components/search/SmartSearch";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const mainNav = [
   { label: "Home", to: "/" },

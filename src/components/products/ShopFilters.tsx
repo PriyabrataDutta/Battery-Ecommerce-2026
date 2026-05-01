@@ -101,17 +101,26 @@ export function ShopFilters({ counts, priceBounds }: Props) {
   // Price range slider — local state for smooth dragging, URL update on commit
   const minBound = priceBounds?.min ?? 0;
   const maxBound = priceBounds?.max ?? 0;
+  const boundsReady = !!priceBounds && maxBound > minBound;
   const minPriceParam = params.get("min_price");
   const maxPriceParam = params.get("max_price");
-  const urlMin = minPriceParam !== null ? Number(minPriceParam) : minBound;
-  const urlMax = maxPriceParam !== null ? Number(maxPriceParam) : maxBound;
+  // Resolve URL values, clamped within current bounds (only meaningful once bounds are ready)
+  const clamp = (n: number) => Math.min(maxBound, Math.max(minBound, n));
+  const urlMin = boundsReady && minPriceParam !== null ? clamp(Number(minPriceParam)) : minBound;
+  const urlMax = boundsReady && maxPriceParam !== null ? clamp(Number(maxPriceParam)) : maxBound;
 
-  const [range, setRange] = useState<[number, number]>([urlMin, urlMax]);
-  // Sync local state when URL or bounds change externally
+  // Lazy-init: start as null until bounds load, then mirror the URL exactly.
+  const [range, setRange] = useState<[number, number] | null>(null);
+  const [hasUserDragged, setHasUserDragged] = useState(false);
+
+  // Re-sync from URL/bounds when they change externally (and on first bounds-ready render).
   useEffect(() => {
+    if (!boundsReady) return;
+    if (hasUserDragged) return; // don't overwrite an active drag
     setRange([urlMin, urlMax]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [urlMin, urlMax, minBound, maxBound]);
+  }, [urlMin, urlMax, boundsReady, hasUserDragged]);
+
+  const displayRange: [number, number] = range ?? [urlMin, urlMax];
 
   const commitPrice = (vals: [number, number]) => {
     const [lo, hi] = vals;

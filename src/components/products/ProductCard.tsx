@@ -1,6 +1,6 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, FileText } from "lucide-react";
+import { ShoppingCart, Zap } from "lucide-react";
 import type { Product } from "@/types/catalog";
 import { formatINR, discountPct } from "@/lib/format";
 import { useCart } from "@/hooks/useCart";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 export function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
+  const navigate = useNavigate();
   const dpct = discountPct(product.price, product.mrp);
   const showExchange = product.has_exchange && product.exchange_rebate > 0;
   const exchangePrice = product.price - product.exchange_rebate;
@@ -28,21 +29,41 @@ export function ProductCard({ product }: { product: Product }) {
     toast.success("Added to cart", { description: product.name });
   };
 
+  const handleBuyNow = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addItem({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      sku: product.sku,
+      price: product.price,
+      image: product.primary_image_url,
+      withExchange: false,
+      exchangeRebate: product.exchange_rebate,
+    });
+    navigate("/checkout");
+  };
+
   return (
     <Link
       to={`/product/${product.slug}`}
       className="group bg-card border border-line hover:border-ink transition-all hover-lift flex flex-col overflow-hidden"
     >
-      <div className="relative aspect-square bg-white overflow-hidden">
-        {product.primary_image_url && (
+      <div className="relative aspect-square bg-white overflow-hidden border-b border-line">
+        {product.primary_image_url ? (
           <img
             src={product.primary_image_url}
             alt={product.name}
             loading="lazy"
             className="w-full h-full object-contain p-3 sm:p-4 group-hover:scale-105 transition-transform duration-500"
           />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground/40 text-xs">
+            No image
+          </div>
         )}
-        <div className="absolute top-2 left-2 flex flex-col gap-1">
+        <div className="absolute top-2 left-2 right-2 flex flex-wrap gap-1 pointer-events-none">
           {product.is_bestseller && <span className="badge-pill bg-ink text-white text-[10px]">Bestseller</span>}
           {product.is_new && <span className="badge-pill bg-success text-white text-[10px]">New</span>}
           {dpct && <span className="badge-pill bg-primary text-white text-[10px]">{dpct}% Off</span>}
@@ -90,10 +111,8 @@ export function ProductCard({ product }: { product: Product }) {
           <Button size="sm" variant="outline" className="text-xs h-9 px-2" onClick={handleAdd}>
             <ShoppingCart className="h-3.5 w-3.5 mr-1" /> Add
           </Button>
-          <Button asChild size="sm" className="text-xs h-9 px-2">
-            <Link to="/quote" onClick={(e) => e.stopPropagation()}>
-              <FileText className="h-3.5 w-3.5 mr-1" /> Quote
-            </Link>
+          <Button size="sm" className="text-xs h-9 px-2" onClick={handleBuyNow}>
+            <Zap className="h-3.5 w-3.5 mr-1" /> Buy Now
           </Button>
         </div>
       </div>

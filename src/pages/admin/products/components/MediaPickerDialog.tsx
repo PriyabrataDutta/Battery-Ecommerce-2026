@@ -221,7 +221,19 @@ export function MediaPickerDialog({
           </Button>
         </div>
 
-        <div className="flex-1 overflow-y-auto min-h-0 mt-3">
+        <div
+          className="flex-1 overflow-y-auto min-h-0 mt-3 relative"
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
+          {dragging && (
+            <div className="absolute inset-0 z-10 bg-primary/10 border-2 border-dashed border-primary rounded-lg flex flex-col items-center justify-center gap-2 pointer-events-none">
+              <Upload className="h-10 w-10 text-primary animate-bounce" />
+              <p className="text-sm font-medium text-primary">Drop images here to upload</p>
+            </div>
+          )}
           {isLoading ? (
             <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
               {Array.from({ length: 10 }).map((_, i) => (

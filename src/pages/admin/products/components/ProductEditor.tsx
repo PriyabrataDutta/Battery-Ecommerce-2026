@@ -114,6 +114,7 @@ export function ProductEditor({
     } else {
       setForm(EMPTY_PRODUCT);
       setFitmentModelIds([]);
+      setGalleryImages([]);
     }
   }, [open, product]);
 

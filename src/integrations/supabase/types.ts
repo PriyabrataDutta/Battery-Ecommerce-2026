@@ -710,6 +710,8 @@ export type Database = {
           mrp: number | null
           name: string
           price: number
+          price_with_exchange: number
+          price_without_exchange: number
           primary_image_url: string | null
           short_description: string | null
           sku: string
@@ -737,6 +739,8 @@ export type Database = {
           mrp?: number | null
           name: string
           price?: number
+          price_with_exchange?: number
+          price_without_exchange?: number
           primary_image_url?: string | null
           short_description?: string | null
           sku: string
@@ -764,6 +768,8 @@ export type Database = {
           mrp?: number | null
           name?: string
           price?: number
+          price_with_exchange?: number
+          price_without_exchange?: number
           primary_image_url?: string | null
           short_description?: string | null
           sku?: string

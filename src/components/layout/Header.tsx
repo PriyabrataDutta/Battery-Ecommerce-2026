@@ -111,28 +111,29 @@ export function Header() {
       </div>
 
       {/* Main header */}
-      <div className="container-x flex flex-nowrap items-center gap-3 sm:gap-4 lg:gap-6 h-20 sm:h-24 min-w-0">
+      <div className="container-x flex flex-nowrap items-center gap-2 sm:gap-4 lg:gap-6 h-14 sm:h-16 lg:h-20 min-w-0">
         <Button
           variant="ghost"
           size="icon"
-          className="lg:hidden -ml-2 h-10 w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="lg:hidden -ml-1.5 h-11 w-11 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Menu"
         >
           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
         <Link to="/" className="flex-shrink-0 flex items-center">
-          <img src={logo} alt="Kachi Batteries" className="h-12 sm:h-16 lg:h-20 w-auto drop-shadow-sm" />
+          <img src={logo} alt="Kachi Batteries" className="h-9 sm:h-12 lg:h-16 w-auto drop-shadow-sm" />
         </Link>
 
         <SmartSearch className="hidden md:flex flex-1 min-w-0 items-center" />
 
-        <div className="ml-auto flex flex-shrink-0 flex-nowrap items-center gap-1 sm:gap-1.5 lg:gap-2 whitespace-nowrap">
-          {/* Shared icon button styling: gray (muted) hover bg, red (primary) icon on hover, 2px primary focus ring with offset */}
+        <div className="ml-auto -mr-1 sm:mr-0 flex flex-shrink-0 flex-nowrap items-center gap-0.5 sm:gap-1.5 lg:gap-2 whitespace-nowrap">
+          {/* Shared icon button styling: gray (muted) hover bg, red (primary) icon on hover, 2px primary focus ring with offset.
+              Mobile uses 44px tap targets per WCAG; desktop uses tighter 40px. */}
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden h-10 w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="md:hidden h-11 w-11 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             onClick={() => setMobileSearchOpen(true)}
             aria-label="Search"
           >
@@ -142,7 +143,7 @@ export function Header() {
             asChild
             variant="ghost"
             size="icon"
-            className="relative h-10 w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="relative h-11 w-11 sm:h-10 sm:w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             <Link
               to="/cart"
@@ -178,7 +179,7 @@ export function Header() {
                     asChild
                     variant="ghost"
                     size="icon"
-                    className="h-10 w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                    className="h-11 w-11 sm:h-10 sm:w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                     aria-label="Account menu"
                   >
                     <Link to="/account" onClick={() => setAccountOpen(false)}>
@@ -243,11 +244,11 @@ export function Header() {
               asChild
               variant="ghost"
               size="sm"
-              className="inline-flex h-10 px-2 sm:px-3 gap-1.5 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="inline-flex h-11 sm:h-10 w-11 sm:w-auto px-0 sm:px-3 gap-1.5 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               <Link to="/auth" aria-label="Login or sign up">
                 <span className="hidden sm:inline text-sm font-medium">Login/Signup</span>
-                <UserPlus className="h-4 w-4" />
+                <UserPlus className="h-5 w-5 sm:h-4 sm:w-4" />
               </Link>
             </Button>
           )}

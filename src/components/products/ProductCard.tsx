@@ -107,12 +107,23 @@ export function ProductCard({ product }: { product: Product }) {
           </div>
         )}
 
-        <div className="mt-auto pt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <Button size="sm" variant="outline" className="text-xs h-9 px-2 w-full" onClick={handleAdd}>
-            <ShoppingCart className="h-3.5 w-3.5 mr-1.5" /> Add
+        <div className="mt-auto pt-3 grid grid-cols-2 gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-9 w-full px-2 text-[11px] sm:text-xs font-medium inline-flex items-center justify-center gap-1.5 min-w-0"
+            onClick={handleAdd}
+          >
+            <ShoppingCart className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">Add</span>
           </Button>
-          <Button size="sm" className="text-xs h-9 px-2 w-full" onClick={handleBuyNow}>
-            <Zap className="h-3.5 w-3.5 mr-1.5" /> Buy Now
+          <Button
+            size="sm"
+            className="h-9 w-full px-2 text-[11px] sm:text-xs font-medium inline-flex items-center justify-center gap-1.5 min-w-0"
+            onClick={handleBuyNow}
+          >
+            <Zap className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">Buy Now</span>
           </Button>
         </div>
       </div>

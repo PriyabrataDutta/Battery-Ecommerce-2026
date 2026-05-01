@@ -13,9 +13,90 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EntityDrawer } from "@/components/admin/EntityDrawer";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Plus, Search, Trash2, Upload, Loader2, Car, ChevronRight } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Trash2,
+  Upload,
+  Loader2,
+  Car,
+  ChevronRight,
+  Download,
+  FileSpreadsheet,
+  Info,
+} from "lucide-react";
 import { parseProductsXlsx } from "@/lib/parseProductsXlsx";
+import * as XLSX from "xlsx";
+
+/* ─── helpers ─── */
+function slugify(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+/** Generate & download a sample Excel file showing expected format */
+function downloadExampleFile() {
+  const sampleData = [
+    ["Car Brand", "Car Model"],
+    ["Maruti Suzuki", "Swift"],
+    ["Maruti Suzuki", "Swift Dzire"],
+    ["Maruti Suzuki", "Baleno"],
+    ["Hyundai", "i20"],
+    ["Hyundai", "Creta"],
+    ["Hyundai", "Venue"],
+    ["Tata", "Nexon"],
+    ["Tata", "Punch"],
+    ["Honda", "City"],
+    ["Honda", "Amaze"],
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(sampleData);
+  ws["!cols"] = [{ wch: 20 }, { wch: 25 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Car Brands & Models");
+  XLSX.writeFile(wb, "car_brands_models_example.xlsx");
+}
+
+/** Parse an uploaded brands/models xlsx into [{brand, model}] */
+function parseBrandsModelsXlsx(file: File): Promise<{ brand: string; model: string }[]> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const wb = XLSX.read(e.target?.result, { type: "array" });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+        const result: { brand: string; model: string }[] = [];
+        let lastBrand = "";
+
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          if (!row || row.length === 0) continue;
+
+          const brand = String(row[0] ?? "").trim();
+          const model = String(row[1] ?? "").trim();
+
+          if (brand) lastBrand = brand;
+          if (!model || !lastBrand) continue;
+
+          result.push({ brand: lastBrand, model });
+        }
+        resolve(result);
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsArrayBuffer(file);
+  });
+}
 
 /* ─── Brands & Models Tab ─── */
 function BrandsModelsTab() {
@@ -27,6 +108,9 @@ function BrandsModelsTab() {
   const [newModelName, setNewModelName] = useState("");
   const [newModelBrandId, setNewModelBrandId] = useState<string | null>(null);
   const [expandedBrand, setExpandedBrand] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const { data: brands = [], isLoading: brandsLoading } = useQuery({
     queryKey: ["admin-car-brands"],
@@ -52,10 +136,10 @@ function BrandsModelsTab() {
     },
   });
 
+  /* ── mutations ── */
   const addBrand = useMutation({
     mutationFn: async (name: string) => {
-      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-      const { error } = await supabase.from("car_brands").insert({ name, slug });
+      const { error } = await supabase.from("car_brands").insert({ name, slug: slugify(name) });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -82,8 +166,9 @@ function BrandsModelsTab() {
 
   const addModel = useMutation({
     mutationFn: async ({ name, car_brand_id }: { name: string; car_brand_id: string }) => {
-      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-      const { error } = await supabase.from("car_models").insert({ name, slug, car_brand_id });
+      const { error } = await supabase
+        .from("car_models")
+        .insert({ name, slug: slugify(name), car_brand_id });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -108,6 +193,115 @@ function BrandsModelsTab() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  /* ── bulk import ── */
+  const handleBulkImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setShowImportDialog(false);
+    setImporting(true);
+
+    try {
+      const parsed = await parseBrandsModelsXlsx(file);
+      if (!parsed.length) {
+        toast.error("No data found in the file");
+        return;
+      }
+
+      toast.info(`Processing ${parsed.length} rows…`, { duration: 4000 });
+
+      // Collect unique brands
+      const uniqueBrands = [...new Set(parsed.map((r) => r.brand))];
+
+      // Fetch existing brands
+      const { data: existingBrands } = await supabase.from("car_brands").select("id, name");
+      const brandMap = new Map<string, string>();
+      for (const b of existingBrands ?? []) brandMap.set(b.name.toLowerCase(), b.id);
+
+      let brandsCreated = 0;
+      for (const name of uniqueBrands) {
+        if (brandMap.has(name.toLowerCase())) continue;
+        const { data: ins, error } = await supabase
+          .from("car_brands")
+          .insert({ name, slug: slugify(name) })
+          .select("id")
+          .single();
+        if (ins) {
+          brandMap.set(name.toLowerCase(), ins.id);
+          brandsCreated++;
+        } else if (error) {
+          // May already exist with slightly different casing
+          const { data: ex } = await supabase
+            .from("car_brands")
+            .select("id")
+            .ilike("name", name)
+            .maybeSingle();
+          if (ex) brandMap.set(name.toLowerCase(), ex.id);
+        }
+      }
+
+      // Fetch existing models
+      const { data: existingModels } = await supabase
+        .from("car_models")
+        .select("id, name, car_brand_id");
+      const modelSet = new Set(
+        (existingModels ?? []).map((m) => `${m.car_brand_id}|${m.name.toLowerCase()}`)
+      );
+
+      let modelsCreated = 0;
+      for (const row of parsed) {
+        const brandId = brandMap.get(row.brand.toLowerCase());
+        if (!brandId) continue;
+        const key = `${brandId}|${row.model.toLowerCase()}`;
+        if (modelSet.has(key)) continue;
+
+        const { error } = await supabase
+          .from("car_models")
+          .insert({ name: row.model, slug: slugify(row.model), car_brand_id: brandId });
+        if (!error) {
+          modelSet.add(key);
+          modelsCreated++;
+        }
+      }
+
+      toast.success(
+        `Import complete! ${brandsCreated} new brand${brandsCreated !== 1 ? "s" : ""}, ${modelsCreated} new model${modelsCreated !== 1 ? "s" : ""} added. Duplicates were skipped.`,
+        { duration: 6000 }
+      );
+      qc.invalidateQueries({ queryKey: ["admin-car-brands"] });
+      qc.invalidateQueries({ queryKey: ["admin-car-models"] });
+    } catch (err: any) {
+      console.error("Import failed:", err);
+      toast.error(`Import failed: ${err.message ?? "Unknown error"}`);
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  /* ── export ── */
+  const handleExport = () => {
+    const rows: string[][] = [["Car Brand", "Car Model"]];
+    const sortedBrands = [...brands].sort((a, b) => a.name.localeCompare(b.name));
+    for (const brand of sortedBrands) {
+      const brandModels = models
+        .filter((m) => m.car_brand_id === brand.id)
+        .sort((a, b) => a.name.localeCompare(b.name));
+      if (brandModels.length === 0) {
+        rows.push([brand.name, ""]);
+      } else {
+        for (const model of brandModels) {
+          rows.push([brand.name, model.name]);
+        }
+      }
+    }
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws["!cols"] = [{ wch: 25 }, { wch: 30 }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Car Brands & Models");
+    XLSX.writeFile(wb, "car_brands_models_export.xlsx");
+    toast.success("Exported successfully");
+  };
+
   const filteredBrands = search
     ? brands.filter((b) => b.name.toLowerCase().includes(search.toLowerCase()))
     : brands;
@@ -116,6 +310,7 @@ function BrandsModelsTab() {
 
   return (
     <div className="space-y-4">
+      {/* Toolbar */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -126,16 +321,47 @@ function BrandsModelsTab() {
             className="pl-9"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => setModelDrawerOpen(true)}>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="outline" size="sm" onClick={handleExport} disabled={brands.length === 0}>
+            <Download className="h-4 w-4 mr-1.5" /> Export
+          </Button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".xlsx,.xls"
+            className="hidden"
+            onChange={handleBulkImport}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowImportDialog(true)}
+            disabled={importing}
+          >
+            {importing ? (
+              <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+            ) : (
+              <Upload className="h-4 w-4 mr-1.5" />
+            )}
+            {importing ? "Importing…" : "Import"}
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setModelDrawerOpen(true)}>
             <Plus className="h-4 w-4 mr-1.5" /> Add Model
           </Button>
-          <Button onClick={() => setBrandDrawerOpen(true)}>
+          <Button size="sm" onClick={() => setBrandDrawerOpen(true)}>
             <Plus className="h-4 w-4 mr-1.5" /> Add Brand
           </Button>
         </div>
       </div>
 
+      {/* Summary */}
+      <div className="flex gap-4 text-sm text-muted-foreground">
+        <span>{brands.length} brand{brands.length !== 1 ? "s" : ""}</span>
+        <span>•</span>
+        <span>{models.length} model{models.length !== 1 ? "s" : ""}</span>
+      </div>
+
+      {/* Brand list */}
       <div className="rounded-lg border bg-card divide-y">
         {brandsLoading ? (
           <div className="px-4 py-8 text-center text-muted-foreground">Loading…</div>
@@ -217,6 +443,81 @@ function BrandsModelsTab() {
           })
         )}
       </div>
+
+      {/* Import Dialog with instructions */}
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileSpreadsheet className="h-5 w-5" /> Import Car Brands & Models
+            </DialogTitle>
+            <DialogDescription>
+              Bulk import car brands and their models from an Excel file.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Instructions */}
+            <div className="rounded-lg border bg-muted/50 p-4 space-y-3">
+              <h4 className="font-semibold text-sm flex items-center gap-1.5">
+                <Info className="h-4 w-4 text-primary" /> File Format Instructions
+              </h4>
+              <div className="text-sm text-muted-foreground space-y-2">
+                <p>Your Excel file must have <strong>2 columns</strong>:</p>
+                <div className="rounded border bg-card overflow-hidden">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b bg-muted">
+                        <th className="text-left px-3 py-2 font-semibold">Car Brand</th>
+                        <th className="text-left px-3 py-2 font-semibold">Car Model</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b">
+                        <td className="px-3 py-1.5">Maruti Suzuki</td>
+                        <td className="px-3 py-1.5">Swift</td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="px-3 py-1.5">Maruti Suzuki</td>
+                        <td className="px-3 py-1.5">Swift Dzire</td>
+                      </tr>
+                      <tr>
+                        <td className="px-3 py-1.5">Hyundai</td>
+                        <td className="px-3 py-1.5">i20</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <ul className="list-disc list-inside space-y-1 text-xs">
+                  <li>First row should be the header (<strong>Car Brand</strong>, <strong>Car Model</strong>)</li>
+                  <li>If brand column is empty, the model inherits the last brand above it</li>
+                  <li>Duplicates are automatically skipped — safe to re-import</li>
+                  <li>Supports <code>.xlsx</code> and <code>.xls</code> files</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-3">
+              <Button variant="outline" className="flex-1" onClick={downloadExampleFile}>
+                <Download className="h-4 w-4 mr-1.5" /> Download Example File
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={() => fileRef.current?.click()}
+                disabled={importing}
+              >
+                {importing ? (
+                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4 mr-1.5" />
+                )}
+                {importing ? "Importing…" : "Choose File & Import"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Add Brand Drawer */}
       <EntityDrawer

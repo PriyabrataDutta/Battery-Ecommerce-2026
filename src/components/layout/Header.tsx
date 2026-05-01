@@ -111,18 +111,18 @@ export function Header() {
       </div>
 
       {/* Main header */}
-      <div className="container-x flex flex-nowrap items-center gap-3 sm:gap-4 lg:gap-6 h-20 sm:h-24 min-w-0">
+      <div className="container-x flex flex-nowrap items-center gap-2 sm:gap-4 lg:gap-6 h-14 sm:h-16 lg:h-20 min-w-0">
         <Button
           variant="ghost"
           size="icon"
-          className="lg:hidden -ml-2 h-10 w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="lg:hidden -ml-1.5 h-11 w-11 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Menu"
         >
           {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
         <Link to="/" className="flex-shrink-0 flex items-center">
-          <img src={logo} alt="Kachi Batteries" className="h-12 sm:h-16 lg:h-20 w-auto drop-shadow-sm" />
+          <img src={logo} alt="Kachi Batteries" className="h-9 sm:h-12 lg:h-16 w-auto drop-shadow-sm" />
         </Link>
 
         <SmartSearch className="hidden md:flex flex-1 min-w-0 items-center" />

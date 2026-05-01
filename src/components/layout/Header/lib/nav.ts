@@ -41,17 +41,20 @@ export const shopMegaMenu: MegaColumn[] = [
     title: "Car Batteries",
     items: [
       { label: "All Car Batteries", to: "/category/car-batteries" },
-      { label: "Sedans & SUVs", to: "/shop?type=car-batteries" },
-      { label: "Hatchbacks", to: "/shop?type=car-batteries" },
+      { label: "Sedans & SUVs", to: "/shop?type=car-batteries&segment=sedan-suv" },
+      { label: "Hatchbacks", to: "/shop?type=car-batteries&segment=hatchback" },
+      { label: "Diesel Vehicles", to: "/shop?type=car-batteries&fuel=diesel" },
+      { label: "Shop by Car Model", to: "/brands" },
     ],
   },
   {
-    title: "Inverter & UPS",
+    title: "Inverter Batteries & UPS",
     items: [
       { label: "All Inverter Batteries", to: "/category/inverter-ups" },
       { label: "Tubular", to: "/category/tubular" },
-      { label: "SMF", to: "/category/smf" },
+      { label: "SMF / VRLA", to: "/category/smf" },
       { label: "Lithium", to: "/category/lithium" },
+      { label: "Home UPS", to: "/category/home-ups" },
     ],
   },
   {
@@ -61,6 +64,17 @@ export const shopMegaMenu: MegaColumn[] = [
       { label: "Exide", to: "/brand/exide" },
       { label: "Power Zone", to: "/brand/power-zone" },
       { label: "Elito", to: "/brand/elito" },
+      { label: "View all brands", to: "/brands" },
+    ],
+  },
+  {
+    title: "Offers",
+    items: [
+      { label: "Clearance Sale", to: "/category/clearance" },
+      { label: "On Sale Now", to: "/shop?onSale=1" },
+      { label: "New Arrivals", to: "/shop?isNew=1" },
+      { label: "Bestsellers", to: "/shop?bestseller=1" },
+      { label: "Exchange & Save", to: "/shop?exchange=1" },
     ],
   },
 ];

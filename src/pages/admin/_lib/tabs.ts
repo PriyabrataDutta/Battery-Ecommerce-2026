@@ -26,6 +26,7 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
   {
     id: "dashboard",
     title: "Sales Dashboard",
+    sidebarLabel: "Dashboard",
     icon: LayoutDashboard,
     section: "catalog",
     component: lazy(() => import("@/pages/admin/Dashboard")),
@@ -33,6 +34,7 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
   {
     id: "products",
     title: "Products",
+    sidebarLabel: "Products",
     icon: Package,
     section: "catalog",
     component: lazy(() => import("@/pages/admin/products")),
@@ -40,6 +42,7 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
   {
     id: "brands",
     title: "Brands",
+    sidebarLabel: "Brands",
     icon: Tags,
     section: "catalog",
     component: lazy(() => import("@/pages/admin/brands")),
@@ -47,6 +50,7 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
   {
     id: "categories",
     title: "Categories",
+    sidebarLabel: "Categories",
     icon: FolderTree,
     section: "catalog",
     component: lazy(() => import("@/pages/admin/categories")),
@@ -54,6 +58,7 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
   {
     id: "settings",
     title: "Settings",
+    sidebarLabel: "Settings",
     icon: Settings,
     section: "catalog",
     component: lazy(() => import("@/pages/admin/settings")),
@@ -61,6 +66,7 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
   {
     id: "users",
     title: "Users",
+    sidebarLabel: "Users",
     icon: Users,
     section: "management",
     component: lazy(() => import("@/pages/admin/users")),
@@ -68,6 +74,7 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
   {
     id: "orders",
     title: "Orders",
+    sidebarLabel: "Orders",
     icon: ShoppingBag,
     section: "management",
     component: lazy(() => import("@/pages/admin/orders")),
@@ -75,6 +82,7 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
   {
     id: "quotes",
     title: "Quote Requests",
+    sidebarLabel: "Quotes",
     icon: FileText,
     section: "management",
     component: lazy(() => import("@/pages/admin/quotes")),
@@ -82,6 +90,7 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
   {
     id: "messages",
     title: "Contact Messages",
+    sidebarLabel: "Messages",
     icon: Mail,
     section: "management",
     component: lazy(() => import("@/pages/admin/messages")),
@@ -89,6 +98,7 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
   {
     id: "audit-log",
     title: "Admin Audit Log",
+    sidebarLabel: "Audit Log",
     icon: Activity,
     section: "super-admin",
     component: lazy(() => import("@/pages/admin/AuditLog")),

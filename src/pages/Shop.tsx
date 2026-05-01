@@ -146,13 +146,13 @@ const Shop = () => {
               <span className="text-primary text-base group-open:rotate-45 transition-transform">+</span>
             </summary>
             <div className="px-4 pb-4">
-              <ShopFilters counts={counts} />
+              <ShopFilters counts={counts} priceBounds={priceBounds} />
             </div>
           </details>
 
           <div className="hidden lg:block bg-white border border-line p-5">
             <h3 className="font-display font-bold text-sm uppercase tracking-wider mb-4">Filters</h3>
-            <ShopFilters counts={counts} />
+            <ShopFilters counts={counts} priceBounds={priceBounds} />
           </div>
         </aside>
         <div>

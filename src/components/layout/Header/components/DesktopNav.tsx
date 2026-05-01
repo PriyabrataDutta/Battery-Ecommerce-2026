@@ -33,7 +33,7 @@ export function DesktopNav() {
             Shop <ChevronDown className="h-3.5 w-3.5" />
           </button>
           {shopOpen && (
-            <div className="absolute left-0 top-full bg-white border border-line shadow-elevated w-[640px] p-6 grid grid-cols-3 gap-6 animate-fade-in z-50">
+            <div className="absolute left-0 top-full bg-white border border-line shadow-elevated w-[860px] p-6 grid grid-cols-4 gap-6 animate-fade-in z-50">
               {shopMegaMenu.map((col) => (
                 <MegaCol key={col.title} column={col} />
               ))}

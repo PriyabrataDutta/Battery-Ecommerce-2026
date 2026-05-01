@@ -65,7 +65,7 @@ export function AdminSidebar() {
                         >
                           <Link to={`/admin/${item.id}`} onClick={() => setTab(item.id)}>
                             <item.icon className="h-[18px] w-[18px] shrink-0" />
-                            {!collapsed && <span className="text-sm">{item.title.replace("Sales ", "").replace("Admin ", "").replace(" Requests", "").replace(" Messages", "")}</span>}
+                            {!collapsed && <span className="text-sm">{item.sidebarLabel}</span>}
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>

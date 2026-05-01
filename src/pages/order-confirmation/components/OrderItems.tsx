@@ -18,7 +18,7 @@ export function OrderItems({ items }: { items: SavedOrder["items"] }) {
       <ul className="divide-y divide-line">
         {items.map((it) => (
           <li
-            key={lineKey({ id: it.id, withExchange: it.withExchange })}
+            key={lineKey({ id: it.id })}
             className="py-4 flex gap-4 items-center"
           >
             {it.image ? (

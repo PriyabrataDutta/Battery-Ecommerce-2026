@@ -74,15 +74,25 @@ function downloadExampleFile(format: "xlsx" | "csv" = "xlsx") {
   XLSX.writeFile(wb, "car_brands_models_example.xlsx");
 }
 
-/** Parse an uploaded brands/models xlsx into [{brand, model}] */
-function parseBrandsModelsXlsx(file: File): Promise<{ brand: string; model: string }[]> {
+/** Parse an uploaded brands/models file (xlsx/xls/csv) into [{brand, model}] */
+function parseBrandsModelsFile(file: File): Promise<{ brand: string; model: string }[]> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const wb = XLSX.read(e.target?.result, { type: "array" });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const rows: any[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        let rows: any[][];
+        const isCsv = file.name.toLowerCase().endsWith(".csv");
+
+        if (isCsv) {
+          const text = new TextDecoder().decode(e.target?.result as ArrayBuffer);
+          const wb = XLSX.read(text, { type: "string" });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        } else {
+          const wb = XLSX.read(e.target?.result, { type: "array" });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        }
 
         const result: { brand: string; model: string }[] = [];
         let lastBrand = "";

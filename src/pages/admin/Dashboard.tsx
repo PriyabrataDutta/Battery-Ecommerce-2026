@@ -41,133 +41,74 @@ const STATUS_COLORS: Record<string, string> = {
   paid: "hsl(142 71% 42%)",
 };
 
+// Mock data for empty states
+const MOCK_MONTHLY = MONTHS.map((m, i) => ({
+  month: m,
+  revenue: [92000, 78000, 54000, 31000, 12000, 4000, 0, 0, 0, 0, 0, 0][i],
+  orders: [6, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0][i],
+}));
+const MOCK_STATUS = [
+  { name: "ordered", value: 7 },
+  { name: "delivered", value: 5 },
+  { name: "in_progress", value: 2 },
+  { name: "dispatched", value: 2 },
+  { name: "in_transit", value: 1 },
+  { name: "cancelled", value: 1 },
+  { name: "returned", value: 1 },
+];
+const MOCK_TOP_PRODUCTS = [
+  { name: "Amaron Hi-Life 65Ah", sku: "AMR-HL-65", qty: 12, revenue: 96000 },
+  { name: "Exide Mileage 70Ah", sku: "EXD-ML-70", qty: 8, revenue: 72000 },
+  { name: "Power Zone 100Ah Tubular", sku: "PZ-TUB-100", qty: 5, revenue: 65000 },
+  { name: "Elito Inverter 150Ah", sku: "ELT-INV-150", qty: 4, revenue: 48000 },
+  { name: "Amaron Pro 80Ah", sku: "AMR-PRO-80", qty: 3, revenue: 30000 },
+];
+
 const Dashboard = () => {
-  const { data: kpis } = useQuery({
-    queryKey: ["admin-kpis"],
+  // Single consolidated query replaces 4 separate ones
+  const { data: summary } = useQuery({
+    queryKey: ["admin-dashboard-summary"],
     queryFn: async () => {
-      const sinceMonth = new Date(Date.now() - 30 * 86400000).toISOString();
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const [products, lowStock, orders30, ordersToday, quotesNew, callsNew, msgsNew] =
-        await Promise.all([
-          supabase.from("products").select("*", { count: "exact", head: true }),
-          supabase.from("products").select("*", { count: "exact", head: true }).lt("stock", 5),
-          supabase.from("orders").select("total").gte("created_at", sinceMonth),
-          supabase
-            .from("orders")
-            .select("*", { count: "exact", head: true })
-            .gte("created_at", today.toISOString()),
-          supabase
-            .from("quote_requests")
-            .select("*", { count: "exact", head: true })
-            .eq("status", "new"),
-          supabase
-            .from("callback_requests")
-            .select("*", { count: "exact", head: true })
-            .eq("status", "new"),
-          supabase
-            .from("contact_messages")
-            .select("*", { count: "exact", head: true })
-            .eq("status", "new"),
-        ]);
-      const revenue = (orders30.data ?? []).reduce((s, r: any) => s + Number(r.total ?? 0), 0);
-      return {
-        productCount: products.count ?? 0,
-        lowStock: lowStock.count ?? 0,
-        revenue,
-        ordersToday: ordersToday.count ?? 0,
-        quotesNew: quotesNew.count ?? 0,
-        callsNew: callsNew.count ?? 0,
-        msgsNew: msgsNew.count ?? 0,
+      const { data, error } = await supabase.rpc("admin_dashboard_summary" as any);
+      if (error) throw error;
+      return data as {
+        kpis: {
+          productCount: number;
+          lowStock: number;
+          revenue: number;
+          ordersToday: number;
+          quotesNew: number;
+          callsNew: number;
+          msgsNew: number;
+        };
+        monthly: { month_num: number; month: string; revenue: number; orders: number }[];
+        status: { name: string; value: number }[];
+        topProducts: { name: string; sku: string; qty: number; revenue: number }[];
       };
     },
+    staleTime: 60_000,
   });
 
-  // ---- Monthly chart (revenue + orders) ----
-  const { data: monthly = [] } = useQuery({
-    queryKey: ["admin-monthly"],
-    queryFn: async () => {
-      const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString();
-      const { data } = await supabase
-        .from("orders")
-        .select("total, created_at")
-        .gte("created_at", yearStart);
-      const buckets = MONTHS.map((m) => ({ month: m, revenue: 0, orders: 0 }));
-      (data ?? []).forEach((o: any) => {
-        const m = new Date(o.created_at).getMonth();
-        buckets[m].revenue += Number(o.total ?? 0);
-        buckets[m].orders += 1;
-      });
-      // Mock fallback if completely empty
-      if (buckets.every((b) => b.revenue === 0 && b.orders === 0)) {
-        const sample = [
-          92000, 78000, 54000, 31000, 12000, 4000, 0, 0, 0, 0, 0, 0,
-        ];
-        const sampleOrders = [6, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0];
-        return buckets.map((b, i) => ({ ...b, revenue: sample[i], orders: sampleOrders[i] }));
-      }
-      return buckets;
-    },
-  });
+  const kpis = summary?.kpis;
 
-  // ---- Order status distribution ----
-  const { data: statusDist = [] } = useQuery({
-    queryKey: ["admin-status-dist"],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("admin_order_status_counts");
-      if (error) throw error;
-      let entries = (data ?? []).map((r: any) => ({
-        name: r.status as string,
-        value: Number(r.value),
-      }));
-      if (entries.length === 0) {
-        entries = [
-          { name: "ordered", value: 7 },
-          { name: "delivered", value: 5 },
-          { name: "in_progress", value: 2 },
-          { name: "dispatched", value: 2 },
-          { name: "in_transit", value: 1 },
-          { name: "cancelled", value: 1 },
-          { name: "returned", value: 1 },
-        ];
+  // Fill monthly data into 12-month array
+  const monthly = (() => {
+    const raw = summary?.monthly ?? [];
+    if (raw.length === 0) return MOCK_MONTHLY;
+    const buckets = MONTHS.map((m) => ({ month: m, revenue: 0, orders: 0 }));
+    raw.forEach((r: any) => {
+      const idx = (r.month_num ?? 1) - 1;
+      if (idx >= 0 && idx < 12) {
+        buckets[idx].revenue = Number(r.revenue ?? 0);
+        buckets[idx].orders = Number(r.orders ?? 0);
       }
-      return entries;
-    },
-  });
+    });
+    if (buckets.every((b) => b.revenue === 0 && b.orders === 0)) return MOCK_MONTHLY;
+    return buckets;
+  })();
 
-  // ---- Top products by revenue ----
-  const { data: topProducts = [] } = useQuery({
-    queryKey: ["admin-top-products"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("order_items")
-        .select("product_name, product_sku, qty, unit_price");
-      const map = new Map<string, { name: string; sku: string; qty: number; revenue: number }>();
-      (data ?? []).forEach((it: any) => {
-        const key = it.product_sku ?? it.product_name;
-        const existing = map.get(key) ?? {
-          name: it.product_name,
-          sku: it.product_sku ?? "",
-          qty: 0,
-          revenue: 0,
-        };
-        existing.qty += Number(it.qty ?? 0);
-        existing.revenue += Number(it.qty ?? 0) * Number(it.unit_price ?? 0);
-        map.set(key, existing);
-      });
-      let arr = Array.from(map.values()).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
-      if (arr.length === 0) {
-        arr = [
-          { name: "Amaron Hi-Life 65Ah", sku: "AMR-HL-65", qty: 12, revenue: 96000 },
-          { name: "Exide Mileage 70Ah", sku: "EXD-ML-70", qty: 8, revenue: 72000 },
-          { name: "Power Zone 100Ah Tubular", sku: "PZ-TUB-100", qty: 5, revenue: 65000 },
-          { name: "Elito Inverter 150Ah", sku: "ELT-INV-150", qty: 4, revenue: 48000 },
-          { name: "Amaron Pro 80Ah", sku: "AMR-PRO-80", qty: 3, revenue: 30000 },
-        ];
-      }
-      return arr;
-    },
-  });
+  const statusDist = (summary?.status ?? []).length > 0 ? summary!.status : MOCK_STATUS;
+  const topProducts = (summary?.topProducts ?? []).length > 0 ? summary!.topProducts : MOCK_TOP_PRODUCTS;
 
   return (
     <div className="space-y-6">

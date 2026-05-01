@@ -143,7 +143,9 @@ export function RequireStaff({ children }: { children: React.ReactNode }) {
 
     // Verify immediately on mount, then on interval
     verify("mount");
-    const interval = window.setInterval(() => verify("interval"), REVERIFY_INTERVAL_MS);
+    const interval = window.setInterval(() => {
+      if (!document.hidden) verify("interval");
+    }, REVERIFY_INTERVAL_MS);
 
     // React to auth events (token refresh failures, sign-out from another tab)
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {

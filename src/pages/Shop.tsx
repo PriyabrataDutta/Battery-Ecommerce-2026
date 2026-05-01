@@ -2,7 +2,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard } from "@/components/products/ProductCard";
-import { FitmentSearch } from "@/components/products/FitmentSearch";
+import { ShopFilters } from "@/components/products/ShopFilters";
 import type { Product } from "@/types/catalog";
 import { useMemo } from "react";
 

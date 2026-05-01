@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -42,7 +42,9 @@ export function MediaPickerDialog({
   const [search, setSearch] = useState("");
   const [picked, setPicked] = useState<Set<string>>(new Set(selected));
   const [uploading, setUploading] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const dragCounter = useRef(0);
 
   const { data: files = [], isLoading } = useQuery({
     queryKey: ["media_files_picker"],
@@ -78,14 +80,13 @@ export function MediaPickerDialog({
     onOpenChange(false);
   };
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = e.target.files;
-    if (!selectedFiles?.length) return;
+  const processFiles = useCallback(async (fileList: File[]) => {
+    if (!fileList.length) return;
     setUploading(true);
 
     try {
       const uploadedUrls: string[] = [];
-      for (const file of Array.from(selectedFiles)) {
+      for (const file of fileList) {
         const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
         const path = `${Date.now()}_${safeName}`;
 
@@ -110,7 +111,7 @@ export function MediaPickerDialog({
         uploadedUrls.push(urlData.publicUrl);
       }
 
-      toast.success(`${selectedFiles.length} file(s) uploaded`);
+      toast.success(`${fileList.length} file(s) uploaded`);
       qc.invalidateQueries({ queryKey: ["media_files_picker"] });
       qc.invalidateQueries({ queryKey: ["media_files"] });
 
@@ -129,7 +130,44 @@ export function MediaPickerDialog({
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
     }
+  }, [multiple, onOpenChange, onSelect, picked, qc, user?.id]);
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = e.target.files;
+    if (!selectedFiles?.length) return;
+    processFiles(Array.from(selectedFiles));
   };
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    if (e.dataTransfer.types.includes("Files")) setDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current === 0) setDragging(false);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(false);
+    dragCounter.current = 0;
+    const droppedFiles = Array.from(e.dataTransfer.files).filter((f) =>
+      f.type.startsWith("image/")
+    );
+    if (droppedFiles.length) processFiles(droppedFiles);
+    else toast.error("Only image files are supported");
+  }, [processFiles]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -183,7 +221,19 @@ export function MediaPickerDialog({
           </Button>
         </div>
 
-        <div className="flex-1 overflow-y-auto min-h-0 mt-3">
+        <div
+          className="flex-1 overflow-y-auto min-h-0 mt-3 relative"
+          onDragEnter={handleDragEnter}
+          onDragLeave={handleDragLeave}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
+          {dragging && (
+            <div className="absolute inset-0 z-10 bg-primary/10 border-2 border-dashed border-primary rounded-lg flex flex-col items-center justify-center gap-2 pointer-events-none">
+              <Upload className="h-10 w-10 text-primary animate-bounce" />
+              <p className="text-sm font-medium text-primary">Drop images here to upload</p>
+            </div>
+          )}
           {isLoading ? (
             <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
               {Array.from({ length: 10 }).map((_, i) => (
@@ -193,7 +243,7 @@ export function MediaPickerDialog({
           ) : filtered.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground text-sm">
               <ImageIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              {search ? "No files match your search." : "No media files yet. Click Upload to add images."}
+              {search ? "No files match your search." : "No media files yet. Drag & drop or click Upload to add images."}
             </div>
           ) : (
             <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">

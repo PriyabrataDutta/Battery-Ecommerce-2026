@@ -138,8 +138,23 @@ export function Header() {
           >
             <Search className="h-5 w-5" />
           </Button>
-          <Button asChild variant="ghost" size="icon" className="relative h-10 w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
-            <Link to="/cart" aria-label="Cart">
+          <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            className="relative h-10 w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          >
+            <Link
+              to="/cart"
+              aria-label="Cart"
+              onClick={(e) => {
+                // Open slide-in drawer on mobile/tablet (<1024px); navigate on desktop.
+                if (typeof window !== "undefined" && window.innerWidth < 1024) {
+                  e.preventDefault();
+                  setCartDrawerOpen(true);
+                }
+              }}
+            >
               <ShoppingCart className="h-5 w-5" />
               {count > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full h-5 min-w-5 px-1 grid place-items-center">

@@ -3,11 +3,33 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ShopFilters } from "@/components/products/ShopFilters";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LayoutGrid, List } from "lucide-react";
 import type { Product } from "@/types/catalog";
 import { useMemo } from "react";
 
+type SortKey = "relevance" | "popularity" | "price_asc" | "price_desc" | "newest";
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: "relevance", label: "Relevance" },
+  { value: "popularity", label: "Popularity" },
+  { value: "price_asc", label: "Price: Low to High" },
+  { value: "price_desc", label: "Price: High to Low" },
+  { value: "newest", label: "Newest" },
+];
+
 const Shop = () => {
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
+  const sort = (params.get("sort") as SortKey) || "relevance";
+  const view: "grid" | "list" = params.get("view") === "list" ? "list" : "grid";
+
+  const setParam = (key: string, value: string | null) => {
+    const p = new URLSearchParams(params);
+    if (value === null || value === "") p.delete(key);
+    else p.set(key, value);
+    setParams(p, { replace: true });
+  };
+
   const q = params.get("q")?.toLowerCase() ?? "";
   const type = params.get("type"); // category slug
   const carModelSlug = params.get("car_model");
@@ -164,6 +186,35 @@ const Shop = () => {
     return preBrandFiltered.filter((p) => p.battery_brands?.slug === effectiveBrand);
   }, [preBrandFiltered, effectiveBrand]);
 
+  // Apply sort to the visible product list
+  const sorted = useMemo(() => {
+    const list = [...filtered];
+    const popularity = (p: Product) =>
+      (p.is_bestseller ? 100 : 0) + (p.is_featured ? 50 : 0) + (p.is_new ? 10 : 0);
+    switch (sort) {
+      case "price_asc":
+        list.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+        break;
+      case "price_desc":
+        list.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+        break;
+      case "popularity":
+        list.sort((a, b) => popularity(b) - popularity(a));
+        break;
+      case "newest":
+        list.sort((a, b) => {
+          const da = (a as Product & { created_at?: string }).created_at;
+          const db = (b as Product & { created_at?: string }).created_at;
+          return (db ? new Date(db).getTime() : 0) - (da ? new Date(da).getTime() : 0);
+        });
+        break;
+      default:
+        // relevance: keep server order, but bump featured/bestseller slightly
+        list.sort((a, b) => popularity(b) - popularity(a));
+    }
+    return list;
+  }, [filtered, sort]);
+
   const counts = useMemo(() => {
     const byBatteryBrand: Record<string, number> = {};
     for (const p of preBrandFiltered) {
@@ -200,18 +251,73 @@ const Shop = () => {
           </div>
         </aside>
         <div>
+          {/* Toolbar: sort + view toggle */}
+          <div className="flex items-center justify-between gap-3 mb-4 bg-white border border-line p-2.5 sm:p-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="hidden sm:inline text-xs uppercase tracking-wider font-display font-bold text-muted-foreground">
+                Sort
+              </span>
+              <Select value={sort} onValueChange={(v) => setParam("sort", v === "relevance" ? null : v)}>
+                <SelectTrigger className="h-9 w-[180px] sm:w-[200px] border-line text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white z-50">
+                  {SORT_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center border border-line">
+              <button
+                type="button"
+                aria-label="Grid view"
+                aria-pressed={view === "grid"}
+                onClick={() => setParam("view", null)}
+                className={`p-2 transition-colors ${
+                  view === "grid"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-white text-ink hover:text-primary"
+                }`}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                aria-label="List view"
+                aria-pressed={view === "list"}
+                onClick={() => setParam("view", "list")}
+                className={`p-2 border-l border-line transition-colors ${
+                  view === "list"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-white text-ink hover:text-primary"
+                }`}
+              >
+                <List className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
           {isLoading ? (
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {Array.from({ length: 6 }).map((_, i) => <div key={i} className="aspect-[3/4] bg-muted animate-pulse" />)}
             </div>
-          ) : filtered.length === 0 ? (
+          ) : sorted.length === 0 ? (
             <div className="text-center py-16 sm:py-20 bg-white border border-line">
               <p className="text-muted-foreground">No products match your filters.</p>
               <Link to="/shop" className="text-primary font-bold underline mt-2 inline-block">Clear filters</Link>
             </div>
           ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {filtered.map((p) => <ProductCard key={p.id} product={p} />)}
+            <div
+              className={
+                view === "list"
+                  ? "grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4"
+                  : "grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
+              }
+            >
+              {sorted.map((p) => <ProductCard key={p.id} product={p} />)}
             </div>
           )}
         </div>

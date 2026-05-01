@@ -191,6 +191,31 @@
     border-radius: calc(var(--radius) - 2px);
     overflow: hidden;
   }
+
+  /* ============================================
+     Force sharp corners for menus, drawers, sheets,
+     dropdowns, popovers, headers, footers, and any
+     full-width / full-screen surface.
+     ============================================ */
+  header,
+  footer,
+  nav,
+  aside,
+  [role="menu"],
+  [role="menubar"],
+  [role="dialog"],
+  [data-radix-menu-content],
+  [data-radix-popper-content-wrapper],
+  [data-state][data-side],
+  [data-radix-dropdown-menu-content],
+  [data-radix-popover-content],
+  [data-radix-sheet-content],
+  [data-radix-dialog-overlay],
+  .mobile-drawer,
+  .full-screen,
+  .fullscreen {
+    border-radius: 0 !important;
+  }
 }
 
 

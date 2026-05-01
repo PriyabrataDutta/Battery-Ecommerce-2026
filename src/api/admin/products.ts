@@ -84,6 +84,10 @@ export interface ProductEditableFields {
   is_on_sale: boolean;
   has_exchange: boolean;
   exchange_rebate: number;
+  meta_title: string | null;
+  meta_description: string | null;
+  meta_keywords: string | null;
+  tags: string[];
 }
 
 export async function createProduct(input: ProductEditableFields): Promise<{ id: string }> {

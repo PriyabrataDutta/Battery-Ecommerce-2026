@@ -749,6 +749,9 @@ export type Database = {
           is_featured: boolean
           is_new: boolean
           is_on_sale: boolean
+          meta_description: string | null
+          meta_keywords: string | null
+          meta_title: string | null
           mrp: number | null
           name: string
           price: number
@@ -761,6 +764,7 @@ export type Database = {
           specs: Json
           status: string
           stock: number
+          tags: string[]
           updated_at: string
           warranty_months: number | null
         }
@@ -778,6 +782,9 @@ export type Database = {
           is_featured?: boolean
           is_new?: boolean
           is_on_sale?: boolean
+          meta_description?: string | null
+          meta_keywords?: string | null
+          meta_title?: string | null
           mrp?: number | null
           name: string
           price?: number
@@ -790,6 +797,7 @@ export type Database = {
           specs?: Json
           status?: string
           stock?: number
+          tags?: string[]
           updated_at?: string
           warranty_months?: number | null
         }
@@ -807,6 +815,9 @@ export type Database = {
           is_featured?: boolean
           is_new?: boolean
           is_on_sale?: boolean
+          meta_description?: string | null
+          meta_keywords?: string | null
+          meta_title?: string | null
           mrp?: number | null
           name?: string
           price?: number
@@ -819,6 +830,7 @@ export type Database = {
           specs?: Json
           status?: string
           stock?: number
+          tags?: string[]
           updated_at?: string
           warranty_months?: number | null
         }

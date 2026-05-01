@@ -1,10 +1,30 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Search, BatteryCharging, Car, CarFront, Package, LayoutGrid } from "lucide-react";
+import { Search, BatteryCharging, Car, CarFront, Package, LayoutGrid, Clock, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { formatINR } from "@/lib/format";
+
+const RECENT_KEY = "kachi.recentSearches";
+const RECENT_MAX = 6;
+
+type RecentItem = { label: string; path: string; sublabel?: string; kind: string };
+
+function loadRecent(): RecentItem[] {
+  try {
+    const raw = localStorage.getItem(RECENT_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr.slice(0, RECENT_MAX) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecent(items: RecentItem[]) {
+  try { localStorage.setItem(RECENT_KEY, JSON.stringify(items.slice(0, RECENT_MAX))); } catch {}
+}
 
 type Suggestion =
   | { kind: "category"; id: string; label: string; slug: string }
@@ -34,8 +54,27 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
   const [term, setTerm] = useState("");
   const [open, setOpen] = useState(false);
   const [activeIdx, setActiveIdx] = useState(-1);
+  const [recent, setRecent] = useState<RecentItem[]>(() => loadRecent());
   const wrapRef = useRef<HTMLDivElement>(null);
   const debounced = useDebounced(term.trim(), 200);
+
+  const pushRecent = (item: RecentItem) => {
+    setRecent((prev) => {
+      const next = [item, ...prev.filter((r) => r.path !== item.path)].slice(0, RECENT_MAX);
+      saveRecent(next);
+      return next;
+    });
+  };
+
+  const removeRecent = (path: string) => {
+    setRecent((prev) => {
+      const next = prev.filter((r) => r.path !== path);
+      saveRecent(next);
+      return next;
+    });
+  };
+
+  const clearRecent = () => { setRecent([]); saveRecent([]); };
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {

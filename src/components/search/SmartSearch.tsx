@@ -174,7 +174,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
       return;
     }
     if (term.trim()) {
-      const path = `/shop?q=${encodeURIComponent(term.trim())}`;
+      const path = `/search?q=${encodeURIComponent(term.trim())}`;
       pushRecent({ label: term.trim(), path, sublabel: "Search", kind: "query" });
       go(path);
     }

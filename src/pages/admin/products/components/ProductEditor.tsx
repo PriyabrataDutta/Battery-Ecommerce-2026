@@ -107,11 +107,16 @@ export function ProductEditor({
     if (!form.name.trim() || !form.sku.trim() || form.price < 0) return;
     const slug = form.slug.trim() || slugify(form.name);
     const payload = { ...form, slug };
+    let productId: string;
     if (isEdit && product) {
       await update.mutateAsync({ id: product.id, patch: payload });
+      productId = product.id;
     } else {
-      await create.mutateAsync(payload);
+      const created = await create.mutateAsync(payload);
+      productId = created.id;
     }
+    // Save fitment mappings
+    await saveProductFitment(productId, fitmentModelIds);
     onOpenChange(false);
   };
 

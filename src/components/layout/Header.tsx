@@ -207,7 +207,7 @@ export function Header() {
               asChild
               variant="ghost"
               size="sm"
-              className="hidden sm:inline-flex h-10 px-3 gap-1.5 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="inline-flex h-10 px-2 sm:px-3 gap-1.5 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               <Link to="/auth" aria-label="Login or sign up">
                 <span className="text-sm font-medium">Login/Signup</span>

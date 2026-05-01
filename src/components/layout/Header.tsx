@@ -27,6 +27,21 @@ const mainNav = [
 export function Header() {
   const { count } = useCart();
   const { user, loading, signOut, isStaff } = useAuth();
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [accountCloseTimer, setAccountCloseTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+
+  const openAccount = () => {
+    if (accountCloseTimer) {
+      clearTimeout(accountCloseTimer);
+      setAccountCloseTimer(null);
+    }
+    setAccountOpen(true);
+  };
+  const scheduleCloseAccount = () => {
+    if (accountCloseTimer) clearTimeout(accountCloseTimer);
+    const t = setTimeout(() => setAccountOpen(false), 150);
+    setAccountCloseTimer(t);
+  };
   const [mobileOpen, setMobileOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
@@ -94,62 +109,77 @@ export function Header() {
             <Search className="h-5 w-5" />
           </Button>
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="hidden sm:inline-flex h-10 w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                  aria-label="Account menu"
+            <div
+              className="hidden sm:inline-flex"
+              onMouseEnter={openAccount}
+              onMouseLeave={scheduleCloseAccount}
+            >
+              <DropdownMenu open={accountOpen} onOpenChange={setAccountOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                    aria-label="Account menu"
+                  >
+                    <Link to="/account" onClick={() => setAccountOpen(false)}>
+                      <User className="h-5 w-5" />
+                    </Link>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  sideOffset={8}
+                  className="w-56 bg-white z-50"
+                  onMouseEnter={openAccount}
+                  onMouseLeave={scheduleCloseAccount}
                 >
-                  <User className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-white z-50">
-                <DropdownMenuLabel className="flex flex-col gap-0.5">
-                  <span className="text-xs text-muted-foreground font-normal">Signed in as</span>
-                  <span className="truncate text-sm">{user.email}</span>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/account" className="cursor-pointer">
-                    <UserCircle className="h-4 w-4 mr-2" /> My Account
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/account/orders" className="cursor-pointer">
-                    <Package className="h-4 w-4 mr-2" /> My Orders
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/account/addresses" className="cursor-pointer">
-                    <MapPin className="h-4 w-4 mr-2" /> Addresses
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/account/profile" className="cursor-pointer">
-                    <User className="h-4 w-4 mr-2" /> Profile
-                  </Link>
-                </DropdownMenuItem>
-                {isStaff && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin" className="cursor-pointer">
-                        <LayoutDashboard className="h-4 w-4 mr-2" /> Admin Dashboard
-                      </Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={signOut}
-                  className="cursor-pointer text-primary focus:text-primary"
-                >
-                  <LogOut className="h-4 w-4 mr-2" /> Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <DropdownMenuLabel className="flex flex-col gap-0.5">
+                    <span className="text-xs text-muted-foreground font-normal">Signed in as</span>
+                    <span className="truncate text-sm">{user.email}</span>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/account" className="cursor-pointer">
+                      <UserCircle className="h-4 w-4 mr-2" /> My Account
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/account/orders" className="cursor-pointer">
+                      <Package className="h-4 w-4 mr-2" /> My Orders
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/account/addresses" className="cursor-pointer">
+                      <MapPin className="h-4 w-4 mr-2" /> Addresses
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/account/profile" className="cursor-pointer">
+                      <User className="h-4 w-4 mr-2" /> Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  {isStaff && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin" className="cursor-pointer">
+                          <LayoutDashboard className="h-4 w-4 mr-2" /> Admin Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={signOut}
+                    className="cursor-pointer text-primary focus:text-primary"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" /> Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           ) : (
             <Button
               asChild

@@ -1,13 +1,22 @@
 import { useSearchParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useMemo } from "react";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ShopFilters } from "@/components/products/ShopFilters";
 import { ActiveFilters } from "@/components/products/ActiveFilters";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LayoutGrid, List } from "lucide-react";
 import type { Product } from "@/types/catalog";
-import { useMemo } from "react";
+import { useProducts } from "@/hooks/queries/useProducts";
+import { useCategoryBySlug } from "@/hooks/queries/useCategories";
+import {
+  useResolveBatteryBrandSlugByName,
+  useResolveCarModelIdByName,
+  useCarBrandIdBySlug,
+  useCarModelIdBySlug,
+  useCarModelIdsByBrandIds,
+  useCarBrandIdsBySlugs,
+} from "@/hooks/queries/useBrands";
+import { useProductIdsByModelIds } from "@/hooks/queries/useFitment";
 
 type SortKey = "relevance" | "popularity" | "price_asc" | "price_desc" | "newest";
 
@@ -40,133 +49,79 @@ const Shop = () => {
   const maxPriceParam = params.get("max_price");
   const carBrandsCsv = params.get("car_brands") ?? "";
 
-  const { data: typeCategory } = useQuery({
-    queryKey: ["shop_category", type],
-    enabled: !!type,
-    queryFn: async () => {
-      const { data } = await supabase.from("categories").select("name, description").eq("slug", type!).maybeSingle();
-      return data;
-    },
-  });
   const carBrandSlugs = useMemo(
     () => carBrandsCsv.split(",").map((s) => s.trim()).filter(Boolean),
     [carBrandsCsv]
   );
 
-  // Resolve free-text q to a brand or car model so searches like "amaron" or "baleno" return useful results
-  const { data: qResolved } = useQuery({
-    queryKey: ["shop_q_resolve", q],
-    enabled: !!q,
-    queryFn: async () => {
-      const like = `%${q}%`;
-      const [brand, model] = await Promise.all([
-        supabase.from("battery_brands").select("slug").ilike("name", like).limit(1).maybeSingle(),
-        supabase.from("car_models").select("id,slug").ilike("name", like).limit(1).maybeSingle(),
-      ]);
-      return { brandSlug: brand.data?.slug ?? null, carModelId: model.data?.id ?? null };
-    },
-  });
+  const { data: typeCategory } = useCategoryBySlug(type ?? undefined);
 
-  const effectiveBrand = brandSlug || qResolved?.brandSlug || null;
+  // Resolve free-text q to a brand or car model so searches like "amaron" or "baleno" return useful results
+  const { data: qBrandSlug } = useResolveBatteryBrandSlugByName(q);
+  const { data: qCarModelId } = useResolveCarModelIdByName(q);
+  const qResolved = { brandSlug: qBrandSlug ?? null, carModelId: qCarModelId ?? null };
+
+  const effectiveBrand = brandSlug || qResolved.brandSlug || null;
 
   // Resolve car_brand slug -> all model ids (for fitment filtering by car brand)
-  const { data: carBrandModelIds } = useQuery({
-    queryKey: ["car_brand_models", carBrandSlug],
-    enabled: !!carBrandSlug,
-    queryFn: async (): Promise<string[]> => {
-      const { data: brand } = await supabase.from("car_brands").select("id").eq("slug", carBrandSlug!).maybeSingle();
-      if (!brand) return [];
-      const { data: models } = await supabase.from("car_models").select("id").eq("car_brand_id", brand.id);
-      return (models ?? []).map((m) => m.id);
-    },
-  });
+  const { data: carBrandId } = useCarBrandIdBySlug(carBrandSlug ?? undefined);
+  const { data: carBrandModelIds } = useCarModelIdsByBrandIds(
+    carBrandId ? [carBrandId] : undefined,
+  );
 
   // Resolve multi-select car_brands -> product ids via fitment
-  const { data: carBrandsProductIds } = useQuery({
-    queryKey: ["car_brands_product_ids", carBrandSlugs],
-    enabled: carBrandSlugs.length > 0,
-    queryFn: async (): Promise<string[]> => {
-      const { data: brands } = await supabase
-        .from("car_brands")
-        .select("id")
-        .in("slug", carBrandSlugs);
-      const brandIds = (brands ?? []).map((b) => b.id);
-      if (brandIds.length === 0) return [];
-      const { data: models } = await supabase
-        .from("car_models")
-        .select("id")
-        .in("car_brand_id", brandIds);
-      const modelIds = (models ?? []).map((m) => m.id);
-      if (modelIds.length === 0) return [];
-      const { data: fits } = await supabase
-        .from("product_fitment")
-        .select("product_id")
-        .in("car_model_id", modelIds);
-      return Array.from(new Set((fits ?? []).map((r) => r.product_id)));
-    },
+  const { data: carBrandsIds } = useCarBrandIdsBySlugs(carBrandSlugs);
+  const { data: carBrandsModelIds } = useCarModelIdsByBrandIds(carBrandsIds);
+  const { data: carBrandsProductIds } = useProductIdsByModelIds(carBrandsModelIds);
+
+  // Resolve a single car model slug -> id
+  const { data: carModelIdFromSlug } = useCarModelIdBySlug(carModelSlug ?? undefined);
+
+  const { data: products = [], isLoading } = useProducts({
+    categorySlug: type ?? undefined,
   });
 
-  const { data: products = [], isLoading } = useQuery({
-    queryKey: ["shop", { q, type, carModelSlug, brandSlug, qBrand: qResolved?.brandSlug }],
-    queryFn: async (): Promise<Product[]> => {
-      let query = supabase
-        .from("products")
-        .select("*, battery_brands(*), categories!inner(slug)")
-        .eq("status", "active");
-      if (type) query = query.eq("categories.slug", type);
-      const { data, error } = await query;
-      if (error) throw error;
-      let list = data as unknown as Product[];
-      if (q && !qResolved?.brandSlug && !qResolved?.carModelId) {
-        list = list.filter((p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.sku.toLowerCase().includes(q) ||
-          (p.short_description ?? "").toLowerCase().includes(q)
-        );
-      }
-      // battery brand filter applied later (client-side) so we can compute per-brand counts
-      return list;
-    },
-  });
+  // Apply free-text filter client-side when q didn't resolve to brand/model
+  const textFiltered = useMemo(() => {
+    if (!q || qResolved.brandSlug || qResolved.carModelId) return products;
+    return products.filter((p) =>
+      p.name.toLowerCase().includes(q) ||
+      p.sku.toLowerCase().includes(q) ||
+      (p.short_description ?? "").toLowerCase().includes(q)
+    );
+  }, [products, q, qResolved.brandSlug, qResolved.carModelId]);
 
-  // Apply car model fitment filter via separate query (from URL, resolved from q, or from car_brand)
-  const { data: fitmentProductIds } = useQuery({
-    queryKey: ["fitment_ids", carModelSlug, qResolved?.carModelId, carBrandSlug, carBrandModelIds],
-    enabled: !!carModelSlug || !!qResolved?.carModelId || (!!carBrandSlug && !!carBrandModelIds),
-    queryFn: async (): Promise<string[]> => {
-      let modelIds: string[] = [];
-      if (qResolved?.carModelId) modelIds = [qResolved.carModelId];
-      else if (carModelSlug) {
-        const { data: model } = await supabase.from("car_models").select("id").eq("slug", carModelSlug).maybeSingle();
-        if (model?.id) modelIds = [model.id];
-      } else if (carBrandSlug && carBrandModelIds) {
-        modelIds = carBrandModelIds;
-      }
-      if (modelIds.length === 0) return [];
-      const { data } = await supabase.from("product_fitment").select("product_id").in("car_model_id", modelIds);
-      return Array.from(new Set((data ?? []).map((r) => r.product_id)));
-    },
-  });
+  // Compute fitment model ids (from URL car_model, q-resolved model, or car_brand)
+  const fitmentModelIds = useMemo(() => {
+    if (qResolved.carModelId) return [qResolved.carModelId];
+    if (carModelIdFromSlug) return [carModelIdFromSlug];
+    if (carBrandSlug && carBrandModelIds) return carBrandModelIds;
+    return [];
+  }, [qResolved.carModelId, carModelIdFromSlug, carBrandSlug, carBrandModelIds]);
+
+  const { data: fitmentProductIds } = useProductIdsByModelIds(
+    fitmentModelIds.length > 0 ? fitmentModelIds : undefined,
+  );
 
   // Full price bounds across all products in current category/search (ignores price filter)
   const priceBounds = useMemo(() => {
-    if (products.length === 0) return { min: 0, max: 0 };
+    if (textFiltered.length === 0) return { min: 0, max: 0 };
     let min = Infinity, max = -Infinity;
-    for (const p of products) {
+    for (const p of textFiltered) {
       const v = Number(p.price) || 0;
       if (v < min) min = v;
       if (v > max) max = v;
     }
     return { min: Math.floor(min), max: Math.ceil(max) };
-  }, [products]);
+  }, [textFiltered]);
 
   const minPrice = minPriceParam !== null ? Number(minPriceParam) : priceBounds.min;
   const maxPrice = maxPriceParam !== null ? Number(maxPriceParam) : priceBounds.max;
 
   // Products after car/category/price filters but BEFORE battery brand filter — used to count by battery brand
   const preBrandFiltered = useMemo(() => {
-    let list = products;
-    const useFitment = !!carModelSlug || !!qResolved?.carModelId || !!carBrandSlug;
+    let list = textFiltered;
+    const useFitment = !!carModelSlug || !!qResolved.carModelId || !!carBrandSlug;
     if (useFitment) {
       if (!fitmentProductIds) {
         list = [];
@@ -177,7 +132,6 @@ const Shop = () => {
     }
     if (carBrandSlugs.length > 0) {
       if (!carBrandsProductIds) {
-        // While loading, show empty to avoid flashing wrong results
         list = [];
       } else {
         const set = new Set(carBrandsProductIds);
@@ -189,7 +143,7 @@ const Shop = () => {
       return v >= minPrice && v <= maxPrice;
     });
     return list;
-  }, [products, carModelSlug, qResolved?.carModelId, carBrandSlug, fitmentProductIds, minPrice, maxPrice, carBrandSlugs, carBrandsProductIds]);
+  }, [textFiltered, carModelSlug, qResolved.carModelId, carBrandSlug, fitmentProductIds, minPrice, maxPrice, carBrandSlugs, carBrandsProductIds]);
 
   const filtered = useMemo(() => {
     if (!effectiveBrand) return preBrandFiltered;
@@ -219,7 +173,6 @@ const Shop = () => {
         });
         break;
       default:
-        // relevance: keep server order, but bump featured/bestseller slightly
         list.sort((a, b) => popularity(b) - popularity(a));
     }
     return list;

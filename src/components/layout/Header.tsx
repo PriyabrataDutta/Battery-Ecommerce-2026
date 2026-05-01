@@ -179,7 +179,7 @@ export function Header() {
                     asChild
                     variant="ghost"
                     size="icon"
-                    className="h-10 w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                    className="h-11 w-11 sm:h-10 sm:w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                     aria-label="Account menu"
                   >
                     <Link to="/account" onClick={() => setAccountOpen(false)}>

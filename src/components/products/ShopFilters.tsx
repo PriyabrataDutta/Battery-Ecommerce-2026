@@ -92,7 +92,34 @@ export function ShopFilters({ counts, priceBounds }: Props) {
     update({ battery_brand: slug });
   };
 
-  const hasAny = !!(carBrandSlug || carModelSlug || batteryBrandSlug);
+  // Price range slider — local state for smooth dragging, URL update on commit
+  const minBound = priceBounds?.min ?? 0;
+  const maxBound = priceBounds?.max ?? 0;
+  const minPriceParam = params.get("min_price");
+  const maxPriceParam = params.get("max_price");
+  const urlMin = minPriceParam !== null ? Number(minPriceParam) : minBound;
+  const urlMax = maxPriceParam !== null ? Number(maxPriceParam) : maxBound;
+
+  const [range, setRange] = useState<[number, number]>([urlMin, urlMax]);
+  // Sync local state when URL or bounds change externally
+  useEffect(() => {
+    setRange([urlMin, urlMax]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlMin, urlMax, minBound, maxBound]);
+
+  const commitPrice = (vals: number[]) => {
+    const [lo, hi] = vals;
+    const next: Record<string, string | null> = {};
+    next.min_price = lo > minBound ? String(lo) : null;
+    next.max_price = hi < maxBound ? String(hi) : null;
+    update(next);
+  };
+
+  const priceActive = urlMin !== minBound || urlMax !== maxBound;
+  const hasAny = !!(carBrandSlug || carModelSlug || batteryBrandSlug || priceActive);
+
+  const fmt = (n: number) =>
+    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
 
   return (
     <div className="space-y-5">

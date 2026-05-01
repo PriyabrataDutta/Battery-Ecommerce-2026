@@ -42,7 +42,9 @@ export function MediaPickerDialog({
   const [search, setSearch] = useState("");
   const [picked, setPicked] = useState<Set<string>>(new Set(selected));
   const [uploading, setUploading] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const dragCounter = useRef(0);
 
   const { data: files = [], isLoading } = useQuery({
     queryKey: ["media_files_picker"],

@@ -5,14 +5,18 @@ import { persist } from "zustand/middleware";
  * Tab keys used by the customer dashboard. Persisted so the user lands on the
  * same tab after a refresh.
  */
-export type AccountTab =
-  | "overview"
-  | "orders"
-  | "addresses"
-  | "wishlist"
-  | "quotes"
-  | "support"
-  | "profile";
+export const ACCOUNT_TABS = [
+  "overview",
+  "orders",
+  "addresses",
+  "wishlist",
+  "quotes",
+  "support",
+  "profile",
+] as const;
+export type AccountTab = (typeof ACCOUNT_TABS)[number];
+export const isAccountTab = (v: unknown): v is AccountTab =>
+  typeof v === "string" && (ACCOUNT_TABS as readonly string[]).includes(v);
 
 interface AccountTabState {
   tab: AccountTab;
@@ -32,17 +36,21 @@ export const useAccountTab = create<AccountTabState>()(
 /**
  * Tab keys used by the admin dashboard.
  */
-export type AdminTab =
-  | "dashboard"
-  | "products"
-  | "brands"
-  | "categories"
-  | "settings"
-  | "users"
-  | "orders"
-  | "quotes"
-  | "messages"
-  | "audit-log";
+export const ADMIN_TABS = [
+  "dashboard",
+  "products",
+  "brands",
+  "categories",
+  "settings",
+  "users",
+  "orders",
+  "quotes",
+  "messages",
+  "audit-log",
+] as const;
+export type AdminTab = (typeof ADMIN_TABS)[number];
+export const isAdminTab = (v: unknown): v is AdminTab =>
+  typeof v === "string" && (ADMIN_TABS as readonly string[]).includes(v);
 
 interface AdminTabState {
   tab: AdminTab;

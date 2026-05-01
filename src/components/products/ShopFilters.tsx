@@ -187,7 +187,7 @@ export function ShopFilters({ counts, priceBounds }: Props) {
         </Select>
       </div>
 
-      {priceBounds && maxBound > minBound && (
+      {boundsReady && (
         <div>
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-display font-bold text-xs uppercase tracking-wider text-muted-foreground">
@@ -196,7 +196,10 @@ export function ShopFilters({ counts, priceBounds }: Props) {
             {priceActive && (
               <button
                 type="button"
-                onClick={() => update({ min_price: null, max_price: null })}
+                onClick={() => {
+                  setHasUserDragged(false);
+                  update({ min_price: null, max_price: null });
+                }}
                 className="text-[11px] text-primary hover:underline"
               >
                 Reset
@@ -207,17 +210,19 @@ export function ShopFilters({ counts, priceBounds }: Props) {
             min={minBound}
             max={maxBound}
             step={Math.max(1, Math.round((maxBound - minBound) / 100))}
-            value={range}
+            value={displayRange}
             onValueChange={(v) => {
               const next: [number, number] = [v[0], v[1]];
+              setHasUserDragged(true);
               setRange(next);
               commitPrice(next);
             }}
+            onValueCommit={() => setHasUserDragged(false)}
             className="my-3"
           />
           <div className="flex items-center justify-between text-xs text-ink font-medium">
-            <span>{fmt(range[0])}</span>
-            <span>{fmt(range[1])}</span>
+            <span>{fmt(displayRange[0])}</span>
+            <span>{fmt(displayRange[1])}</span>
           </div>
         </div>
       )}

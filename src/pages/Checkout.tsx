@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, Navigate } from "react-router-dom";
 import { format, addDays } from "date-fns";
-import { supabase } from "@/integrations/supabase/client";
+import { useDefaultAddress } from "@/hooks/queries/useAddresses";
+import { useCreateOrder } from "@/hooks/queries/useOrders";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart, lineKey, lineUnitPrice } from "@/hooks/useCart";
 import { Button } from "@/components/ui/button";

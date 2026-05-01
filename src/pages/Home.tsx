@@ -200,13 +200,13 @@ const Home = () => {
 
       {/* QUICK QUOTE CTA */}
       <section className="container-x mt-12 sm:mt-20">
-        <div className="bg-gradient-red text-white p-10 lg:p-14 grid lg:grid-cols-[1fr_auto] items-center gap-6">
+        <div className="bg-gradient-red text-white p-6 sm:p-10 lg:p-14 grid lg:grid-cols-[1fr_auto] items-center gap-5 sm:gap-6">
           <div>
-            <div className="text-xs font-bold uppercase tracking-[0.25em] mb-3">B2B Pricing</div>
-            <h2 className="font-display-tight text-3xl lg:text-4xl font-bold">Need bulk pricing or custom requirement?</h2>
-            <p className="mt-2 text-white/85 max-w-xl">Get a personalized quote with dealer rates, BOQ support and dedicated account management.</p>
+            <div className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] sm:tracking-[0.25em] mb-2 sm:mb-3">B2B Pricing</div>
+            <h2 className="font-display-tight text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">Need bulk pricing or custom requirement?</h2>
+            <p className="mt-2 text-sm sm:text-base text-white/85 max-w-xl">Get a personalized quote with dealer rates, BOQ support and dedicated account management.</p>
           </div>
-          <Button asChild size="lg" variant="outline" className="bg-white text-primary border-white hover:bg-ink hover:text-white hover:border-ink font-bold uppercase tracking-wider">
+          <Button asChild size="lg" variant="outline" className="bg-white text-primary border-white hover:bg-ink hover:text-white hover:border-ink font-bold uppercase tracking-wider w-full lg:w-auto">
             <Link to="/quote">Request a Quote <ArrowRight className="h-4 w-4 ml-2" /></Link>
           </Button>
         </div>

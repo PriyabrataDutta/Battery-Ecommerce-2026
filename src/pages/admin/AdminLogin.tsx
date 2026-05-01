@@ -102,7 +102,7 @@ const AdminLogin = () => {
       await supabase.auth.signOut();
       return fail(
         "staff-role",
-        "Signed in, but this account has no admin/staff role assigned.",
+        "This account does not have admin access. If you're a customer, use the customer sign-in.",
       );
     }
 

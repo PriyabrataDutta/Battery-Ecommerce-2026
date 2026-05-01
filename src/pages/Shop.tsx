@@ -19,7 +19,17 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
 ];
 
 const Shop = () => {
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
+  const sort = (params.get("sort") as SortKey) || "relevance";
+  const view: "grid" | "list" = params.get("view") === "list" ? "list" : "grid";
+
+  const setParam = (key: string, value: string | null) => {
+    const p = new URLSearchParams(params);
+    if (value === null || value === "") p.delete(key);
+    else p.set(key, value);
+    setParams(p, { replace: true });
+  };
+
   const q = params.get("q")?.toLowerCase() ?? "";
   const type = params.get("type"); // category slug
   const carModelSlug = params.get("car_model");

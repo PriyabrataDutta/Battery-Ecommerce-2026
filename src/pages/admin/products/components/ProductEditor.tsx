@@ -140,6 +140,16 @@ export function ProductEditor({
     }
     // Save fitment mappings
     await saveProductFitment(productId, fitmentModelIds);
+    // Save gallery images
+    await supabase.from("product_images").delete().eq("product_id", productId);
+    if (galleryImages.length > 0) {
+      const rows = galleryImages.map((url, i) => ({
+        product_id: productId,
+        url,
+        sort_order: i,
+      }));
+      await supabase.from("product_images").insert(rows);
+    }
     onOpenChange(false);
   };
 

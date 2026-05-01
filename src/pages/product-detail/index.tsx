@@ -48,9 +48,13 @@ const ProductDetail = () => {
   if (!product)
     return <div className="container-x py-20 text-center">Product not found.</div>;
 
-  const withoutExchange = product.price_without_exchange || product.price;
-  const withExchangePrice = product.price_with_exchange || withoutExchange;
-  const showExchange = product.has_exchange && withExchangePrice < withoutExchange;
+  const withoutExchange = product.price_without_exchange && product.price_without_exchange > 0
+    ? product.price_without_exchange
+    : product.price;
+  const withExchangePrice = product.price_with_exchange && product.price_with_exchange > 0
+    ? product.price_with_exchange
+    : withoutExchange;
+  const showExchange = product.has_exchange === true && withExchangePrice < withoutExchange;
   const effectiveUnit = withExchange ? withExchangePrice : withoutExchange;
   const lineTotal = effectiveUnit * qty;
 

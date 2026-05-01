@@ -929,17 +929,45 @@ function BrandsModelsTab() {
                 </div>
               )}
 
-              {/* Error with retry */}
+              {/* Error with per-row retry */}
               {importProgress?.error && (
                 <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 space-y-2">
                   <div className="flex items-start gap-2">
                     <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
-                    <div className="text-sm">
-                      <p className="font-medium text-destructive">Import failed</p>
+                    <div className="text-sm w-full">
+                      <p className="font-medium text-destructive">Import incomplete</p>
                       <p className="text-xs text-muted-foreground mt-0.5">{importProgress.error}</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {importProgress.brandsCreated + importProgress.brandsUpdated} brand{(importProgress.brandsCreated + importProgress.brandsUpdated) !== 1 ? "s" : ""} and {importProgress.modelsCreated + importProgress.modelsUpdated} model{(importProgress.modelsCreated + importProgress.modelsUpdated) !== 1 ? "s" : ""} were processed before the error. Retrying is safe — duplicates are skipped.
+                        {importProgress.brandsCreated + importProgress.brandsUpdated} brand{(importProgress.brandsCreated + importProgress.brandsUpdated) !== 1 ? "s" : ""} and {importProgress.modelsCreated + importProgress.modelsUpdated} model{(importProgress.modelsCreated + importProgress.modelsUpdated) !== 1 ? "s" : ""} succeeded.
                       </p>
+                      {/* Failed brands list */}
+                      {importProgress.failedBrands.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-xs font-medium text-destructive">Failed brands ({importProgress.failedBrands.length}):</p>
+                          <div className="mt-1 max-h-24 overflow-y-auto rounded border bg-card divide-y text-xs">
+                            {importProgress.failedBrands.map((fb, i) => (
+                              <div key={i} className="flex justify-between px-2 py-1">
+                                <span className="truncate">{fb.name}</span>
+                                <span className="text-muted-foreground truncate ml-2">{fb.error}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {/* Failed models list */}
+                      {importProgress.failedModels.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-xs font-medium text-destructive">Failed models ({importProgress.failedModels.length}):</p>
+                          <div className="mt-1 max-h-24 overflow-y-auto rounded border bg-card divide-y text-xs">
+                            {importProgress.failedModels.map((fm, i) => (
+                              <div key={i} className="flex justify-between px-2 py-1">
+                                <span className="truncate">{fm.brand} → {fm.model}</span>
+                                <span className="text-muted-foreground truncate ml-2">{fm.error}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -956,13 +984,13 @@ function BrandsModelsTab() {
                   Cancel
                 </Button>
                 {importProgress?.error ? (
-                  <Button className="flex-1" onClick={() => { setImportProgress(null); handleConfirmImport(); }}>
-                    <RotateCcw className="h-4 w-4 mr-1.5" /> Retry Import
+                  <Button className="flex-1" onClick={() => handleConfirmImport(true)}>
+                    <RotateCcw className="h-4 w-4 mr-1.5" /> Retry Failed ({(importProgress.failedBrands?.length ?? 0) + (importProgress.failedModels?.length ?? 0)})
                   </Button>
                 ) : (
                   <Button
                     className="flex-1"
-                    onClick={handleConfirmImport}
+                    onClick={() => handleConfirmImport(false)}
                     disabled={importing || (importMode === "append" && importPreview.newBrands.length === 0 && importPreview.newModels.length === 0)}
                   >
                     {importing ? (

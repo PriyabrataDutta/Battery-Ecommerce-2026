@@ -66,6 +66,14 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
     component: lazy(() => import("@/pages/admin/fitment")),
   },
   {
+    id: "media",
+    title: "Media Gallery",
+    sidebarLabel: "Media",
+    icon: ImageIcon,
+    section: "catalog",
+    component: lazy(() => import("@/pages/admin/media")),
+  },
+  {
     id: "settings",
     title: "Settings",
     sidebarLabel: "Settings",

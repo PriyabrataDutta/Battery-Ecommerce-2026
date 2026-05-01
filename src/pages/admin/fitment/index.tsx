@@ -396,7 +396,7 @@ function BrandsModelsTab() {
             type="file"
             accept=".xlsx,.xls"
             className="hidden"
-            onChange={handleBulkImport}
+            onChange={handleFileSelect}
           />
           <Button
             variant="outline"

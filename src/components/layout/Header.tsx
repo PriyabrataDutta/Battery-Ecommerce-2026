@@ -108,6 +108,29 @@ export function Header() {
         </div>
       </div>
 
+      {/* Mobile full-screen search overlay */}
+      {mobileSearchOpen && (
+        <div className="fixed inset-0 z-50 bg-white md:hidden animate-fade-in flex flex-col">
+          <div className="flex items-center gap-2 p-3 border-b border-line">
+            <div className="flex-1 min-w-0">
+              <SmartSearch
+                autoFocus
+                placeholder="Search batteries, brands, models..."
+                onNavigate={() => setMobileSearchOpen(false)}
+              />
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileSearchOpen(false)}
+              aria-label="Close search"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Main menu */}
       <nav className="hidden lg:block border-t border-line bg-white">
         <div className="container-x flex items-center gap-1 h-12">

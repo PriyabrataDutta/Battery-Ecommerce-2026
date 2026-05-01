@@ -93,50 +93,80 @@ export function MediaPickerDialog({
     if (!fileList.length) return;
     setUploading(true);
 
+    const items: UploadItem[] = fileList.map((f) => ({
+      name: f.name,
+      status: "pending" as const,
+      progress: 0,
+    }));
+    setUploadItems([...items]);
+
+    const updateItem = (idx: number, patch: Partial<UploadItem>) => {
+      items[idx] = { ...items[idx], ...patch };
+      setUploadItems([...items]);
+    };
+
     try {
       const uploadedUrls: string[] = [];
-      for (const file of fileList) {
-        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-        const path = `${Date.now()}_${safeName}`;
+      for (let i = 0; i < fileList.length; i++) {
+        const file = fileList[i];
+        updateItem(i, { status: "uploading", progress: 10 });
 
-        const { error: uploadErr } = await supabase.storage
-          .from(BUCKET)
-          .upload(path, file, { contentType: file.type });
-        if (uploadErr) throw uploadErr;
+        try {
+          const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+          const path = `${Date.now()}_${safeName}`;
 
-        const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
+          updateItem(i, { progress: 30 });
 
-        const { error: dbErr } = await supabase.from("media_files").insert({
-          file_name: file.name,
-          file_url: urlData.publicUrl,
-          bucket: BUCKET,
-          path,
-          size_bytes: file.size,
-          content_type: file.type,
-          uploaded_by: user?.id ?? null,
-        });
-        if (dbErr) throw dbErr;
+          const { error: uploadErr } = await supabase.storage
+            .from(BUCKET)
+            .upload(path, file, { contentType: file.type });
+          if (uploadErr) throw uploadErr;
 
-        uploadedUrls.push(urlData.publicUrl);
+          updateItem(i, { progress: 70 });
+
+          const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
+
+          const { error: dbErr } = await supabase.from("media_files").insert({
+            file_name: file.name,
+            file_url: urlData.publicUrl,
+            bucket: BUCKET,
+            path,
+            size_bytes: file.size,
+            content_type: file.type,
+            uploaded_by: user?.id ?? null,
+          });
+          if (dbErr) throw dbErr;
+
+          updateItem(i, { status: "done", progress: 100 });
+          uploadedUrls.push(urlData.publicUrl);
+        } catch (err: any) {
+          updateItem(i, { status: "error", progress: 0, error: err.message ?? "Failed" });
+        }
       }
 
-      toast.success(`${fileList.length} file(s) uploaded`);
-      qc.invalidateQueries({ queryKey: ["media_files_picker"] });
-      qc.invalidateQueries({ queryKey: ["media_files"] });
+      const successCount = items.filter((it) => it.status === "done").length;
+      const failCount = items.filter((it) => it.status === "error").length;
 
-      // Auto-select the newly uploaded files
-      if (!multiple && uploadedUrls.length === 1) {
-        onSelect(uploadedUrls);
-        onOpenChange(false);
-      } else {
-        const next = new Set(picked);
-        uploadedUrls.forEach((u) => next.add(u));
-        setPicked(next);
+      if (successCount > 0) {
+        toast.success(`${successCount} file(s) uploaded${failCount ? `, ${failCount} failed` : ""}`);
+        qc.invalidateQueries({ queryKey: ["media_files_picker"] });
+        qc.invalidateQueries({ queryKey: ["media_files"] });
+
+        if (!multiple && uploadedUrls.length === 1) {
+          onSelect(uploadedUrls);
+          onOpenChange(false);
+        } else {
+          const next = new Set(picked);
+          uploadedUrls.forEach((u) => next.add(u));
+          setPicked(next);
+        }
+      } else if (failCount > 0) {
+        toast.error("All uploads failed");
       }
-    } catch (err: any) {
-      toast.error(err.message ?? "Upload failed");
     } finally {
       setUploading(false);
+      // Keep uploadItems visible briefly so user sees result, then clear
+      setTimeout(() => setUploadItems([]), 3000);
       if (fileRef.current) fileRef.current.value = "";
     }
   }, [multiple, onOpenChange, onSelect, picked, qc, user?.id]);

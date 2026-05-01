@@ -112,8 +112,8 @@ const Home = () => {
           { Icon: Wrench, t: "Free Installation", s: "By trained technicians" },
           { Icon: ShieldCheck, t: "Genuine Warranty", s: "Direct from brands" },
         ].map(({ Icon, t, s }) => (
-          <div key={t} className="bg-white border border-line p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
-            <div className="h-9 w-9 sm:h-11 sm:w-11 grid place-items-center bg-primary/10 text-primary flex-shrink-0">
+          <div key={t} className="bg-white border border-line rounded-lg p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
+            <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-md grid place-items-center bg-primary/10 text-primary flex-shrink-0">
               <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div className="min-w-0">

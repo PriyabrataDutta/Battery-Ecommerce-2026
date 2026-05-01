@@ -56,8 +56,10 @@ export function ProductEditor({
         sku: product.sku ?? "",
         brand_id: product.brand_id ?? null,
         category_id: product.category_id ?? null,
-        price: Number(product.price ?? 0),
         mrp: product.mrp == null ? null : Number(product.mrp),
+        price_with_exchange: Number((product as any).price_with_exchange ?? 0),
+        price_without_exchange: Number((product as any).price_without_exchange ?? 0),
+        price: Number(product.price ?? 0),
         stock: Number(product.stock ?? 0),
         capacity_ah: product.capacity_ah ?? null,
         warranty_months: product.warranty_months ?? null,
@@ -184,20 +186,38 @@ export function ProductEditor({
       {/* Pricing & stock */}
       <Section title="Pricing & stock">
         <div className="grid grid-cols-3 gap-3">
-          <Field label="Price (₹)" required>
-            <Input
-              type="number"
-              min={0}
-              value={form.price}
-              onChange={(e) => set("price", Number(e.target.value) || 0)}
-            />
-          </Field>
-          <Field label="MRP (₹)">
+          <Field label="MRP (₹)" required>
             <Input
               type="number"
               min={0}
               value={form.mrp ?? ""}
               onChange={(e) => set("mrp", e.target.value ? Number(e.target.value) : null)}
+            />
+          </Field>
+          <Field label="With Exchange (₹)" required>
+            <Input
+              type="number"
+              min={0}
+              value={form.price_with_exchange}
+              onChange={(e) => set("price_with_exchange", Number(e.target.value) || 0)}
+            />
+          </Field>
+          <Field label="Without Exchange (₹)" required>
+            <Input
+              type="number"
+              min={0}
+              value={form.price_without_exchange}
+              onChange={(e) => set("price_without_exchange", Number(e.target.value) || 0)}
+            />
+          </Field>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <Field label="Selling Price (₹)" hint="Legacy / fallback price">
+            <Input
+              type="number"
+              min={0}
+              value={form.price}
+              onChange={(e) => set("price", Number(e.target.value) || 0)}
             />
           </Field>
           <Field label="Stock">

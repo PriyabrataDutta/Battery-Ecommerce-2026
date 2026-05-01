@@ -10,6 +10,7 @@ import {
   Settings,
   Users,
   Activity,
+  Car,
 } from "lucide-react";
 import type { AdminTab } from "@/stores/dashboardTabs";
 
@@ -54,6 +55,14 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
     icon: FolderTree,
     section: "catalog",
     component: lazy(() => import("@/pages/admin/categories")),
+  },
+  {
+    id: "fitment",
+    title: "Car Fitment",
+    sidebarLabel: "Car Fitment",
+    icon: Car,
+    section: "catalog",
+    component: lazy(() => import("@/pages/admin/fitment")),
   },
   {
     id: "settings",

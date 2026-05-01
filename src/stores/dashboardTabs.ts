@@ -41,6 +41,7 @@ export const ADMIN_TABS = [
   "products",
   "brands",
   "categories",
+  "fitment",
   "settings",
   "users",
   "orders",

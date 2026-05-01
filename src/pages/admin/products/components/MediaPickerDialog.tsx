@@ -152,10 +152,10 @@ export function MediaPickerDialog({
             if (byName && byName.length > 0) existingUrl = byName[0].file_url;
           }
 
-          if (existing && existing.length > 0) {
+          if (existingUrl) {
             // Duplicate found — skip upload, reuse existing URL
             updateItem(i, { status: "skipped", progress: 100, error: "Duplicate — reusing existing" });
-            uploadedUrls.push(existing[0].file_url);
+            uploadedUrls.push(existingUrl);
             continue;
           }
 

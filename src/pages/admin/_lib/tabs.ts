@@ -16,6 +16,7 @@ import type { AdminTab } from "@/stores/dashboardTabs";
 export interface AdminTabDef {
   id: AdminTab;
   title: string;
+  sidebarLabel: string;
   icon: ComponentType<{ className?: string }>;
   section: "catalog" | "management" | "super-admin";
   component: ReturnType<typeof lazy>;

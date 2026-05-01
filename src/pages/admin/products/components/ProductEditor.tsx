@@ -48,8 +48,30 @@ export function ProductEditor({
   useEffect(() => {
     if (!open) return;
     if (product) {
-      const { battery_brands: _b, categories: _c, id: _id, ...rest } = product as never;
-      setForm({ ...EMPTY_PRODUCT, ...(rest as Partial<ProductEditableFields>) });
+      // Map the row → editable fields. We deliberately drop joined
+      // relations (battery_brands, categories) and the row id.
+      setForm({
+        name: product.name ?? "",
+        slug: product.slug ?? "",
+        sku: product.sku ?? "",
+        brand_id: product.brand_id ?? null,
+        category_id: product.category_id ?? null,
+        price: Number(product.price ?? 0),
+        mrp: product.mrp == null ? null : Number(product.mrp),
+        stock: Number(product.stock ?? 0),
+        capacity_ah: product.capacity_ah ?? null,
+        warranty_months: product.warranty_months ?? null,
+        short_description: product.short_description ?? null,
+        description: product.description ?? null,
+        primary_image_url: product.primary_image_url ?? null,
+        status: product.status ?? "draft",
+        is_featured: !!product.is_featured,
+        is_bestseller: !!product.is_bestseller,
+        is_new: !!product.is_new,
+        is_on_sale: !!product.is_on_sale,
+        has_exchange: !!product.has_exchange,
+        exchange_rebate: Number(product.exchange_rebate ?? 0),
+      });
     } else {
       setForm(EMPTY_PRODUCT);
     }

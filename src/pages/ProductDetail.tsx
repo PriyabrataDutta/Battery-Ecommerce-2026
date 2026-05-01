@@ -149,8 +149,8 @@ const ProductDetail = () => {
   };
 
   return (
-    <div className="container-x py-8">
-      <nav className="text-xs text-muted-foreground mb-5">
+    <div className="container-x py-5 sm:py-8 pb-24 lg:pb-8">
+      <nav className="text-xs text-muted-foreground mb-4 sm:mb-5 overflow-x-auto whitespace-nowrap scrollbar-none">
         <Link to="/" className="hover:text-primary">Home</Link>
         {" / "}
         <Link to="/shop" className="hover:text-primary">Shop</Link>

@@ -1,8 +1,12 @@
 import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { X } from "lucide-react";
+import {
+  useCarBrandNameBySlug,
+  useCarModelNameBySlug,
+  useBatteryBrandNameBySlug,
+  useCarBrandNameMap,
+} from "@/hooks/queries/useBrands";
 
 type Chip = {
   key: string;
@@ -36,60 +40,10 @@ export function ActiveFilters({ priceBounds }: Props) {
   const maxPriceParam = params.get("max_price");
 
   // Resolve slug -> display name for whatever is currently selected
-  const { data: carBrandName } = useQuery({
-    queryKey: ["af_car_brand", carBrandSlug],
-    enabled: !!carBrandSlug,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("car_brands")
-        .select("name")
-        .eq("slug", carBrandSlug)
-        .maybeSingle();
-      return data?.name ?? carBrandSlug;
-    },
-  });
-
-  const { data: carModelName } = useQuery({
-    queryKey: ["af_car_model", carModelSlug],
-    enabled: !!carModelSlug,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("car_models")
-        .select("name")
-        .eq("slug", carModelSlug)
-        .maybeSingle();
-      return data?.name ?? carModelSlug;
-    },
-  });
-
-  const { data: batteryBrandName } = useQuery({
-    queryKey: ["af_battery_brand", batteryBrandSlug],
-    enabled: !!batteryBrandSlug,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("battery_brands")
-        .select("name")
-        .eq("slug", batteryBrandSlug)
-        .maybeSingle();
-      return data?.name ?? batteryBrandSlug;
-    },
-  });
-
-  const { data: carBrandsNameMap = {} } = useQuery({
-    queryKey: ["af_car_brands", carBrandSlugs],
-    enabled: carBrandSlugs.length > 0,
-    queryFn: async (): Promise<Record<string, string>> => {
-      const { data } = await supabase
-        .from("car_brands")
-        .select("slug,name")
-        .in("slug", carBrandSlugs);
-      const map: Record<string, string> = {};
-      (data ?? []).forEach((b) => {
-        map[b.slug] = b.name;
-      });
-      return map;
-    },
-  });
+  const { data: carBrandName } = useCarBrandNameBySlug(carBrandSlug || undefined);
+  const { data: carModelName } = useCarModelNameBySlug(carModelSlug || undefined);
+  const { data: batteryBrandName } = useBatteryBrandNameBySlug(batteryBrandSlug || undefined);
+  const { data: carBrandsNameMap = {} } = useCarBrandNameMap(carBrandSlugs);
 
   const update = (next: Record<string, string | null>) => {
     const p = new URLSearchParams(params);

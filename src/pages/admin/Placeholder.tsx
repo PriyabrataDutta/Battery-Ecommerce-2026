@@ -1,5 +1,18 @@
 import { Card } from "@/components/ui/card";
 
+/**
+ * Generic placeholder card kept around for any future "coming soon"
+ * section. All admin panels are now real feature folders:
+ *
+ *   src/pages/admin/products/
+ *   src/pages/admin/orders/
+ *   src/pages/admin/brands/
+ *   src/pages/admin/categories/
+ *   src/pages/admin/users/
+ *   src/pages/admin/quotes/
+ *   src/pages/admin/messages/
+ *   src/pages/admin/settings/
+ */
 export function AdminPlaceholder({ title, description }: { title: string; description?: string }) {
   return (
     <Card className="p-8">
@@ -10,13 +23,3 @@ export function AdminPlaceholder({ title, description }: { title: string; descri
     </Card>
   );
 }
-
-// AdminProducts and AdminOrders are now real feature folders:
-//   src/pages/admin/products/  and  src/pages/admin/orders/
-// The other panels below are still placeholders awaiting build-out.
-export const AdminUsers = () => <AdminPlaceholder title="Users" />;
-export const AdminBrands = () => <AdminPlaceholder title="Brands" />;
-export const AdminCategories = () => <AdminPlaceholder title="Categories" />;
-export const AdminQuotes = () => <AdminPlaceholder title="Quote Requests" />;
-export const AdminMessages = () => <AdminPlaceholder title="Contact Messages" />;
-export const AdminSettings = () => <AdminPlaceholder title="Settings" />;

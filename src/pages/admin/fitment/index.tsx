@@ -344,7 +344,7 @@ function BrandsModelsTab() {
     }
   };
 
-  /* ── export ── */
+  /* ── export (same format as example file so round-trip works) ── */
   const handleExport = () => {
     const rows: string[][] = [["Car Brand", "Car Model"]];
     const sortedBrands = [...brands].sort((a, b) => a.name.localeCompare(b.name));
@@ -352,16 +352,16 @@ function BrandsModelsTab() {
       const brandModels = models
         .filter((m) => m.car_brand_id === brand.id)
         .sort((a, b) => a.name.localeCompare(b.name));
-      if (brandModels.length === 0) {
-        rows.push([brand.name, ""]);
-      } else {
-        for (const model of brandModels) {
-          rows.push([brand.name, model.name]);
-        }
+      for (const model of brandModels) {
+        rows.push([brand.name, model.name]);
       }
     }
+    if (rows.length === 1) {
+      toast.error("No brands with models to export");
+      return;
+    }
     const ws = XLSX.utils.aoa_to_sheet(rows);
-    ws["!cols"] = [{ wch: 25 }, { wch: 30 }];
+    ws["!cols"] = [{ wch: 20 }, { wch: 25 }];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Car Brands & Models");
     XLSX.writeFile(wb, "car_brands_models_export.xlsx");

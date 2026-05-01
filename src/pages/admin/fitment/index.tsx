@@ -579,16 +579,21 @@ function BrandsModelsTab() {
                   <li>First row should be the header (<strong>Car Brand</strong>, <strong>Car Model</strong>)</li>
                   <li>If brand column is empty, the model inherits the last brand above it</li>
                   <li>Duplicates are automatically skipped — safe to re-import</li>
-                  <li>Supports <code>.xlsx</code> and <code>.xls</code> files</li>
+                  <li>Supports <code>.xlsx</code>, <code>.xls</code>, and <code>.csv</code> files</li>
                 </ul>
               </div>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-3">
-              <Button variant="outline" className="flex-1" onClick={downloadExampleFile}>
-                <Download className="h-4 w-4 mr-1.5" /> Download Example File
-              </Button>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-3">
+                <Button variant="outline" className="flex-1" onClick={() => downloadExampleFile("xlsx")}>
+                  <Download className="h-4 w-4 mr-1.5" /> Example (.xlsx)
+                </Button>
+                <Button variant="outline" className="flex-1" onClick={() => downloadExampleFile("csv")}>
+                  <Download className="h-4 w-4 mr-1.5" /> Example (.csv)
+                </Button>
+              </div>
               <Button
                 className="flex-1"
                 onClick={() => fileRef.current?.click()}

@@ -57,8 +57,15 @@ export function Header() {
     }
   };
   const handleAccountBlur = (e: React.FocusEvent<HTMLDivElement>) => {
-    // Close when focus leaves the wrapper entirely (keyboard tab-out).
-    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+    // Radix portals the menu content outside this wrapper, so blur fires when
+    // the menu opens and steals focus. Ignore blur whose related target is the
+    // Radix dropdown content (data-radix-menu-content) — Escape / outside click
+    // / mouse-leave already handle dismissal.
+    const next = e.relatedTarget as HTMLElement | null;
+    if (next && next.closest("[data-radix-menu-content], [data-radix-popper-content-wrapper]")) {
+      return;
+    }
+    if (!e.currentTarget.contains(next as Node | null)) {
       closeAccountNow();
     }
   };

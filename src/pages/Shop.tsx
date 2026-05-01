@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ShopFilters } from "@/components/products/ShopFilters";
+import { ActiveFilters } from "@/components/products/ActiveFilters";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LayoutGrid, List } from "lucide-react";
 import type { Product } from "@/types/catalog";

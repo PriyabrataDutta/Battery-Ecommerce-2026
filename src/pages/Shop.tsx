@@ -84,12 +84,30 @@ const Shop = () => {
     },
   });
 
-  const filtered = useMemo(() => {
+  // Products after car/category filters but BEFORE battery brand filter — used to count by battery brand
+  const preBrandFiltered = useMemo(() => {
+    let list = products;
     const useFitment = !!carModelSlug || !!qResolved?.carModelId || !!carBrandSlug;
-    if (!useFitment) return products;
-    if (!fitmentProductIds) return products;
-    return products.filter((p) => fitmentProductIds.includes(p.id));
+    if (useFitment && fitmentProductIds) {
+      list = list.filter((p) => fitmentProductIds.includes(p.id));
+    }
+    return list;
   }, [products, carModelSlug, qResolved?.carModelId, carBrandSlug, fitmentProductIds]);
+
+  const filtered = useMemo(() => {
+    if (!effectiveBrand) return preBrandFiltered;
+    return preBrandFiltered.filter((p) => p.battery_brands?.slug === effectiveBrand);
+  }, [preBrandFiltered, effectiveBrand]);
+
+  const counts = useMemo(() => {
+    const byBatteryBrand: Record<string, number> = {};
+    for (const p of preBrandFiltered) {
+      const slug = p.battery_brands?.slug;
+      if (!slug) continue;
+      byBatteryBrand[slug] = (byBatteryBrand[slug] ?? 0) + 1;
+    }
+    return { byBatteryBrand, total: preBrandFiltered.length };
+  }, [preBrandFiltered]);
 
   return (
     <div className="container-x py-6 sm:py-10">
@@ -103,40 +121,17 @@ const Shop = () => {
         <aside className="space-y-4 sm:space-y-6">
           <details className="lg:hidden bg-white border border-line group" open={false}>
             <summary className="cursor-pointer list-none flex items-center justify-between p-4 font-display font-bold text-sm uppercase tracking-wider">
-              <span>Filters & Vehicle Search</span>
+              <span>Filters</span>
               <span className="text-primary text-base group-open:rotate-45 transition-transform">+</span>
             </summary>
-            <div className="px-4 pb-4 space-y-5">
-              <div>
-                <h3 className="font-display font-bold text-xs uppercase tracking-wider mb-3 text-muted-foreground">Find by Vehicle</h3>
-                <FitmentSearch embedded />
-              </div>
-              <div>
-                <h3 className="font-display font-bold text-xs uppercase tracking-wider mb-3 text-muted-foreground">Battery Brand</h3>
-                <ul className="grid grid-cols-2 gap-2 text-sm">
-                  {["amaron","exide","power-zone","elito"].map((s) => (
-                    <li key={s}>
-                      <Link to={`/shop?battery_brand=${s}`} className="block border border-line px-3 py-2 hover:border-primary hover:text-primary capitalize">{s.replace("-", " ")}</Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+            <div className="px-4 pb-4">
+              <ShopFilters counts={counts} />
             </div>
           </details>
 
           <div className="hidden lg:block bg-white border border-line p-5">
-            <h3 className="font-display font-bold text-sm uppercase tracking-wider mb-4">Find by Vehicle</h3>
-            <FitmentSearch embedded />
-          </div>
-          <div className="hidden lg:block bg-white border border-line p-5">
-            <h3 className="font-display font-bold text-sm uppercase tracking-wider mb-4">Battery Brand</h3>
-            <ul className="space-y-2 text-sm">
-              {["amaron","exide","power-zone","elito"].map((s) => (
-                <li key={s}>
-                  <Link to={`/shop?battery_brand=${s}`} className="hover:text-primary capitalize">{s.replace("-", " ")}</Link>
-                </li>
-              ))}
-            </ul>
+            <h3 className="font-display font-bold text-sm uppercase tracking-wider mb-4">Filters</h3>
+            <ShopFilters counts={counts} />
           </div>
         </aside>
         <div>

@@ -19,7 +19,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { Input } from "@/components/ui/input";
 import { discountPct, formatINR } from "@/lib/format";
 import { Trust } from "./Trust";
@@ -84,12 +84,92 @@ export const ProductInfo = ({
         <div className="text-xs text-muted-foreground mt-1.5">SKU: {product.sku}</div>
       </div>
 
-      {/* ─── Price Block ─── */}
-      <div className="border border-line rounded-lg overflow-hidden">
-        {/* Without Exchange — primary price */}
-        <div className="p-4 bg-white">
+      {/* ─── Price Selection ─── */}
+      {showExchange ? (
+        <div className="space-y-3">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            Select Pricing Option
+          </div>
+
+          {/* Without Exchange option */}
+          <button
+            type="button"
+            onClick={() => setWithExchange(false)}
+            className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+              !withExchange
+                ? "border-ink bg-white ring-1 ring-ink/10 shadow-sm"
+                : "border-line bg-white hover:border-ink/30"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${
+                    !withExchange ? "border-ink" : "border-muted-foreground/40"
+                  }`}>
+                    {!withExchange && <div className="h-2 w-2 rounded-full bg-ink" />}
+                  </div>
+                  <span className="text-sm font-bold uppercase tracking-wider">Without Exchange</span>
+                </div>
+                <div className="text-[10px] text-muted-foreground mt-1 ml-6">Buy new battery only</div>
+              </div>
+              <div className="text-right">
+                <div className="font-display text-2xl sm:text-3xl font-bold text-ink">
+                  {formatINR(withoutExchangePrice)}
+                </div>
+                {product.mrp && product.mrp > withoutExchangePrice && (
+                  <div className="flex items-center gap-1.5 justify-end mt-0.5">
+                    <span className="text-xs text-muted-foreground line-through">{formatINR(product.mrp)}</span>
+                    {dpct && <span className="badge-pill bg-primary text-white text-[10px]">{dpct}% Off</span>}
+                  </div>
+                )}
+              </div>
+            </div>
+          </button>
+
+          {/* With Exchange option */}
+          <button
+            type="button"
+            onClick={() => setWithExchange(true)}
+            className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+              withExchange
+                ? "border-primary bg-primary/5 ring-1 ring-primary/20 shadow-sm"
+                : "border-line bg-white hover:border-primary/30"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${
+                    withExchange ? "border-primary" : "border-muted-foreground/40"
+                  }`}>
+                    {withExchange && <div className="h-2 w-2 rounded-full bg-primary" />}
+                  </div>
+                  <span className="text-sm font-bold uppercase tracking-wider text-primary">With Exchange</span>
+                  <span className="badge-pill bg-success/10 text-success text-[10px] font-bold">
+                    Save {formatINR(saving)}
+                  </span>
+                </div>
+                <div className="text-[10px] text-muted-foreground mt-1 ml-6">
+                  Return old battery & get rebate (BMHR compliant)
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="font-display text-2xl sm:text-3xl font-bold text-primary">
+                  {formatINR(withExchangePrice)}
+                </div>
+                <span className="text-xs text-muted-foreground line-through">{formatINR(withoutExchangePrice)}</span>
+              </div>
+            </div>
+          </button>
+
+          <div className="text-[10px] text-muted-foreground">Inclusive of all taxes</div>
+        </div>
+      ) : (
+        /* No exchange pricing — show single price */
+        <div className="border border-line rounded-lg p-4 bg-white">
           <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
-            Without Exchange
+            Price
           </div>
           <div className="flex items-baseline gap-2.5 flex-wrap">
             <span className="font-display text-3xl sm:text-4xl font-bold text-ink">
@@ -108,78 +188,6 @@ export const ProductInfo = ({
           </div>
           <div className="text-[10px] text-muted-foreground mt-0.5">Inclusive of all taxes</div>
         </div>
-
-        {/* With Exchange — highlighted */}
-        {showExchange && (
-          <div className="p-4 bg-primary/5 border-t border-primary/20">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-primary mb-1.5">
-              With Old Battery Exchange
-            </div>
-            <div className="flex items-baseline gap-2.5 flex-wrap">
-              <span className="font-display text-2xl sm:text-3xl font-bold text-primary">
-                {formatINR(withExchangePrice)}
-              </span>
-              <span className="text-xs text-primary/80 font-medium">
-                Save {formatINR(saving)} on return of old battery
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Short description */}
-      {product.short_description && (
-        <p className="text-sm text-ink-soft leading-relaxed">{product.short_description}</p>
-      )}
-
-      {/* Stock status */}
-      <div
-        className={`inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${
-          product.stock > 0 ? "text-success" : "text-destructive"
-        }`}
-      >
-        <span className={`h-2 w-2 rounded-full ${product.stock > 0 ? "bg-success" : "bg-destructive"}`} />
-        {product.stock > 0 ? "In Stock" : "Out of Stock"}
-      </div>
-
-      {/* Qty stepper */}
-      <div className="flex items-center gap-4">
-        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Qty</span>
-        <div className="flex items-center border border-line rounded">
-          <button
-            onClick={() => setQty(Math.max(1, qty - 1))}
-            className="h-10 w-10 grid place-items-center hover:bg-muted transition-colors"
-            aria-label="Decrease"
-          >
-            <Minus className="h-3.5 w-3.5" />
-          </button>
-          <span className="w-12 text-center font-semibold">{qty}</span>
-          <button
-            onClick={() => setQty(qty + 1)}
-            className="h-10 w-10 grid place-items-center hover:bg-muted transition-colors"
-            aria-label="Increase"
-          >
-            <Plus className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </div>
-
-      {/* Old battery return toggle */}
-      {showExchange && (
-        <label className="flex items-start gap-3 p-3.5 border border-line rounded-lg bg-white cursor-pointer hover:border-primary/50 transition-colors">
-          <Checkbox
-            checked={withExchange}
-            onCheckedChange={(v) => setWithExchange(Boolean(v))}
-            className="mt-0.5"
-          />
-          <div>
-            <div className="font-semibold text-sm">I will return my old battery</div>
-            <div className="text-xs text-muted-foreground">
-              Get {formatINR(saving)} rebate. As per BMHR govt rule, returning
-              old batteries is recommended.
-            </div>
-          </div>
-        </label>
       )}
 
       {/* Line total summary */}

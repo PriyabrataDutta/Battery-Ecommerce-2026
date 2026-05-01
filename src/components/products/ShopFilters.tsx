@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { X } from "lucide-react";
-import type { CarBrand, CarModel, BatteryBrand } from "@/types/catalog";
+import {
+  useCarBrands,
+  useCarModelsByBrandId,
+  useBatteryBrands,
+} from "@/hooks/queries/useBrands";
 
 type Counts = {
   byBatteryBrand: Record<string, number>; // slug -> count
@@ -23,7 +25,6 @@ const ALL = "__all__";
 
 export function ShopFilters({ counts, priceBounds }: Props) {
   const [params, setParams] = useSearchParams();
-  
 
   const carBrandSlug = params.get("car_brand") ?? "";
   const carModelSlug = params.get("car_model") ?? "";
@@ -34,14 +35,7 @@ export function ShopFilters({ counts, priceBounds }: Props) {
     [carBrandsCsv]
   );
 
-  const { data: carBrands = [] } = useQuery({
-    queryKey: ["car_brands_filter"],
-    queryFn: async (): Promise<CarBrand[]> => {
-      const { data, error } = await supabase.from("car_brands").select("*").order("sort_order");
-      if (error) throw error;
-      return data as CarBrand[];
-    },
-  });
+  const { data: carBrands = [] } = useCarBrands();
 
   const currentCarBrand = useMemo(
     () => carBrands.find((b) => b.slug === carBrandSlug) ?? null,
@@ -49,28 +43,9 @@ export function ShopFilters({ counts, priceBounds }: Props) {
   );
 
   // Models depend on selected car brand
-  const { data: carModels = [] } = useQuery({
-    queryKey: ["car_models_filter", currentCarBrand?.id],
-    enabled: !!currentCarBrand?.id,
-    queryFn: async (): Promise<CarModel[]> => {
-      const { data, error } = await supabase
-        .from("car_models")
-        .select("*")
-        .eq("car_brand_id", currentCarBrand!.id)
-        .order("name");
-      if (error) throw error;
-      return data as CarModel[];
-    },
-  });
+  const { data: carModels = [] } = useCarModelsByBrandId(currentCarBrand?.id);
 
-  const { data: batteryBrands = [] } = useQuery({
-    queryKey: ["battery_brands_filter"],
-    queryFn: async (): Promise<BatteryBrand[]> => {
-      const { data, error } = await supabase.from("battery_brands").select("*").order("sort_order");
-      if (error) throw error;
-      return data as BatteryBrand[];
-    },
-  });
+  const { data: batteryBrands = [] } = useBatteryBrands();
 
   const update = (next: Record<string, string | null>) => {
     const p = new URLSearchParams(params);

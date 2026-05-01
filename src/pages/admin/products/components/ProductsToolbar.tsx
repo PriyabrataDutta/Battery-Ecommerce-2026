@@ -30,6 +30,7 @@ export function ProductsToolbar({
   state,
   onChange,
   onCreate,
+  onMapFitment,
   brands,
   categories,
   count,
@@ -37,6 +38,7 @@ export function ProductsToolbar({
   state: ProductsFilterState;
   onChange: (next: ProductsFilterState) => void;
   onCreate: () => void;
+  onMapFitment?: () => void;
   brands: BatteryBrand[];
   categories: Category[];
   count: number;

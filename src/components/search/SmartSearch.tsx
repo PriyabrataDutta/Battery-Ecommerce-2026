@@ -259,7 +259,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
 
   return (
     <div ref={wrapRef} className={`relative ${className}`}>
-      <form onSubmit={submit} className="relative">
+      <form onSubmit={submit} className="relative w-full">
         <Input
           value={term}
           onChange={(e) => { setTerm(e.target.value); setOpen(true); setActiveIdx(-1); }}

@@ -130,6 +130,15 @@ interface ImportPreview {
   existingModels: { brand: string; model: string }[];
 }
 
+interface ImportProgress {
+  phase: "brands" | "models";
+  current: number;
+  total: number;
+  brandsCreated: number;
+  modelsCreated: number;
+  error?: string;
+}
+
 function BrandsModelsTab() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
@@ -143,6 +152,7 @@ function BrandsModelsTab() {
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
   const [previewing, setPreviewing] = useState(false);
+  const [importProgress, setImportProgress] = useState<ImportProgress | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const { data: brands = [], isLoading: brandsLoading } = useQuery({

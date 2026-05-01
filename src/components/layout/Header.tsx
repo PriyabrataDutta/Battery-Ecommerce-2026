@@ -67,29 +67,29 @@ export function Header() {
       </div>
 
       {/* Main header */}
-      <div className="container-x flex flex-nowrap items-center gap-4 lg:gap-6 h-20 min-w-0">
-        <Link to="/" className="flex-shrink-0">
-          <img src={logo} alt="Kachi Batteries" className="h-12 w-auto" />
+      <div className="container-x flex flex-nowrap items-center gap-3 sm:gap-4 lg:gap-6 h-16 sm:h-20 min-w-0">
+        <Link to="/" className="flex-shrink-0 flex items-center">
+          <img src={logo} alt="Kachi Batteries" className="h-9 sm:h-12 w-auto" />
         </Link>
 
-        <SmartSearch className="hidden md:flex flex-1 min-w-0" />
+        <SmartSearch className="hidden md:flex flex-1 min-w-0 items-center" />
 
-        <div className="ml-auto flex flex-shrink-0 flex-nowrap items-center gap-2 whitespace-nowrap">
+        <div className="ml-auto flex flex-shrink-0 flex-nowrap items-center gap-1 sm:gap-1.5 lg:gap-2 whitespace-nowrap">
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="md:hidden h-10 w-10"
             onClick={() => setMobileSearchOpen(true)}
             aria-label="Search"
           >
             <Search className="h-5 w-5" />
           </Button>
-          <Button asChild variant="ghost" size="icon" className="hidden sm:inline-flex">
+          <Button asChild variant="ghost" size="icon" className="hidden sm:inline-flex h-10 w-10">
             <Link to={user ? "/account" : "/auth"} aria-label={user ? "Account" : "Sign in"}>
               <User className="h-5 w-5" />
             </Link>
           </Button>
-          <Button asChild variant="ghost" size="icon" className="relative">
+          <Button asChild variant="ghost" size="icon" className="relative h-10 w-10">
             <Link to="/cart" aria-label="Cart">
               <ShoppingCart className="h-5 w-5" />
               {count > 0 && (
@@ -99,10 +99,10 @@ export function Header() {
               )}
             </Link>
           </Button>
-          <Button asChild className="hidden lg:inline-flex" size="sm">
+          <Button asChild className="hidden lg:inline-flex h-10 ml-1" size="sm">
             <Link to="/quote">Request Call Back</Link>
           </Button>
-          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menu">
+          <Button variant="ghost" size="icon" className="lg:hidden h-10 w-10" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menu">
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
         </div>

@@ -439,13 +439,32 @@ const ProductDetail = () => {
       </Tabs>
 
       {related.length > 0 && (
-        <section className="mt-14">
-          <h2 className="font-display-tight text-2xl font-bold mb-6">Related Products</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <section className="mt-12 sm:mt-14">
+          <h2 className="font-display-tight text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Related Products</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {related.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
         </section>
       )}
+
+      {/* Sticky mobile bottom action bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-line shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.1)] px-3 py-2 flex items-center gap-2">
+        <div className="flex-1 min-w-0">
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground leading-none">
+            {withExchange ? "With exchange" : "Total"}
+          </div>
+          <div className="font-display text-lg font-bold text-ink truncate">
+            {formatINR(lineTotal)}
+          </div>
+        </div>
+        <Button
+          onClick={handleAdd}
+          disabled={product.stock <= 0}
+          className="h-11 px-4 flex-1"
+        >
+          <ShoppingCart className="h-4 w-4 mr-1.5" /> Add to Cart
+        </Button>
+      </div>
     </div>
   );
 };

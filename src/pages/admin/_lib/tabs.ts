@@ -10,6 +10,7 @@ import {
   Settings,
   Users,
   Activity,
+  Car,
 } from "lucide-react";
 import type { AdminTab } from "@/stores/dashboardTabs";
 

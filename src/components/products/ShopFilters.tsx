@@ -186,8 +186,11 @@ export function ShopFilters({ counts, priceBounds }: Props) {
             max={maxBound}
             step={Math.max(1, Math.round((maxBound - minBound) / 100))}
             value={range}
-            onValueChange={(v) => setRange([v[0], v[1]] as [number, number])}
-            onValueCommit={commitPrice}
+            onValueChange={(v) => {
+              const next: [number, number] = [v[0], v[1]];
+              setRange(next);
+              commitPrice(next);
+            }}
             className="my-3"
           />
           <div className="flex items-center justify-between text-xs text-ink font-medium">

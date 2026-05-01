@@ -415,7 +415,7 @@ function BrandsModelsTab() {
           <input
             ref={fileRef}
             type="file"
-            accept=".xlsx,.xls"
+            accept=".xlsx,.xls,.csv"
             className="hidden"
             onChange={handleFileSelect}
           />

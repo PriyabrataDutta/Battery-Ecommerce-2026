@@ -132,6 +132,9 @@ export function Header() {
               className="hidden sm:inline-flex"
               onMouseEnter={openAccount}
               onMouseLeave={scheduleCloseAccount}
+              onFocus={openAccount}
+              onBlur={handleAccountBlur}
+              onKeyDown={handleAccountKeyDown}
             >
               <DropdownMenu open={accountOpen} onOpenChange={setAccountOpen}>
                 <DropdownMenuTrigger asChild>

@@ -107,12 +107,12 @@ export function ShopFilters({ counts, priceBounds }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [urlMin, urlMax, minBound, maxBound]);
 
-  const commitPrice = (vals: number[]) => {
+  const commitPrice = (vals: [number, number]) => {
     const [lo, hi] = vals;
-    const next: Record<string, string | null> = {};
-    next.min_price = lo > minBound ? String(lo) : null;
-    next.max_price = hi < maxBound ? String(hi) : null;
-    update(next);
+    const p = new URLSearchParams(params);
+    if (lo > minBound) p.set("min_price", String(lo)); else p.delete("min_price");
+    if (hi < maxBound) p.set("max_price", String(hi)); else p.delete("max_price");
+    setParams(p, { replace: true });
   };
 
   const priceActive = urlMin !== minBound || urlMax !== maxBound;

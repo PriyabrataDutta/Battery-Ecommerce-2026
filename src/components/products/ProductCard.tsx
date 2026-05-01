@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Zap } from "lucide-react";
@@ -7,7 +8,7 @@ import { getProductImage } from "@/lib/productImage";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 
-export function ProductCard({ product }: { product: Product }) {
+export const ProductCard = forwardRef<HTMLAnchorElement, { product: Product }>(function ProductCard({ product }, ref) {
   const { addItem } = useCart();
   const navigate = useNavigate();
   const dpct = discountPct(product.price, product.mrp);
@@ -48,6 +49,7 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <Link
+      ref={ref}
       to={`/product/${product.slug}`}
       className="group bg-card border border-line hover:border-ink transition-all hover-lift flex flex-col overflow-hidden rounded-lg"
     >
@@ -126,4 +128,4 @@ export function ProductCard({ product }: { product: Product }) {
       </div>
     </Link>
   );
-}
+});

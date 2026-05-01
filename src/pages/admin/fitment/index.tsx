@@ -11,11 +11,289 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EntityDrawer } from "@/components/admin/EntityDrawer";
 import { toast } from "sonner";
-import { Plus, Search, Trash2, Upload, Loader2 } from "lucide-react";
+import { Plus, Search, Trash2, Upload, Loader2, Car, ChevronRight } from "lucide-react";
 import { parseProductsXlsx } from "@/lib/parseProductsXlsx";
 
+/* ─── Brands & Models Tab ─── */
+function BrandsModelsTab() {
+  const qc = useQueryClient();
+  const [search, setSearch] = useState("");
+  const [brandDrawerOpen, setBrandDrawerOpen] = useState(false);
+  const [modelDrawerOpen, setModelDrawerOpen] = useState(false);
+  const [newBrandName, setNewBrandName] = useState("");
+  const [newModelName, setNewModelName] = useState("");
+  const [newModelBrandId, setNewModelBrandId] = useState<string | null>(null);
+  const [expandedBrand, setExpandedBrand] = useState<string | null>(null);
+
+  const { data: brands = [], isLoading: brandsLoading } = useQuery({
+    queryKey: ["admin-car-brands"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("car_brands")
+        .select("id, name, slug")
+        .order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: models = [] } = useQuery({
+    queryKey: ["admin-car-models"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("car_models")
+        .select("id, name, slug, car_brand_id")
+        .order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const addBrand = useMutation({
+    mutationFn: async (name: string) => {
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const { error } = await supabase.from("car_brands").insert({ name, slug });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-car-brands"] });
+      toast.success("Car brand added");
+      setBrandDrawerOpen(false);
+      setNewBrandName("");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const removeBrand = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("car_brands").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-car-brands"] });
+      qc.invalidateQueries({ queryKey: ["admin-car-models"] });
+      toast.success("Car brand removed");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const addModel = useMutation({
+    mutationFn: async ({ name, car_brand_id }: { name: string; car_brand_id: string }) => {
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const { error } = await supabase.from("car_models").insert({ name, slug, car_brand_id });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-car-models"] });
+      toast.success("Car model added");
+      setModelDrawerOpen(false);
+      setNewModelName("");
+      setNewModelBrandId(null);
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const removeModel = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("car_models").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-car-models"] });
+      toast.success("Car model removed");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const filteredBrands = search
+    ? brands.filter((b) => b.name.toLowerCase().includes(search.toLowerCase()))
+    : brands;
+
+  const modelsForBrand = (brandId: string) => models.filter((m) => m.car_brand_id === brandId);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search brands…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setModelDrawerOpen(true)}>
+            <Plus className="h-4 w-4 mr-1.5" /> Add Model
+          </Button>
+          <Button onClick={() => setBrandDrawerOpen(true)}>
+            <Plus className="h-4 w-4 mr-1.5" /> Add Brand
+          </Button>
+        </div>
+      </div>
+
+      <div className="rounded-lg border bg-card divide-y">
+        {brandsLoading ? (
+          <div className="px-4 py-8 text-center text-muted-foreground">Loading…</div>
+        ) : filteredBrands.length === 0 ? (
+          <div className="px-4 py-8 text-center text-muted-foreground">No car brands found</div>
+        ) : (
+          filteredBrands.map((brand) => {
+            const isExpanded = expandedBrand === brand.id;
+            const brandModels = modelsForBrand(brand.id);
+            return (
+              <div key={brand.id}>
+                <div
+                  className="flex items-center px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => setExpandedBrand(isExpanded ? null : brand.id)}
+                >
+                  <ChevronRight
+                    className={`h-4 w-4 mr-2 text-muted-foreground transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                  />
+                  <Car className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <span className="font-medium flex-1">{brand.name}</span>
+                  <span className="text-xs text-muted-foreground mr-3">
+                    {brandModels.length} model{brandModels.length !== 1 ? "s" : ""}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (brandModels.length > 0) {
+                        toast.error("Remove all models first before deleting this brand");
+                        return;
+                      }
+                      removeBrand.mutate(brand.id);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                {isExpanded && (
+                  <div className="bg-muted/30 border-t">
+                    {brandModels.length === 0 ? (
+                      <div className="px-8 py-3 text-sm text-muted-foreground">No models yet</div>
+                    ) : (
+                      brandModels.map((model) => (
+                        <div
+                          key={model.id}
+                          className="flex items-center px-8 py-2 border-b last:border-0 hover:bg-muted/50"
+                        >
+                          <span className="flex-1 text-sm">{model.name}</span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-destructive"
+                            onClick={() => removeModel.mutate(model.id)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      ))
+                    )}
+                    <div className="px-8 py-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-xs"
+                        onClick={() => {
+                          setNewModelBrandId(brand.id);
+                          setModelDrawerOpen(true);
+                        }}
+                      >
+                        <Plus className="h-3 w-3 mr-1" /> Add model to {brand.name}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Add Brand Drawer */}
+      <EntityDrawer
+        open={brandDrawerOpen}
+        onOpenChange={setBrandDrawerOpen}
+        title="Add Car Brand"
+        description="Create a new car brand."
+        saveLabel="Add"
+        saving={addBrand.isPending}
+        onSave={() => {
+          if (!newBrandName.trim()) {
+            toast.error("Enter a brand name");
+            return;
+          }
+          addBrand.mutate(newBrandName.trim());
+        }}
+      >
+        <div className="space-y-2">
+          <Label className="text-xs">Brand Name</Label>
+          <Input
+            placeholder="e.g. Maruti Suzuki"
+            value={newBrandName}
+            onChange={(e) => setNewBrandName(e.target.value)}
+          />
+        </div>
+      </EntityDrawer>
+
+      {/* Add Model Drawer */}
+      <EntityDrawer
+        open={modelDrawerOpen}
+        onOpenChange={(open) => {
+          setModelDrawerOpen(open);
+          if (!open) setNewModelBrandId(null);
+        }}
+        title="Add Car Model"
+        description="Create a new car model under a brand."
+        saveLabel="Add"
+        saving={addModel.isPending}
+        onSave={() => {
+          if (!newModelName.trim()) {
+            toast.error("Enter a model name");
+            return;
+          }
+          if (!newModelBrandId) {
+            toast.error("Select a car brand");
+            return;
+          }
+          addModel.mutate({ name: newModelName.trim(), car_brand_id: newModelBrandId });
+        }}
+      >
+        <div className="space-y-4">
+          <div className="space-y-1">
+            <Label className="text-xs">Car Brand</Label>
+            <Select value={newModelBrandId ?? ""} onValueChange={setNewModelBrandId}>
+              <SelectTrigger><SelectValue placeholder="Select brand" /></SelectTrigger>
+              <SelectContent>
+                {brands.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Model Name</Label>
+            <Input
+              placeholder="e.g. Swift Dzire"
+              value={newModelName}
+              onChange={(e) => setNewModelName(e.target.value)}
+            />
+          </div>
+        </div>
+      </EntityDrawer>
+    </div>
+  );
+}
+
+/* ─── Product Fitment Tab ─── */
 interface FitmentRow {
   product_id: string;
   car_model_id: string;
@@ -25,7 +303,7 @@ interface FitmentRow {
   car_model_name?: string;
 }
 
-export default function FitmentPanel() {
+function ProductFitmentTab() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -108,9 +386,7 @@ export default function FitmentPanel() {
   const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    // Reset so the same file can be re-selected
     e.target.value = "";
-
     setImporting(true);
     try {
       const parsed = await parseProductsXlsx(file);
@@ -118,28 +394,24 @@ export default function FitmentPanel() {
         toast.error("No data found in the Excel file");
         return;
       }
-
       toast.info(
         `Importing ${parsed.rows.length} products, ${parsed.car_brand_count} car brands, ${parsed.car_model_count} models…`,
         { duration: 5000 }
       );
-
       const { data, error } = await supabase.functions.invoke("bulk-import-fitment", {
         body: { rows: parsed.rows },
       });
-
       if (error) throw error;
-
       const s = data as Record<string, number>;
       toast.success(
         `Import complete! ${s.brands_created} brands, ${s.models_created} models, ${s.products_created} products created, ${s.products_updated} updated, ${s.fitments_created} fitments linked.`,
         { duration: 8000 }
       );
-
-      // Refresh all related queries
       qc.invalidateQueries({ queryKey: ["admin-fitment"] });
       qc.invalidateQueries({ queryKey: ["admin-fitment-products"] });
       qc.invalidateQueries({ queryKey: ["admin-fitment-models"] });
+      qc.invalidateQueries({ queryKey: ["admin-car-brands"] });
+      qc.invalidateQueries({ queryKey: ["admin-car-models"] });
     } catch (err: any) {
       console.error("Import failed:", err);
       toast.error(`Import failed: ${err.message ?? "Unknown error"}`);
@@ -171,23 +443,9 @@ export default function FitmentPanel() {
           />
         </div>
         <div className="flex items-center gap-2">
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".xlsx,.xls"
-            className="hidden"
-            onChange={handleFileImport}
-          />
-          <Button
-            variant="outline"
-            onClick={() => fileRef.current?.click()}
-            disabled={importing}
-          >
-            {importing ? (
-              <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-            ) : (
-              <Upload className="h-4 w-4 mr-1.5" />
-            )}
+          <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden" onChange={handleFileImport} />
+          <Button variant="outline" onClick={() => fileRef.current?.click()} disabled={importing}>
+            {importing ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Upload className="h-4 w-4 mr-1.5" />}
             {importing ? "Importing…" : "Import from Excel"}
           </Button>
           <Button onClick={() => setDrawerOpen(true)}>
@@ -277,5 +535,23 @@ export default function FitmentPanel() {
         </div>
       </EntityDrawer>
     </div>
+  );
+}
+
+/* ─── Main Panel with Tabs ─── */
+export default function FitmentPanel() {
+  return (
+    <Tabs defaultValue="brands-models" className="space-y-4">
+      <TabsList>
+        <TabsTrigger value="brands-models">Brands & Models</TabsTrigger>
+        <TabsTrigger value="product-fitment">Product Fitment</TabsTrigger>
+      </TabsList>
+      <TabsContent value="brands-models">
+        <BrandsModelsTab />
+      </TabsContent>
+      <TabsContent value="product-fitment">
+        <ProductFitmentTab />
+      </TabsContent>
+    </Tabs>
   );
 }

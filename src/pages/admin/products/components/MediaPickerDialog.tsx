@@ -1,6 +1,8 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, X, ImageIcon, Check } from "lucide-react";
+import { Search, X, ImageIcon, Check, Upload, Loader2 } from "lucide-react";
 
 interface MediaFile {
   id: string;
@@ -21,12 +23,12 @@ interface MediaFile {
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  /** If true, allow picking multiple images. Otherwise single pick. */
   multiple?: boolean;
   onSelect: (urls: string[]) => void;
-  /** URLs already selected (shown with checkmarks) */
   selected?: string[];
 }
+
+const BUCKET = "media";
 
 export function MediaPickerDialog({
   open,
@@ -35,8 +37,12 @@ export function MediaPickerDialog({
   onSelect,
   selected = [],
 }: Props) {
+  const { user } = useAuth();
+  const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [picked, setPicked] = useState<Set<string>>(new Set(selected));
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const { data: files = [], isLoading } = useQuery({
     queryKey: ["media_files_picker"],
@@ -72,6 +78,59 @@ export function MediaPickerDialog({
     onOpenChange(false);
   };
 
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = e.target.files;
+    if (!selectedFiles?.length) return;
+    setUploading(true);
+
+    try {
+      const uploadedUrls: string[] = [];
+      for (const file of Array.from(selectedFiles)) {
+        const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const path = `${Date.now()}_${safeName}`;
+
+        const { error: uploadErr } = await supabase.storage
+          .from(BUCKET)
+          .upload(path, file, { contentType: file.type });
+        if (uploadErr) throw uploadErr;
+
+        const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
+
+        const { error: dbErr } = await supabase.from("media_files").insert({
+          file_name: file.name,
+          file_url: urlData.publicUrl,
+          bucket: BUCKET,
+          path,
+          size_bytes: file.size,
+          content_type: file.type,
+          uploaded_by: user?.id ?? null,
+        });
+        if (dbErr) throw dbErr;
+
+        uploadedUrls.push(urlData.publicUrl);
+      }
+
+      toast.success(`${selectedFiles.length} file(s) uploaded`);
+      qc.invalidateQueries({ queryKey: ["media_files_picker"] });
+      qc.invalidateQueries({ queryKey: ["media_files"] });
+
+      // Auto-select the newly uploaded files
+      if (!multiple && uploadedUrls.length === 1) {
+        onSelect(uploadedUrls);
+        onOpenChange(false);
+      } else {
+        const next = new Set(picked);
+        uploadedUrls.forEach((u) => next.add(u));
+        setPicked(next);
+      }
+    } catch (err: any) {
+      toast.error(err.message ?? "Upload failed");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
@@ -81,23 +140,47 @@ export function MediaPickerDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search media…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-9"
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search media…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-9"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2"
+              >
+                <X className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
+            )}
+          </div>
+          <input
+            ref={fileRef}
+            type="file"
+            multiple
+            accept="image/*"
+            className="hidden"
+            onChange={handleUpload}
           />
-          {search && (
-            <button
-              type="button"
-              onClick={() => setSearch("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2"
-            >
-              <X className="h-3.5 w-3.5 text-muted-foreground" />
-            </button>
-          )}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="shrink-0"
+          >
+            {uploading ? (
+              <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+            ) : (
+              <Upload className="h-4 w-4 mr-1.5" />
+            )}
+            Upload
+          </Button>
         </div>
 
         <div className="flex-1 overflow-y-auto min-h-0 mt-3">
@@ -110,7 +193,7 @@ export function MediaPickerDialog({
           ) : filtered.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground text-sm">
               <ImageIcon className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              {search ? "No files match your search." : "No media files yet. Upload some in the Media Gallery first."}
+              {search ? "No files match your search." : "No media files yet. Click Upload to add images."}
             </div>
           ) : (
             <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">

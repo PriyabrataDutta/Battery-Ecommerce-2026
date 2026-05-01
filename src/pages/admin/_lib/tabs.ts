@@ -11,6 +11,7 @@ import {
   Users,
   Activity,
   Car,
+  ImageIcon,
 } from "lucide-react";
 import type { AdminTab } from "@/stores/dashboardTabs";
 

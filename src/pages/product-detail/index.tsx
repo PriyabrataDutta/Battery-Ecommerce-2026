@@ -11,6 +11,7 @@
  * - SEO meta tags via react-helmet-async
  */
 import { lazy, Suspense, useMemo, useState } from "react";
+import { buildProductJsonLd } from "./lib/buildProductJsonLd";
 import { Link, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { toast } from "sonner";

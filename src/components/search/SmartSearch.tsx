@@ -289,7 +289,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
               Clear all
             </button>
           </div>
-          <div className="flex items-center gap-1 px-2 pt-2 pb-2 border-b border-line">
+          <div className="flex items-center gap-1.5 px-4 pt-2 pb-2 border-b border-line overflow-x-auto">
             {([
               { key: "all" as const, label: "All" },
               { key: "car" as const, label: "Car battery" },
@@ -302,7 +302,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
                   key={t.key}
                   type="button"
                   onClick={() => setRecentFilter(t.key)}
-                  className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-sm transition-colors ${
+                  className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-sm transition-colors whitespace-nowrap ${
                     active ? "bg-primary text-primary-foreground" : "text-ink-soft hover:text-primary"
                   }`}
                 >

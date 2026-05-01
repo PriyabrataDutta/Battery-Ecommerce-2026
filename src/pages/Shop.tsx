@@ -15,6 +15,11 @@ const Shop = () => {
   const brandSlug = params.get("battery_brand");
   const minPriceParam = params.get("min_price");
   const maxPriceParam = params.get("max_price");
+  const carBrandsCsv = params.get("car_brands") ?? "";
+  const carBrandSlugs = useMemo(
+    () => carBrandsCsv.split(",").map((s) => s.trim()).filter(Boolean),
+    [carBrandsCsv]
+  );
 
   // Resolve free-text q to a brand or car model so searches like "amaron" or "baleno" return useful results
   const { data: qResolved } = useQuery({
@@ -41,6 +46,31 @@ const Shop = () => {
       if (!brand) return [];
       const { data: models } = await supabase.from("car_models").select("id").eq("car_brand_id", brand.id);
       return (models ?? []).map((m) => m.id);
+    },
+  });
+
+  // Resolve multi-select car_brands -> product ids via fitment
+  const { data: carBrandsProductIds } = useQuery({
+    queryKey: ["car_brands_product_ids", carBrandSlugs],
+    enabled: carBrandSlugs.length > 0,
+    queryFn: async (): Promise<string[]> => {
+      const { data: brands } = await supabase
+        .from("car_brands")
+        .select("id")
+        .in("slug", carBrandSlugs);
+      const brandIds = (brands ?? []).map((b) => b.id);
+      if (brandIds.length === 0) return [];
+      const { data: models } = await supabase
+        .from("car_models")
+        .select("id")
+        .in("car_brand_id", brandIds);
+      const modelIds = (models ?? []).map((m) => m.id);
+      if (modelIds.length === 0) return [];
+      const { data: fits } = await supabase
+        .from("product_fitment")
+        .select("product_id")
+        .in("car_model_id", modelIds);
+      return Array.from(new Set((fits ?? []).map((r) => r.product_id)));
     },
   });
 
@@ -108,12 +138,21 @@ const Shop = () => {
     if (useFitment && fitmentProductIds) {
       list = list.filter((p) => fitmentProductIds.includes(p.id));
     }
+    if (carBrandSlugs.length > 0) {
+      if (!carBrandsProductIds) {
+        // While loading, show empty to avoid flashing wrong results
+        list = [];
+      } else {
+        const set = new Set(carBrandsProductIds);
+        list = list.filter((p) => set.has(p.id));
+      }
+    }
     list = list.filter((p) => {
       const v = Number(p.price) || 0;
       return v >= minPrice && v <= maxPrice;
     });
     return list;
-  }, [products, carModelSlug, qResolved?.carModelId, carBrandSlug, fitmentProductIds, minPrice, maxPrice]);
+  }, [products, carModelSlug, qResolved?.carModelId, carBrandSlug, fitmentProductIds, minPrice, maxPrice, carBrandSlugs, carBrandsProductIds]);
 
   const filtered = useMemo(() => {
     if (!effectiveBrand) return preBrandFiltered;

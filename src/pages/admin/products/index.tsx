@@ -42,6 +42,7 @@ const AdminProducts = () => {
   });
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<AdminProductRow | null>(null);
+  const [fitmentOpen, setFitmentOpen] = useState(false);
 
   const productsQuery = useAdminProductsQuery({
     search: filters.search || undefined,

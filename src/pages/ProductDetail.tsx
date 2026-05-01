@@ -201,26 +201,26 @@ const ProductDetail = () => {
           <div className="text-xs font-bold uppercase tracking-wider text-primary">
             {product.battery_brands?.name}
           </div>
-          <h1 className="font-display-tight text-3xl lg:text-4xl font-bold mt-1 leading-tight">
+          <h1 className="font-display-tight text-2xl sm:text-3xl lg:text-4xl font-bold mt-1 leading-tight">
             {product.name}
           </h1>
           <div className="text-xs text-muted-foreground mt-1">SKU: {product.sku}</div>
 
           {/* Without exchange */}
-          <div className="mt-5">
+          <div className="mt-4 sm:mt-5">
             <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               Without Exchange
             </div>
-            <div className="flex items-baseline gap-3 mt-1">
-              <span className="font-display text-4xl font-bold text-ink">
+            <div className="flex items-baseline gap-2 sm:gap-3 mt-1 flex-wrap">
+              <span className="font-display text-3xl sm:text-4xl font-bold text-ink">
                 {formatINR(product.price)}
               </span>
               {product.mrp && product.mrp > product.price && (
                 <>
-                  <span className="text-base text-muted-foreground line-through">
+                  <span className="text-sm sm:text-base text-muted-foreground line-through">
                     {formatINR(product.mrp)}
                   </span>
-                  <span className="badge-pill bg-primary text-white">{dpct}% Off</span>
+                  <span className="badge-pill bg-primary text-white text-[10px]">{dpct}% Off</span>
                 </>
               )}
               <span className="text-xs text-muted-foreground">(Per unit)</span>

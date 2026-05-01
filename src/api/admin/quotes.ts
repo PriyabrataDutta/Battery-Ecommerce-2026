@@ -8,7 +8,7 @@ import { logActivity } from "@/lib/adminLog";
  * Customers submit via `src/api/quotes.ts`.
  */
 
-export const REQUEST_STATUSES = ["new", "in_progress", "closed"] as const;
+export const REQUEST_STATUSES = ["new", "reviewed", "quoted", "in_progress", "closed"] as const;
 export type RequestStatus = (typeof REQUEST_STATUSES)[number];
 
 export interface AdminQuoteRow {

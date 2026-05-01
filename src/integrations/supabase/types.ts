@@ -1062,7 +1062,7 @@ export type Database = {
         | "delivered"
         | "cancelled"
         | "refunded"
-      request_status: "new" | "in_progress" | "closed"
+      request_status: "new" | "reviewed" | "quoted" | "in_progress" | "closed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1200,7 +1200,7 @@ export const Constants = {
         "cancelled",
         "refunded",
       ],
-      request_status: ["new", "in_progress", "closed"],
+      request_status: ["new", "reviewed", "quoted", "in_progress", "closed"],
     },
   },
 } as const

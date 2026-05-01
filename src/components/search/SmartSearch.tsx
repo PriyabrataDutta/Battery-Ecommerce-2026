@@ -275,7 +275,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
       </form>
 
       {showRecents && (
-        <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-line shadow-elevated z-50 max-h-[70vh] overflow-auto animate-fade-in">
+        <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-line rounded-md shadow-elevated z-50 max-h-[70vh] overflow-auto animate-fade-in">
           <div className="flex items-center justify-between px-4 pt-3 pb-1.5 bg-muted/30 border-b border-line">
             <div className="flex items-center gap-2">
               <Clock className="h-3.5 w-3.5 text-primary" />
@@ -289,7 +289,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
               Clear all
             </button>
           </div>
-          <div className="flex items-center gap-1 px-2 pt-2 pb-2 border-b border-line">
+          <div className="flex items-center gap-1.5 px-4 pt-2 pb-2 border-b border-line overflow-x-auto">
             {([
               { key: "all" as const, label: "All" },
               { key: "car" as const, label: "Car battery" },
@@ -302,7 +302,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
                   key={t.key}
                   type="button"
                   onClick={() => setRecentFilter(t.key)}
-                  className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-sm transition-colors ${
+                  className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-sm transition-colors whitespace-nowrap ${
                     active ? "bg-primary text-primary-foreground" : "text-ink-soft hover:text-primary"
                   }`}
                 >
@@ -323,25 +323,25 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
                 return (
                   <>
                     {chipItems.length > 0 && (
-                      <div className="px-3 pt-3 pb-2">
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-1 pb-2">
+                      <div className="px-4 pt-3 pb-3">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pb-2">
                           Tap a car to search again
                         </div>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {chipItems.map((r) => (
                             <div
                               key={r.path}
-                              className="group inline-flex items-stretch rounded-full border border-line bg-white shadow-sm overflow-hidden hover:border-primary hover:shadow transition-colors"
+                              className="group flex items-stretch rounded-full border border-line bg-white shadow-sm overflow-hidden hover:border-primary hover:shadow transition-colors"
                             >
                               <button
                                 type="button"
                                 onClick={() => { pushRecent(r); go(r.path); }}
-                                className="flex items-center gap-2 pl-3 pr-2 py-2 min-h-[40px] text-left active:bg-muted"
+                                className="flex items-center gap-2 pl-3 pr-2 py-2 min-h-[40px] text-left active:bg-muted flex-1 min-w-0"
                               >
                                 <span className="h-6 w-6 grid place-items-center rounded-full bg-primary/10 flex-shrink-0">
                                   <Car className="h-3.5 w-3.5 text-primary" />
                                 </span>
-                                <span className="flex flex-col leading-tight max-w-[160px]">
+                                <span className="flex flex-col leading-tight min-w-0 flex-1">
                                   <span className="truncate text-[13px] font-semibold text-ink">{r.label}</span>
                                   {r.sublabel && (
                                     <span className="truncate text-[10px] text-muted-foreground">{r.sublabel}</span>
@@ -352,7 +352,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
                                 type="button"
                                 onClick={(e) => { e.stopPropagation(); removeRecent(r.path); }}
                                 aria-label={`Remove ${r.label}`}
-                                className="px-2.5 grid place-items-center text-muted-foreground hover:text-primary border-l border-line min-h-[40px] min-w-[40px]"
+                                className="px-2.5 grid place-items-center text-muted-foreground hover:text-primary border-l border-line min-h-[40px] min-w-[40px] flex-shrink-0"
                               >
                                 <X className="h-3.5 w-3.5" />
                               </button>
@@ -371,7 +371,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
                         {rowItems.map((r) => (
                           <div
                             key={r.path}
-                            className="group flex items-center gap-3 px-3 py-3 text-sm hover:bg-muted/60 active:bg-muted"
+                            className="group flex items-center gap-3 px-4 py-3 text-sm hover:bg-muted/60 active:bg-muted"
                           >
                             <button
                               type="button"
@@ -390,7 +390,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
                               type="button"
                               onClick={() => removeRecent(r.path)}
                               aria-label={`Remove ${r.label}`}
-                              className="p-2 -mr-1 text-muted-foreground hover:text-primary md:opacity-0 md:group-hover:opacity-100 min-h-[40px] min-w-[40px] grid place-items-center"
+                              className="p-2 -mr-1 text-muted-foreground hover:text-primary md:opacity-0 md:group-hover:opacity-100 min-h-[40px] min-w-[40px] grid place-items-center flex-shrink-0"
                             >
                               <X className="h-4 w-4" />
                             </button>
@@ -407,7 +407,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
       )}
 
       {showPanel && (
-        <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-line shadow-elevated z-50 max-h-[70vh] overflow-auto animate-fade-in">
+        <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-line rounded-md shadow-elevated z-50 max-h-[70vh] overflow-auto animate-fade-in">
           {isFetching && !hasResults && (
             <div className="px-4 py-6 text-sm text-muted-foreground">Searching…</div>
           )}

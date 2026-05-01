@@ -144,20 +144,73 @@ const ProductDetail = () => {
             name: product.name,
             description: seoDesc,
             sku: product.sku,
-            image: product.primary_image_url,
+            image: allImages.length > 0 ? allImages : product.primary_image_url,
             brand: {
               "@type": "Brand",
               name: product.battery_brands?.name ?? "Kachi Batteries",
             },
+            ...(product.categories?.name && {
+              category: product.categories.name,
+            }),
+            ...(product.tags && product.tags.length > 0 && {
+              keywords: product.tags.join(", "),
+            }),
+            ...(product.capacity_ah && {
+              additionalProperty: [
+                {
+                  "@type": "PropertyValue",
+                  name: "Capacity",
+                  value: `${product.capacity_ah} Ah`,
+                },
+                ...(product.warranty_months
+                  ? [{
+                      "@type": "PropertyValue",
+                      name: "Warranty",
+                      value: `${product.warranty_months} months`,
+                    }]
+                  : []),
+              ],
+            }),
             offers: {
-              "@type": "Offer",
+              "@type": "AggregateOffer",
               url: canonicalUrl,
               priceCurrency: "INR",
-              price: withoutExchange,
+              lowPrice: showExchange ? withExchangePrice : withoutExchange,
+              highPrice: product.mrp && product.mrp > withoutExchange ? product.mrp : withoutExchange,
+              offerCount: showExchange ? 2 : 1,
               availability:
                 product.stock > 0
                   ? "https://schema.org/InStock"
                   : "https://schema.org/OutOfStock",
+              seller: {
+                "@type": "Organization",
+                name: "Kachi Batteries",
+              },
+              offers: [
+                {
+                  "@type": "Offer",
+                  name: "Without Exchange",
+                  price: withoutExchange,
+                  priceCurrency: "INR",
+                  availability:
+                    product.stock > 0
+                      ? "https://schema.org/InStock"
+                      : "https://schema.org/OutOfStock",
+                },
+                ...(showExchange
+                  ? [{
+                      "@type": "Offer",
+                      name: "With Exchange",
+                      price: withExchangePrice,
+                      priceCurrency: "INR",
+                      description: "Price with old battery exchange (BMHR compliant)",
+                      availability:
+                        product.stock > 0
+                          ? "https://schema.org/InStock"
+                          : "https://schema.org/OutOfStock",
+                    }]
+                  : []),
+              ],
             },
           })}
         </script>

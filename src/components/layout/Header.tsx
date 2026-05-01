@@ -109,9 +109,9 @@ export function Header() {
       </div>
 
       {/* Main header */}
-      <div className="container-x flex flex-nowrap items-center gap-3 sm:gap-4 lg:gap-6 h-16 sm:h-20 min-w-0">
+      <div className="container-x flex flex-nowrap items-center gap-3 sm:gap-4 lg:gap-6 h-20 sm:h-24 min-w-0">
         <Link to="/" className="flex-shrink-0 flex items-center">
-          <img src={logo} alt="Kachi Batteries" className="h-9 sm:h-12 w-auto" />
+          <img src={logo} alt="Kachi Batteries" className="h-12 sm:h-16 lg:h-20 w-auto drop-shadow-sm" />
         </Link>
 
         <SmartSearch className="hidden md:flex flex-1 min-w-0 items-center" />

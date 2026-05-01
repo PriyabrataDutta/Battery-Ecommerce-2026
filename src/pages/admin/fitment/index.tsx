@@ -157,6 +157,7 @@ function BrandsModelsTab() {
   const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [importProgress, setImportProgress] = useState<ImportProgress | null>(null);
+  const [importMode, setImportMode] = useState<ImportMode>("append");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const { data: brands = [], isLoading: brandsLoading } = useQuery({

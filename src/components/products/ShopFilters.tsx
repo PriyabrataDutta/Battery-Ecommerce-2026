@@ -259,6 +259,42 @@ export function ShopFilters({ counts, priceBounds }: Props) {
         </ul>
       </div>
 
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-display font-bold text-xs uppercase tracking-wider text-muted-foreground">
+            Car Brand
+          </h3>
+          {selectedCarBrands.size > 0 && (
+            <button
+              type="button"
+              onClick={() => update({ car_brands: null })}
+              className="text-[11px] text-primary hover:underline"
+            >
+              Reset
+            </button>
+          )}
+        </div>
+        <ul className="space-y-1.5 text-sm max-h-60 overflow-y-auto pr-1">
+          {carBrands.map((b) => {
+            const checked = selectedCarBrands.has(b.slug);
+            return (
+              <li key={b.id}>
+                <label className="flex items-center gap-2.5 px-2 py-1.5 cursor-pointer hover:text-primary transition-colors">
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={() => toggleCarBrand(b.slug)}
+                  />
+                  <span className="capitalize">{b.name}</span>
+                </label>
+              </li>
+            );
+          })}
+          {carBrands.length === 0 && (
+            <li className="text-xs text-muted-foreground px-2">No car brands available</li>
+          )}
+        </ul>
+      </div>
+
       <Button
         variant="outline"
         size="sm"
@@ -270,6 +306,7 @@ export function ShopFilters({ counts, priceBounds }: Props) {
             car_brand: null,
             car_model: null,
             battery_brand: null,
+            car_brands: null,
             min_price: null,
             max_price: null,
           });

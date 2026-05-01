@@ -107,13 +107,13 @@ export function buildProductJsonLd(
       priceCurrency: "INR",
       lowPrice,
       highPrice,
-      offerCount: offers.length,
+      offerCount: offerList.length,
       availability,
       seller: {
         "@type": "Organization",
         name: "Kachi Batteries",
       },
-      offers,
+      offers: offerList,
     },
   };
 

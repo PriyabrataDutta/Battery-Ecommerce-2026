@@ -1,57 +1,16 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { useAccountOverview } from "@/hooks/queries/useOrders";
 import { formatINR } from "@/lib/format";
 import { Package, MapPin, Heart, FileText, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAccountTab, type AccountTab } from "@/stores/dashboardTabs";
 
-interface OrderRow {
-  id: string;
-  order_number: string | null;
-  status: string;
-  total: number;
-  created_at: string;
-}
-
 const AccountOverview = () => {
   const { user } = useAuth();
-  const [orders, setOrders] = useState<OrderRow[] | null>(null);
-  const [counts, setCounts] = useState({ orders: 0, addresses: 0, wishlist: 0, quotes: 0 });
-
-  useEffect(() => {
-    if (!user) return;
-    (async () => {
-      const [o, addr, wish, q] = await Promise.all([
-        supabase
-          .from("orders")
-          .select("id, order_number, status, total, created_at", { count: "exact" })
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(3),
-        supabase
-          .from("customer_addresses")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id),
-        supabase
-          .from("wishlist_items")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id),
-        supabase
-          .from("quote_requests")
-          .select("id", { count: "exact", head: true })
-          .eq("email", user.email ?? ""),
-      ]);
-      setOrders((o.data ?? []) as OrderRow[]);
-      setCounts({
-        orders: o.count ?? 0,
-        addresses: addr.count ?? 0,
-        wishlist: wish.count ?? 0,
-        quotes: q.count ?? 0,
-      });
-    })();
-  }, [user]);
+  const { data, isLoading } = useAccountOverview(user?.id, user?.email ?? null);
+  const orders = data?.recentOrders ?? null;
+  const counts = data?.counts ?? { orders: 0, addresses: 0, wishlist: 0, quotes: 0 };
 
   const setTab = useAccountTab((s) => s.setTab);
   const tiles: { label: string; value: number; icon: typeof Package; tab: AccountTab }[] = [
@@ -89,7 +48,7 @@ const AccountOverview = () => {
             View all <ArrowRight className="h-3 w-3 ml-1" />
           </Button>
         </div>
-        {orders === null ? (
+        {isLoading || orders === null ? (
           <p className="text-sm text-muted-foreground mt-4">Loading…</p>
         ) : orders.length === 0 ? (
           <p className="text-sm text-muted-foreground mt-4">

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { useMyProfile, useUpdateMyProfile } from "@/hooks/queries/useProfile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,42 +9,31 @@ import { User as UserIcon } from "lucide-react";
 
 const AccountProfile = () => {
   const { user } = useAuth();
+  const { data: profile, isLoading } = useMyProfile(user?.id);
+  const update = useUpdateMyProfile(user?.id);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [company, setCompany] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
-    (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("full_name, phone, company")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (data) {
-        setFullName(data.full_name ?? "");
-        setPhone(data.phone ?? "");
-        setCompany(data.company ?? "");
-      }
-      setLoading(false);
-    })();
-  }, [user]);
+    if (!profile) return;
+    setFullName(profile.full_name ?? "");
+    setPhone(profile.phone ?? "");
+    setCompany(profile.company ?? "");
+  }, [profile]);
 
-  const save = async () => {
+  const save = () => {
     if (!user) return;
-    setSaving(true);
-    const { error } = await supabase
-      .from("profiles")
-      .update({ full_name: fullName, phone, company })
-      .eq("id", user.id);
-    setSaving(false);
-    if (error) toast.error(error.message);
-    else toast.success("Profile updated");
+    update.mutate(
+      { full_name: fullName, phone, company },
+      {
+        onSuccess: () => toast.success("Profile updated"),
+        onError: (e) => toast.error(e instanceof Error ? e.message : "Could not save"),
+      },
+    );
   };
 
-  if (loading) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
 
   return (
     <div className="bg-white border border-line p-6 max-w-xl">
@@ -69,7 +58,9 @@ const AccountProfile = () => {
           <Label className="text-xs font-display font-semibold uppercase tracking-wide">Company (optional)</Label>
           <Input value={company} onChange={(e) => setCompany(e.target.value)} maxLength={120} className="mt-1.5" />
         </div>
-        <Button onClick={save} disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button>
+        <Button onClick={save} disabled={update.isPending}>
+          {update.isPending ? "Saving…" : "Save changes"}
+        </Button>
       </div>
     </div>
   );

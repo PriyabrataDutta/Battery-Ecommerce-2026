@@ -1,44 +1,13 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { useMyOrders } from "@/hooks/queries/useOrders";
 import { formatINR } from "@/lib/format";
 import { Package, ChevronRight } from "lucide-react";
 
-interface OrderRow {
-  id: string;
-  order_number: string | null;
-  status: string;
-  total: number;
-  subtotal: number;
-  discount: number;
-  tax: number;
-  shipping: number;
-  promo_code: string | null;
-  delivery_label: string | null;
-  scheduled_date: string | null;
-  scheduled_slot_label: string | null;
-  scheduled_slot_window: string | null;
-  created_at: string;
-}
-
 const AccountOrders = () => {
   const { user } = useAuth();
-  const [orders, setOrders] = useState<OrderRow[] | null>(null);
+  const { data: orders, isLoading } = useMyOrders(user?.id);
 
-  useEffect(() => {
-    if (!user) return;
-    (async () => {
-      const { data } = await supabase
-        .from("orders")
-        .select(
-          "id, order_number, status, total, subtotal, discount, tax, shipping, promo_code, delivery_label, scheduled_date, scheduled_slot_label, scheduled_slot_window, created_at",
-        )
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      setOrders((data ?? []) as OrderRow[]);
-    })();
-  }, [user]);
 
   return (
     <div className="bg-white border border-line">

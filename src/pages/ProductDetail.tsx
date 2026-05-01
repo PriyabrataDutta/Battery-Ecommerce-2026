@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Product } from "@/types/catalog";
 import { Button } from "@/components/ui/button";
@@ -482,21 +482,18 @@ function Trust({ Icon, label }: { Icon: typeof ShieldCheck; label: string }) {
   );
 }
 
-function Row({
-  label,
-  sub,
-  value,
-  bold,
-  accent,
-}: {
-  label: string;
-  sub?: string;
-  value: React.ReactNode;
-  bold?: boolean;
-  accent?: boolean;
-}) {
+const Row = forwardRef<
+  HTMLDivElement,
+  {
+    label: string;
+    sub?: string;
+    value: React.ReactNode;
+    bold?: boolean;
+    accent?: boolean;
+  }
+>(function Row({ label, sub, value, bold, accent }, ref) {
   return (
-    <div className="flex items-start justify-between gap-2">
+    <div ref={ref} className="flex items-start justify-between gap-2">
       <div className="text-muted-foreground">
         <div className={bold ? "text-ink font-semibold" : ""}>{label}</div>
         {sub && <div className="text-[10px]">{sub}</div>}
@@ -510,16 +507,19 @@ function Row({
       </div>
     </div>
   );
-}
+});
 
-function SpecRow({ label, value }: { label: string; value?: string | null }) {
+const SpecRow = forwardRef<
+  HTMLTableRowElement,
+  { label: string; value?: string | null }
+>(function SpecRow({ label, value }, ref) {
   if (!value) return null;
   return (
-    <tr className="border-b border-line">
+    <tr ref={ref} className="border-b border-line">
       <td className="py-2.5 px-3 font-semibold capitalize w-1/3 bg-muted/30">{label}</td>
       <td className="py-2.5 px-3 text-ink-soft">{value}</td>
     </tr>
   );
-}
+});
 
 export default ProductDetail;

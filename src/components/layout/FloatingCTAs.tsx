@@ -15,10 +15,10 @@ export function FloatingCTAs() {
         <MessageCircle className="h-7 w-7" />
       </a>
 
-      {/* Side question tab */}
+      {/* Side question tab — only show on very wide screens to avoid overlapping the price card / shop toolbar */}
       <Link
         to="/quote"
-        className="hidden md:flex fixed top-1/2 -right-9 z-30 -translate-y-1/2 rotate-[-90deg] origin-center bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wider px-4 py-2 shadow-red hover:bg-primary-hover transition-colors"
+        className="hidden 2xl:flex fixed top-1/2 -right-9 z-30 -translate-y-1/2 rotate-[-90deg] origin-center bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wider px-4 py-2 shadow-red hover:bg-primary-hover transition-colors"
       >
         Have a Question?
       </Link>

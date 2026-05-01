@@ -252,6 +252,8 @@ const Shop = () => {
           </div>
         </aside>
         <div>
+          <ActiveFilters priceBounds={priceBounds} />
+
           {/* Toolbar: sort + view toggle */}
           <div className="flex items-center justify-between gap-3 mb-4 bg-white border border-line p-2.5 sm:p-3">
             <div className="flex items-center gap-2 min-w-0">

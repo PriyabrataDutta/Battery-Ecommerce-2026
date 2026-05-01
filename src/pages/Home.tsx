@@ -100,25 +100,25 @@ const Home = () => {
       </section>
 
       {/* FITMENT SEARCH (overlapping) */}
-      <section className="-mt-24 relative z-10">
+      <section className="-mt-20 sm:-mt-24 relative z-10">
         <FitmentSearch />
       </section>
 
       {/* PERKS STRIP */}
-      <section className="container-x mt-12 grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <section className="container-x mt-8 sm:mt-12 grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
         {[
           { Icon: IndianRupee, t: "Best Prices", s: "Genuine MRP discounts" },
           { Icon: Truck, t: "Free Shipping", s: "Across major cities" },
           { Icon: Wrench, t: "Free Installation", s: "By trained technicians" },
           { Icon: ShieldCheck, t: "Genuine Warranty", s: "Direct from brands" },
         ].map(({ Icon, t, s }) => (
-          <div key={t} className="bg-white border border-line p-4 flex items-center gap-3">
-            <div className="h-11 w-11 grid place-items-center bg-primary/10 text-primary flex-shrink-0">
-              <Icon className="h-5 w-5" />
+          <div key={t} className="bg-white border border-line p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
+            <div className="h-9 w-9 sm:h-11 sm:w-11 grid place-items-center bg-primary/10 text-primary flex-shrink-0">
+              <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
-            <div>
-              <div className="font-display font-semibold text-sm uppercase tracking-wide">{t}</div>
-              <div className="text-xs text-muted-foreground">{s}</div>
+            <div className="min-w-0">
+              <div className="font-display font-semibold text-[13px] sm:text-sm uppercase tracking-wide truncate">{t}</div>
+              <div className="text-[11px] sm:text-xs text-muted-foreground truncate">{s}</div>
             </div>
           </div>
         ))}

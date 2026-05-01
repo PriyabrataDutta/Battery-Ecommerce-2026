@@ -82,8 +82,25 @@ const AdminMedia = () => {
     setUploading(true);
 
     try {
+      let uploaded = 0;
+      let skipped = 0;
       for (const file of Array.from(selectedFiles)) {
-        const ext = file.name.split(".").pop() ?? "";
+        // Compute checksum
+        const hashBuffer = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+        const checksum = Array.from(new Uint8Array(hashBuffer)).map((b) => b.toString(16).padStart(2, "0")).join("");
+
+        // Check for duplicate
+        const { data: existing } = await supabase
+          .from("media_files")
+          .select("id")
+          .or(`checksum.eq.${checksum},and(file_name.eq.${file.name},size_bytes.eq.${file.size})`)
+          .limit(1);
+
+        if (existing && existing.length > 0) {
+          skipped++;
+          continue;
+        }
+
         const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
         const path = `${Date.now()}_${safeName}`;
 
@@ -102,10 +119,15 @@ const AdminMedia = () => {
           size_bytes: file.size,
           content_type: file.type,
           uploaded_by: user?.id ?? null,
+          checksum,
         });
         if (dbErr) throw dbErr;
+        uploaded++;
       }
-      toast.success(`${selectedFiles.length} file(s) uploaded`);
+      const parts: string[] = [];
+      if (uploaded) parts.push(`${uploaded} uploaded`);
+      if (skipped) parts.push(`${skipped} duplicate(s) skipped`);
+      toast.success(parts.join(", ") || "No files to upload");
       qc.invalidateQueries({ queryKey: ["media_files"] });
     } catch (err: any) {
       toast.error(err.message ?? "Upload failed");

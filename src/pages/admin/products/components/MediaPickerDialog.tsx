@@ -16,9 +16,17 @@ import { Progress } from "@/components/ui/progress";
 
 interface UploadItem {
   name: string;
-  status: "pending" | "uploading" | "done" | "error";
+  status: "pending" | "uploading" | "done" | "error" | "skipped";
   progress: number; // 0-100
   error?: string;
+}
+
+async function computeSha256(file: File): Promise<string> {
+  const buffer = await file.arrayBuffer();
+  const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 interface MediaFile {
@@ -109,20 +117,38 @@ export function MediaPickerDialog({
       const uploadedUrls: string[] = [];
       for (let i = 0; i < fileList.length; i++) {
         const file = fileList[i];
-        updateItem(i, { status: "uploading", progress: 10 });
+        updateItem(i, { status: "uploading", progress: 5 });
 
         try {
+          // Compute checksum for duplicate detection
+          const checksum = await computeSha256(file);
+          updateItem(i, { progress: 20 });
+
+          // Check for existing file with same checksum or same name+size
+          const { data: existing } = await supabase
+            .from("media_files")
+            .select("file_url")
+            .or(`checksum.eq.${checksum},and(file_name.eq.${file.name},size_bytes.eq.${file.size})`)
+            .limit(1);
+
+          if (existing && existing.length > 0) {
+            // Duplicate found — skip upload, reuse existing URL
+            updateItem(i, { status: "skipped", progress: 100, error: "Duplicate — reusing existing" });
+            uploadedUrls.push(existing[0].file_url);
+            continue;
+          }
+
+          updateItem(i, { progress: 35 });
+
           const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
           const path = `${Date.now()}_${safeName}`;
-
-          updateItem(i, { progress: 30 });
 
           const { error: uploadErr } = await supabase.storage
             .from(BUCKET)
             .upload(path, file, { contentType: file.type });
           if (uploadErr) throw uploadErr;
 
-          updateItem(i, { progress: 70 });
+          updateItem(i, { progress: 75 });
 
           const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
 
@@ -134,6 +160,7 @@ export function MediaPickerDialog({
             size_bytes: file.size,
             content_type: file.type,
             uploaded_by: user?.id ?? null,
+            checksum,
           });
           if (dbErr) throw dbErr;
 
@@ -145,10 +172,15 @@ export function MediaPickerDialog({
       }
 
       const successCount = items.filter((it) => it.status === "done").length;
+      const skippedCount = items.filter((it) => it.status === "skipped").length;
       const failCount = items.filter((it) => it.status === "error").length;
 
-      if (successCount > 0) {
-        toast.success(`${successCount} file(s) uploaded${failCount ? `, ${failCount} failed` : ""}`);
+      if (successCount > 0 || skippedCount > 0) {
+        const parts: string[] = [];
+        if (successCount) parts.push(`${successCount} uploaded`);
+        if (skippedCount) parts.push(`${skippedCount} duplicate(s) skipped`);
+        if (failCount) parts.push(`${failCount} failed`);
+        toast.success(parts.join(", "));
         qc.invalidateQueries({ queryKey: ["media_files_picker"] });
         qc.invalidateQueries({ queryKey: ["media_files"] });
 
@@ -165,7 +197,6 @@ export function MediaPickerDialog({
       }
     } finally {
       setUploading(false);
-      // Keep uploadItems visible briefly so user sees result, then clear
       setTimeout(() => setUploadItems([]), 3000);
       if (fileRef.current) fileRef.current.value = "";
     }
@@ -266,14 +297,17 @@ export function MediaPickerDialog({
               <div key={idx} className="flex items-center gap-2 text-xs">
                 {item.status === "uploading" && <Loader2 className="h-3.5 w-3.5 animate-spin text-primary shrink-0" />}
                 {item.status === "done" && <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />}
+                {item.status === "skipped" && <CheckCircle2 className="h-3.5 w-3.5 text-amber-500 shrink-0" />}
                 {item.status === "error" && <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" />}
                 {item.status === "pending" && <div className="h-3.5 w-3.5 rounded-full border-2 border-muted-foreground/40 shrink-0" />}
                 <span className="truncate flex-1 min-w-0" title={item.name}>{item.name}</span>
-                <div className="w-20 shrink-0">
+                <div className="w-24 shrink-0">
                   {(item.status === "uploading" || item.status === "pending") ? (
                     <Progress value={item.progress} className="h-1.5" />
                   ) : item.status === "error" ? (
                     <span className="text-destructive text-[10px]">Failed</span>
+                  ) : item.status === "skipped" ? (
+                    <span className="text-amber-600 text-[10px]">Duplicate</span>
                   ) : (
                     <span className="text-green-600 text-[10px]">Done</span>
                   )}

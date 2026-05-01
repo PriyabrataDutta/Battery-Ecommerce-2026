@@ -297,14 +297,17 @@ export function MediaPickerDialog({
               <div key={idx} className="flex items-center gap-2 text-xs">
                 {item.status === "uploading" && <Loader2 className="h-3.5 w-3.5 animate-spin text-primary shrink-0" />}
                 {item.status === "done" && <CheckCircle2 className="h-3.5 w-3.5 text-green-500 shrink-0" />}
+                {item.status === "skipped" && <CheckCircle2 className="h-3.5 w-3.5 text-amber-500 shrink-0" />}
                 {item.status === "error" && <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" />}
                 {item.status === "pending" && <div className="h-3.5 w-3.5 rounded-full border-2 border-muted-foreground/40 shrink-0" />}
                 <span className="truncate flex-1 min-w-0" title={item.name}>{item.name}</span>
-                <div className="w-20 shrink-0">
+                <div className="w-24 shrink-0">
                   {(item.status === "uploading" || item.status === "pending") ? (
                     <Progress value={item.progress} className="h-1.5" />
                   ) : item.status === "error" ? (
                     <span className="text-destructive text-[10px]">Failed</span>
+                  ) : item.status === "skipped" ? (
+                    <span className="text-amber-600 text-[10px]">Duplicate</span>
                   ) : (
                     <span className="text-green-600 text-[10px]">Done</span>
                   )}

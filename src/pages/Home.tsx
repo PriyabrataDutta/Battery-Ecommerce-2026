@@ -70,25 +70,25 @@ const Home = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/70 to-transparent" />
 
-        <div className="container-x relative pt-16 pb-40 lg:pt-24 lg:pb-52 grid lg:grid-cols-2 gap-8 items-center">
+        <div className="container-x relative pt-10 pb-32 sm:pt-16 sm:pb-40 lg:pt-24 lg:pb-52 grid lg:grid-cols-2 gap-8 items-center">
           <div>
-            <div className="hero-line text-xs font-bold uppercase tracking-[0.25em] text-primary mb-4">
+            <div className="hero-line text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] sm:tracking-[0.25em] text-primary mb-3 sm:mb-4">
               India's Trusted Battery Store
             </div>
-            <h1 className="font-display-tight text-5xl sm:text-6xl lg:text-7xl font-bold leading-[0.9]">
+            <h1 className="font-display-tight text-[2.25rem] leading-[1.05] sm:text-5xl sm:leading-[0.95] md:text-6xl lg:text-7xl font-bold">
               <span className="hero-line block">Best Prices.</span>
               <span className="hero-line block">Free Shipping.</span>
               <span className="hero-line block text-primary">Free Installation.</span>
             </h1>
-            <p className="hero-line mt-6 text-base text-white/80 max-w-md">
+            <p className="hero-line mt-4 sm:mt-6 text-sm sm:text-base text-white/80 max-w-md">
               Genuine car & inverter batteries from Amaron, Exide, Power Zone and more.
               Same-day dispatch. Doorstep installation in major cities.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="hero-cta font-bold uppercase tracking-wider">
+            <div className="mt-6 sm:mt-8 flex flex-wrap gap-2 sm:gap-3">
+              <Button asChild size="lg" className="hero-cta font-bold uppercase tracking-wider w-full sm:w-auto">
                 <Link to="/quote">Request Call Back</Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="hero-cta bg-transparent text-white border-white/30 hover:bg-white hover:text-ink font-bold uppercase tracking-wider">
+              <Button asChild size="lg" variant="outline" className="hero-cta bg-transparent text-white border-white/30 hover:bg-white hover:text-ink font-bold uppercase tracking-wider w-full sm:w-auto">
                 <Link to="/shop">Shop Now <ArrowRight className="h-4 w-4 ml-2" /></Link>
               </Button>
             </div>

@@ -75,21 +75,22 @@ export function Header() {
         <SmartSearch className="hidden md:flex flex-1 min-w-0 items-center" />
 
         <div className="ml-auto flex flex-shrink-0 flex-nowrap items-center gap-1 sm:gap-1.5 lg:gap-2 whitespace-nowrap">
+          {/* Shared icon button styling: gray (muted) hover bg, red (primary) icon on hover, 2px primary focus ring with offset */}
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden h-10 w-10"
+            className="md:hidden h-10 w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             onClick={() => setMobileSearchOpen(true)}
             aria-label="Search"
           >
             <Search className="h-5 w-5" />
           </Button>
-          <Button asChild variant="ghost" size="icon" className="hidden sm:inline-flex h-10 w-10">
+          <Button asChild variant="ghost" size="icon" className="hidden sm:inline-flex h-10 w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
             <Link to={user ? "/account" : "/auth"} aria-label={user ? "Account" : "Sign in"}>
               <User className="h-5 w-5" />
             </Link>
           </Button>
-          <Button asChild variant="ghost" size="icon" className="relative h-10 w-10">
+          <Button asChild variant="ghost" size="icon" className="relative h-10 w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
             <Link to="/cart" aria-label="Cart">
               <ShoppingCart className="h-5 w-5" />
               {count > 0 && (
@@ -99,10 +100,10 @@ export function Header() {
               )}
             </Link>
           </Button>
-          <Button asChild className="hidden lg:inline-flex h-10 ml-1" size="sm">
+          <Button asChild className="hidden lg:inline-flex h-10 ml-1 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" size="sm">
             <Link to="/quote">Request Call Back</Link>
           </Button>
-          <Button variant="ghost" size="icon" className="lg:hidden h-10 w-10" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menu">
+          <Button variant="ghost" size="icon" className="lg:hidden h-10 w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menu">
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
         </div>

@@ -22,9 +22,6 @@ const Checkout = lazy(() => import("./pages/Checkout"));
 const OrderConfirmation = lazy(() => import("./pages/OrderConfirmation"));
 const Quote = lazy(() => import("./pages/Quote"));
 const Contact = lazy(() => import("./pages/Contact"));
-const SimplePages = lazy(() =>
-  import("./pages/SimplePages").then((m) => ({ default: m.About })),
-);
 const About = lazy(() => import("./pages/SimplePages").then((m) => ({ default: m.About })));
 const JumpStart = lazy(() => import("./pages/SimplePages").then((m) => ({ default: m.JumpStart })));
 const Catalog = lazy(() => import("./pages/SimplePages").then((m) => ({ default: m.Catalog })));

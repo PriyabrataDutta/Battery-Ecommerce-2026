@@ -107,25 +107,25 @@ export function ProductCard({ product }: { product: Product }) {
           </div>
         )}
 
-        <div className="mt-auto pt-3 grid grid-cols-2 gap-2">
+        <div className="mt-auto pt-3 flex flex-col gap-2">
           <Button
             size="sm"
-            variant="outline"
-            className="h-11 sm:h-10 w-full px-2 text-xs sm:text-sm font-medium inline-flex items-center justify-center gap-1.5 min-w-0 leading-none"
-            onClick={handleAdd}
-            aria-label={`Add ${product.name} to cart`}
-          >
-            <ShoppingCart className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className="truncate">Add</span>
-          </Button>
-          <Button
-            size="sm"
-            className="h-11 sm:h-10 w-full px-2 text-xs sm:text-sm font-medium inline-flex items-center justify-center gap-1.5 min-w-0 leading-none"
+            className="h-11 w-full px-3 text-sm font-semibold inline-flex items-center justify-center gap-2 rounded-md shadow-sm hover:shadow-md transition-shadow"
             onClick={handleBuyNow}
             aria-label={`Buy ${product.name} now`}
           >
             <Zap className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <span className="truncate">Buy Now</span>
+            <span>Buy Now</span>
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-10 w-full px-3 text-sm font-medium inline-flex items-center justify-center gap-2 rounded-md border-ink/20 hover:border-ink hover:bg-ink hover:text-white transition-colors"
+            onClick={handleAdd}
+            aria-label={`Add ${product.name} to cart`}
+          >
+            <ShoppingCart className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>Add to Cart</span>
           </Button>
         </div>
       </div>

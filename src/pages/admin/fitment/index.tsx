@@ -306,22 +306,27 @@ function BrandsModelsTab() {
     }
   };
 
-  /* ── confirm import ── */
-  const handleConfirmImport = async () => {
+  /* ── confirm import with progress & retry ── */
+  const handleConfirmImport = useCallback(async () => {
     if (!importPreview) return;
     const { parsed } = importPreview;
-    setImportPreview(null);
     setImporting(true);
+    setImportProgress({ phase: "brands", current: 0, total: 0, brandsCreated: 0, modelsCreated: 0 });
 
     try {
+      // --- Phase 1: Brands ---
       const uniqueBrands = [...new Set(parsed.map((r) => r.brand))];
       const { data: existingBrandsData } = await supabase.from("car_brands").select("id, name");
       const brandMap = new Map<string, string>();
       for (const b of existingBrandsData ?? []) brandMap.set(b.name.toLowerCase(), b.id);
 
+      const brandsToCreate = uniqueBrands.filter((n) => !brandMap.has(n.toLowerCase()));
       let brandsCreated = 0;
-      for (const name of uniqueBrands) {
-        if (brandMap.has(name.toLowerCase())) continue;
+
+      setImportProgress({ phase: "brands", current: 0, total: brandsToCreate.length, brandsCreated: 0, modelsCreated: 0 });
+
+      for (let i = 0; i < brandsToCreate.length; i++) {
+        const name = brandsToCreate[i];
         const { data: ins, error } = await supabase
           .from("car_brands")
           .insert({ name, slug: slugify(name) })
@@ -338,8 +343,10 @@ function BrandsModelsTab() {
             .maybeSingle();
           if (ex) brandMap.set(name.toLowerCase(), ex.id);
         }
+        setImportProgress((p) => p ? { ...p, current: i + 1, brandsCreated } : p);
       }
 
+      // --- Phase 2: Models ---
       const { data: existingModelsData } = await supabase
         .from("car_models")
         .select("id, name, car_brand_id");
@@ -347,35 +354,50 @@ function BrandsModelsTab() {
         (existingModelsData ?? []).map((m) => `${m.car_brand_id}|${m.name.toLowerCase()}`)
       );
 
-      let modelsCreated = 0;
+      // Deduplicate models to create
+      const modelsToCreate: { brand: string; model: string }[] = [];
+      const seen = new Set<string>();
       for (const row of parsed) {
         const brandId = brandMap.get(row.brand.toLowerCase());
         if (!brandId) continue;
         const key = `${brandId}|${row.model.toLowerCase()}`;
-        if (modelSet.has(key)) continue;
+        if (modelSet.has(key) || seen.has(key)) continue;
+        seen.add(key);
+        modelsToCreate.push(row);
+      }
+
+      let modelsCreated = 0;
+      setImportProgress({ phase: "models", current: 0, total: modelsToCreate.length, brandsCreated, modelsCreated: 0 });
+
+      for (let i = 0; i < modelsToCreate.length; i++) {
+        const row = modelsToCreate[i];
+        const brandId = brandMap.get(row.brand.toLowerCase());
+        if (!brandId) continue;
 
         const { error } = await supabase
           .from("car_models")
           .insert({ name: row.model, slug: slugify(row.model), car_brand_id: brandId });
         if (!error) {
-          modelSet.add(key);
           modelsCreated++;
         }
+        setImportProgress((p) => p ? { ...p, current: i + 1, modelsCreated } : p);
       }
 
       toast.success(
-        `Import complete! ${brandsCreated} new brand${brandsCreated !== 1 ? "s" : ""}, ${modelsCreated} new model${modelsCreated !== 1 ? "s" : ""} added.`,
+        `Import complete! ${brandsCreated} brand${brandsCreated !== 1 ? "s" : ""}, ${modelsCreated} model${modelsCreated !== 1 ? "s" : ""} added.`,
         { duration: 6000 }
       );
+      setImportPreview(null);
+      setImportProgress(null);
       qc.invalidateQueries({ queryKey: ["admin-car-brands"] });
       qc.invalidateQueries({ queryKey: ["admin-car-models"] });
     } catch (err: any) {
       console.error("Import failed:", err);
-      toast.error(`Import failed: ${err.message ?? "Unknown error"}`);
+      setImportProgress((p) => p ? { ...p, error: err.message ?? "Unknown error" } : p);
     } finally {
       setImporting(false);
     }
-  };
+  }, [importPreview, qc]);
 
   /* ── export (same format as example file so round-trip works) ── */
   const handleExport = () => {

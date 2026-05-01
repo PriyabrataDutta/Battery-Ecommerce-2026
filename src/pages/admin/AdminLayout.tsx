@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { RequireStaff } from "@/components/auth/RequireStaff";
@@ -20,7 +20,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { performAdminLogout } from "@/components/auth/PostLogoutRedirect";
-import { useAdminTab, type AdminTab } from "@/stores/dashboardTabs";
+import { useAdminTab, isAdminTab, type AdminTab } from "@/stores/dashboardTabs";
 import Dashboard from "@/pages/admin/Dashboard";
 import AuditLog from "@/pages/admin/AuditLog";
 import AdminProducts from "@/pages/admin/products";
@@ -79,7 +79,21 @@ const AdminLayout = () => {
       });
   }, [user]);
 
-  const tab = useAdminTab((s) => s.tab);
+  const { tab: urlTab } = useParams<{ tab?: string }>();
+  const storeTab = useAdminTab((s) => s.tab);
+  const setTab = useAdminTab((s) => s.setTab);
+
+  // /admin/login is handled by a separate route, but guard against any other invalid path.
+  if (urlTab !== undefined && !isAdminTab(urlTab)) {
+    return <Navigate to="/admin" replace />;
+  }
+
+  const tab: AdminTab = isAdminTab(urlTab) ? urlTab : storeTab;
+
+  useEffect(() => {
+    if (tab !== storeTab) setTab(tab);
+  }, [tab, storeTab, setTab]);
+
   const ActivePanel = PANELS[tab] ?? Dashboard;
   const meta = { title: titleMap[tab] ?? "Admin" };
 

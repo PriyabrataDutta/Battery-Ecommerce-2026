@@ -98,12 +98,14 @@ export function AdminSidebar() {
                   return (
                     <SidebarMenuItem key={item.tab}>
                       <SidebarMenuButton
+                        asChild
                         isActive={active}
-                        onClick={() => setTab(item.tab)}
                         className="h-10 data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary data-[active=true]:font-semibold hover:bg-sidebar-accent/60"
                       >
-                        <item.icon className="h-[18px] w-[18px] shrink-0" />
-                        {!collapsed && <span className="text-sm">{item.title}</span>}
+                        <Link to={`/admin/${item.tab}`} onClick={() => setTab(item.tab)}>
+                          <item.icon className="h-[18px] w-[18px] shrink-0" />
+                          {!collapsed && <span className="text-sm">{item.title}</span>}
+                        </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   );

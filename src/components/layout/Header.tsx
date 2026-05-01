@@ -342,9 +342,6 @@ export function Header() {
       {/* Mobile drawer */}
       {mobileOpen && (
         <div className="lg:hidden border-t border-line bg-white animate-fade-in">
-          <div className="p-4 border-b border-line">
-            <SmartSearch onNavigate={() => setMobileOpen(false)} />
-          </div>
           <div className="flex flex-col py-2">
             <MobileLink to="/" label="Home" onClick={() => setMobileOpen(false)} />
             <MobileLink to="/shop" label="Shop" onClick={() => setMobileOpen(false)} />

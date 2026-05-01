@@ -125,7 +125,7 @@ const Home = () => {
       </section>
 
       {/* SHOP BY CATEGORY */}
-      <section className="container-x mt-20">
+      <section className="container-x mt-12 sm:mt-20">
         <SectionHead eyebrow="Browse" title="Shop by Category" />
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
           {categories.slice(0, 6).map((c) => (
@@ -145,7 +145,7 @@ const Home = () => {
       </section>
 
       {/* SHOP BY BRAND */}
-      <section className="mt-20 bg-white border-y border-line py-12 overflow-hidden">
+      <section className="mt-12 sm:mt-20 bg-white border-y border-line py-8 sm:py-12 overflow-hidden">
         <div className="container-x">
           <SectionHead eyebrow="Trusted Brands" title="Shop by Brand" />
         </div>
@@ -163,7 +163,7 @@ const Home = () => {
       </section>
 
       {/* FEATURED PRODUCTS */}
-      <section className="container-x mt-20">
+      <section className="container-x mt-12 sm:mt-20">
         <SectionHead eyebrow="Top Picks" title="Featured Products" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
           {featured.map((p) => <ProductCard key={p.id} product={p} />)}
@@ -176,7 +176,7 @@ const Home = () => {
       </section>
 
       {/* B2B TRUST */}
-      <section className="mt-20 bg-ink text-white py-16">
+      <section className="mt-12 sm:mt-20 bg-ink text-white py-10 sm:py-16">
         <div className="container-x">
           <SectionHead eyebrow="Why Kachi" title="Built for B2B" dark />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
@@ -199,7 +199,7 @@ const Home = () => {
       </section>
 
       {/* QUICK QUOTE CTA */}
-      <section className="container-x mt-20">
+      <section className="container-x mt-12 sm:mt-20">
         <div className="bg-gradient-red text-white p-10 lg:p-14 grid lg:grid-cols-[1fr_auto] items-center gap-6">
           <div>
             <div className="text-xs font-bold uppercase tracking-[0.25em] mb-3">B2B Pricing</div>

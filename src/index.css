@@ -164,14 +164,20 @@
     border-radius: calc(var(--radius) - 2px);
   }
 
-  /* Card-like surfaces: any element with a visible border + background.
-     Targets common Tailwind patterns used across the app. */
-  .border.border-line:not([class*="rounded"]):not(hr):not(tr):not(td):not(th),
-  .border-line.border:not([class*="rounded"]):not(hr):not(tr):not(td):not(th),
-  [class*="border-line"][class*="bg-card"]:not([class*="rounded"]),
-  [class*="border-line"][class*="bg-white"]:not([class*="rounded"]),
-  [class*="border-line"][class*="bg-background"]:not([class*="rounded"]) {
+  /* Card-like surfaces with visible borders + backgrounds */
+  [class*="border-line"]:not([class*="rounded"]):not(hr):not(tr):not(td):not(th):not([class*="border-b"]):not([class*="border-t"]):not([class*="border-l"]):not([class*="border-r"]) {
     border-radius: var(--radius);
+  }
+
+  /* Plain white/card backgrounds inside layouts */
+  [class*="bg-white"][class*="shadow"]:not([class*="rounded"]),
+  [class*="bg-card"][class*="shadow"]:not([class*="rounded"]) {
+    border-radius: var(--radius);
+  }
+
+  /* Small icon containers (h-N w-N grid place-items-center patterns) */
+  [class*="grid"][class*="place-items-center"][class*="bg-"]:not([class*="rounded"]):not(button) {
+    border-radius: calc(var(--radius) - 2px);
   }
 
   /* Code blocks & pre tags */

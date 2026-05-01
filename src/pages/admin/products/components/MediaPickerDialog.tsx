@@ -117,20 +117,38 @@ export function MediaPickerDialog({
       const uploadedUrls: string[] = [];
       for (let i = 0; i < fileList.length; i++) {
         const file = fileList[i];
-        updateItem(i, { status: "uploading", progress: 10 });
+        updateItem(i, { status: "uploading", progress: 5 });
 
         try {
+          // Compute checksum for duplicate detection
+          const checksum = await computeSha256(file);
+          updateItem(i, { progress: 20 });
+
+          // Check for existing file with same checksum or same name+size
+          const { data: existing } = await supabase
+            .from("media_files")
+            .select("file_url")
+            .or(`checksum.eq.${checksum},and(file_name.eq.${file.name},size_bytes.eq.${file.size})`)
+            .limit(1);
+
+          if (existing && existing.length > 0) {
+            // Duplicate found — skip upload, reuse existing URL
+            updateItem(i, { status: "skipped", progress: 100, error: "Duplicate — reusing existing" });
+            uploadedUrls.push(existing[0].file_url);
+            continue;
+          }
+
+          updateItem(i, { progress: 35 });
+
           const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
           const path = `${Date.now()}_${safeName}`;
-
-          updateItem(i, { progress: 30 });
 
           const { error: uploadErr } = await supabase.storage
             .from(BUCKET)
             .upload(path, file, { contentType: file.type });
           if (uploadErr) throw uploadErr;
 
-          updateItem(i, { progress: 70 });
+          updateItem(i, { progress: 75 });
 
           const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
 
@@ -142,6 +160,7 @@ export function MediaPickerDialog({
             size_bytes: file.size,
             content_type: file.type,
             uploaded_by: user?.id ?? null,
+            checksum,
           });
           if (dbErr) throw dbErr;
 
@@ -153,10 +172,15 @@ export function MediaPickerDialog({
       }
 
       const successCount = items.filter((it) => it.status === "done").length;
+      const skippedCount = items.filter((it) => it.status === "skipped").length;
       const failCount = items.filter((it) => it.status === "error").length;
 
-      if (successCount > 0) {
-        toast.success(`${successCount} file(s) uploaded${failCount ? `, ${failCount} failed` : ""}`);
+      if (successCount > 0 || skippedCount > 0) {
+        const parts: string[] = [];
+        if (successCount) parts.push(`${successCount} uploaded`);
+        if (skippedCount) parts.push(`${skippedCount} duplicate(s) skipped`);
+        if (failCount) parts.push(`${failCount} failed`);
+        toast.success(parts.join(", "));
         qc.invalidateQueries({ queryKey: ["media_files_picker"] });
         qc.invalidateQueries({ queryKey: ["media_files"] });
 
@@ -173,7 +197,6 @@ export function MediaPickerDialog({
       }
     } finally {
       setUploading(false);
-      // Keep uploadItems visible briefly so user sees result, then clear
       setTimeout(() => setUploadItems([]), 3000);
       if (fileRef.current) fileRef.current.value = "";
     }

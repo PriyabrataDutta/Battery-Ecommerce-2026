@@ -5,6 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Select,
   SelectContent,
@@ -12,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ChevronDown, X } from "lucide-react";
 import { slugify } from "@/lib/adminLog";
 import { EMPTY_PRODUCT, PRODUCT_STATUSES } from "../lib/constants";
 import { useCreateProduct, useUpdateProduct, useDeleteProduct } from "../hooks/useAdminProducts";
@@ -23,17 +31,6 @@ import type { AdminProductRow } from "@/api/admin/products";
 import type { BatteryBrand, Category } from "@/types/catalog";
 import type { ProductEditableFields } from "@/api/admin/products";
 
-/**
- * ProductEditor
- * --------------------------------------------------------------
- * Side-drawer form used to create OR edit a product. Pass `null`
- * to `product` to render in create mode; pass a row to edit it.
- *
- * Validation is intentionally lightweight here — the DB enforces
- * NOT NULL on name/sku/slug/price. To add stricter rules, layer
- * a Zod schema in `../lib/validation.ts` (see Checkout for the
- * pattern) and call it before invoking the mutation.
- */
 export function ProductEditor({
   open,
   onOpenChange,
@@ -51,15 +48,14 @@ export function ProductEditor({
   const [form, setForm] = useState<ProductEditableFields>(EMPTY_PRODUCT);
   const [fitmentModelIds, setFitmentModelIds] = useState<string[]>([]);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
 
-  // Load existing fitment when editing
   const { data: existingFitment } = useQuery({
     queryKey: ["product_fitment", product?.id],
     queryFn: () => getProductFitmentModelIds(product!.id),
     enabled: !!product?.id && open,
   });
 
-  // Load existing gallery images when editing
   const { data: existingGallery } = useQuery({
     queryKey: ["product_images", product?.id],
     queryFn: async () => {
@@ -85,8 +81,7 @@ export function ProductEditor({
   useEffect(() => {
     if (!open) return;
     if (product) {
-      // Map the row → editable fields. We deliberately drop joined
-      // relations (battery_brands, categories) and the row id.
+      const p = product as any;
       setForm({
         name: product.name ?? "",
         slug: product.slug ?? "",
@@ -94,8 +89,8 @@ export function ProductEditor({
         brand_id: product.brand_id ?? null,
         category_id: product.category_id ?? null,
         mrp: product.mrp == null ? null : Number(product.mrp),
-        price_with_exchange: Number((product as any).price_with_exchange ?? 0),
-        price_without_exchange: Number((product as any).price_without_exchange ?? 0),
+        price_with_exchange: Number(p.price_with_exchange ?? 0),
+        price_without_exchange: Number(p.price_without_exchange ?? 0),
         price: Number(product.price ?? 0),
         stock: Number(product.stock ?? 0),
         capacity_ah: product.capacity_ah ?? null,
@@ -110,11 +105,17 @@ export function ProductEditor({
         is_on_sale: !!product.is_on_sale,
         has_exchange: !!product.has_exchange,
         exchange_rebate: Number(product.exchange_rebate ?? 0),
+        meta_title: p.meta_title ?? null,
+        meta_description: p.meta_description ?? null,
+        meta_keywords: p.meta_keywords ?? null,
+        tags: Array.isArray(p.tags) ? p.tags : [],
       });
+      setTagInput("");
     } else {
       setForm(EMPTY_PRODUCT);
       setFitmentModelIds([]);
       setGalleryImages([]);
+      setTagInput("");
     }
   }, [open, product]);
 
@@ -125,6 +126,18 @@ export function ProductEditor({
 
   const set = <K extends keyof ProductEditableFields>(k: K, v: ProductEditableFields[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
+
+  const addTag = (tag: string) => {
+    const t = tag.trim().toLowerCase();
+    if (t && !form.tags.includes(t)) {
+      set("tags", [...form.tags, t]);
+    }
+    setTagInput("");
+  };
+
+  const removeTag = (tag: string) => {
+    set("tags", form.tags.filter((t) => t !== tag));
+  };
 
   const handleSave = async () => {
     if (!form.name.trim() || !form.sku.trim() || form.price < 0) return;
@@ -138,9 +151,7 @@ export function ProductEditor({
       const created = await create.mutateAsync(payload);
       productId = created.id;
     }
-    // Save fitment mappings
     await saveProductFitment(productId, fitmentModelIds);
-    // Save gallery images
     await supabase.from("product_images").delete().eq("product_id", productId);
     if (galleryImages.length > 0) {
       const rows = galleryImages.map((url, i) => ({
@@ -172,8 +183,8 @@ export function ProductEditor({
       onDelete={isEdit ? handleDelete : undefined}
       deleteLabel="Delete product"
     >
-      {/* Identity */}
-      <Section title="Identity">
+      {/* ── General ── */}
+      <CollapsibleSection title="General" defaultOpen>
         <Field label="Name" required>
           <Input value={form.name} onChange={(e) => set("name", e.target.value)} />
         </Field>
@@ -199,10 +210,10 @@ export function ProductEditor({
             onChange={(e) => set("description", e.target.value || null)}
           />
         </Field>
-      </Section>
+      </CollapsibleSection>
 
-      {/* Classification */}
-      <Section title="Classification">
+      {/* ── Classification ── */}
+      <CollapsibleSection title="Classification" defaultOpen>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Brand">
             <SelectField
@@ -235,10 +246,10 @@ export function ProductEditor({
             </SelectContent>
           </Select>
         </Field>
-      </Section>
+      </CollapsibleSection>
 
-      {/* Pricing & stock */}
-      <Section title="Pricing & stock">
+      {/* ── Pricing & Stock ── */}
+      <CollapsibleSection title="Pricing & Stock" defaultOpen>
         <div className="grid grid-cols-3 gap-3">
           <Field label="MRP (₹)" required>
             <Input
@@ -266,7 +277,7 @@ export function ProductEditor({
           </Field>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <Field label="Selling Price (₹)" hint="Legacy / fallback price">
+          <Field label="Selling Price (₹)" hint="Legacy / fallback">
             <Input
               type="number"
               min={0}
@@ -283,6 +294,10 @@ export function ProductEditor({
             />
           </Field>
         </div>
+      </CollapsibleSection>
+
+      {/* ── Specifications ── */}
+      <CollapsibleSection title="Specifications">
         <div className="grid grid-cols-2 gap-3">
           <Field label="Capacity (Ah)">
             <Input
@@ -303,36 +318,28 @@ export function ProductEditor({
             />
           </Field>
         </div>
-      </Section>
+      </CollapsibleSection>
 
-      {/* Media */}
-      <Section title="Media">
+      {/* ── Media ── */}
+      <CollapsibleSection title="Media" defaultOpen>
         <ProductMediaSection
           featuredImage={form.primary_image_url}
           onFeaturedChange={(url) => set("primary_image_url", url)}
           galleryImages={galleryImages}
           onGalleryChange={setGalleryImages}
         />
-      </Section>
+      </CollapsibleSection>
 
-      {/* Flags */}
-      <Section title="Visibility flags">
-        <FlagRow
-          label="Featured"
-          value={form.is_featured}
-          onChange={(v) => set("is_featured", v)}
-        />
-        <FlagRow
-          label="Bestseller"
-          value={form.is_bestseller}
-          onChange={(v) => set("is_bestseller", v)}
-        />
+      {/* ── Visibility Flags ── */}
+      <CollapsibleSection title="Visibility Flags">
+        <FlagRow label="Featured" value={form.is_featured} onChange={(v) => set("is_featured", v)} />
+        <FlagRow label="Bestseller" value={form.is_bestseller} onChange={(v) => set("is_bestseller", v)} />
         <FlagRow label="New" value={form.is_new} onChange={(v) => set("is_new", v)} />
         <FlagRow label="On sale" value={form.is_on_sale} onChange={(v) => set("is_on_sale", v)} />
-      </Section>
+      </CollapsibleSection>
 
-      {/* Exchange */}
-      <Section title="Battery exchange">
+      {/* ── Battery Exchange ── */}
+      <CollapsibleSection title="Battery Exchange">
         <FlagRow
           label="Exchange available"
           value={form.has_exchange}
@@ -346,27 +353,108 @@ export function ProductEditor({
             onChange={(e) => set("exchange_rebate", Number(e.target.value) || 0)}
           />
         </Field>
-      </Section>
+      </CollapsibleSection>
 
-      {/* Car Fitment */}
-      <Section title="Car Fitment">
+      {/* ── Tags ── */}
+      <CollapsibleSection title="Tags">
+        <Field label="Product tags" hint="Press Enter or comma to add a tag">
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {form.tags.map((tag) => (
+              <Badge key={tag} variant="secondary" className="gap-1 pr-1">
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => removeTag(tag)}
+                  className="ml-0.5 rounded-full hover:bg-muted-foreground/20 p-0.5"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+          <Input
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            placeholder="Type and press Enter…"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === ",") {
+                e.preventDefault();
+                addTag(tagInput);
+              }
+            }}
+          />
+        </Field>
+      </CollapsibleSection>
+
+      {/* ── SEO ── */}
+      <CollapsibleSection title="SEO">
+        <Field label="Meta title" hint="Max 60 characters recommended">
+          <Input
+            value={form.meta_title ?? ""}
+            maxLength={70}
+            onChange={(e) => set("meta_title", e.target.value || null)}
+          />
+          <p className="text-[10px] text-muted-foreground text-right">
+            {(form.meta_title ?? "").length}/60
+          </p>
+        </Field>
+        <Field label="Meta description" hint="Max 160 characters recommended">
+          <Textarea
+            rows={2}
+            value={form.meta_description ?? ""}
+            maxLength={170}
+            onChange={(e) => set("meta_description", e.target.value || null)}
+          />
+          <p className="text-[10px] text-muted-foreground text-right">
+            {(form.meta_description ?? "").length}/160
+          </p>
+        </Field>
+        <Field label="Meta keywords" hint="Comma-separated keywords">
+          <Input
+            value={form.meta_keywords ?? ""}
+            onChange={(e) => set("meta_keywords", e.target.value || null)}
+            placeholder="battery, car battery, amaron…"
+          />
+        </Field>
+      </CollapsibleSection>
+
+      {/* ── Car Fitment ── */}
+      <CollapsibleSection title="Car Fitment">
         <FitmentEditor
           selectedModelIds={fitmentModelIds}
           onChange={setFitmentModelIds}
         />
-      </Section>
+      </CollapsibleSection>
     </EntityDrawer>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+/* ── Helper components ── */
+
+function CollapsibleSection({
+  title,
+  defaultOpen = false,
+  children,
+}: {
+  title: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="space-y-3">
-      <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-        {title}
-      </h3>
-      {children}
-    </div>
+    <Collapsible open={open} onOpenChange={setOpen} className="border rounded-lg">
+      <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-2.5 hover:bg-muted/50 transition-colors">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {title}
+        </h3>
+        <ChevronDown
+          className={`h-4 w-4 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="px-4 pb-4 space-y-3">
+        {children}
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 

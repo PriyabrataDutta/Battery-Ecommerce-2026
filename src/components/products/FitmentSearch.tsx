@@ -59,9 +59,9 @@ export function FitmentSearch({ embedded = false }: { embedded?: boolean }) {
 
   return (
     <div className={embedded ? "" : "container-x"}>
-      <div className={embedded ? "" : "bg-white border border-line shadow-elevated"}>
+      <div className={embedded ? "" : "bg-white border border-line shadow-elevated rounded-lg overflow-hidden"}>
         {/* Tabs */}
-        <div className={`flex ${embedded ? "border border-line" : "border-b border-line"}`}>
+        <div className={`flex ${embedded ? "border border-line rounded-md overflow-hidden" : "border-b border-line"}`}>
           <button
             onClick={() => setTab("car")}
             className={`flex-1 ${embedded ? "px-2 py-2.5 text-[11px]" : "sm:flex-none px-6 py-3.5 text-sm"} font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors ${

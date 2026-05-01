@@ -244,11 +244,11 @@ export function Header() {
               asChild
               variant="ghost"
               size="sm"
-              className="inline-flex h-10 px-2 sm:px-3 gap-1.5 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              className="inline-flex h-11 sm:h-10 w-11 sm:w-auto px-0 sm:px-3 gap-1.5 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               <Link to="/auth" aria-label="Login or sign up">
                 <span className="hidden sm:inline text-sm font-medium">Login/Signup</span>
-                <UserPlus className="h-4 w-4" />
+                <UserPlus className="h-5 w-5 sm:h-4 sm:w-4" />
               </Link>
             </Button>
           )}

@@ -42,6 +42,25 @@ export function Header() {
     const t = setTimeout(() => setAccountOpen(false), 150);
     setAccountCloseTimer(t);
   };
+  const closeAccountNow = () => {
+    if (accountCloseTimer) {
+      clearTimeout(accountCloseTimer);
+      setAccountCloseTimer(null);
+    }
+    setAccountOpen(false);
+  };
+  const handleAccountKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Escape" && accountOpen) {
+      e.stopPropagation();
+      closeAccountNow();
+    }
+  };
+  const handleAccountBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    // Close when focus leaves the wrapper entirely (keyboard tab-out).
+    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+      closeAccountNow();
+    }
+  };
   const [mobileOpen, setMobileOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);

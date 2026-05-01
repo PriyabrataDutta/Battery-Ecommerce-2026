@@ -99,6 +99,14 @@ function parseBrandsModelsXlsx(file: File): Promise<{ brand: string; model: stri
 }
 
 /* ─── Brands & Models Tab ─── */
+interface ImportPreview {
+  parsed: { brand: string; model: string }[];
+  newBrands: string[];
+  existingBrands: string[];
+  newModels: { brand: string; model: string }[];
+  existingModels: { brand: string; model: string }[];
+}
+
 function BrandsModelsTab() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
@@ -110,6 +118,8 @@ function BrandsModelsTab() {
   const [expandedBrand, setExpandedBrand] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
+  const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
+  const [previewing, setPreviewing] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const { data: brands = [], isLoading: brandsLoading } = useQuery({
@@ -194,29 +204,87 @@ function BrandsModelsTab() {
   });
 
   /* ── bulk import ── */
-  const handleBulkImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  /* ── preview step: parse file & compare with DB ── */
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     e.target.value = "";
-    setShowImportDialog(false);
-    setImporting(true);
+    setPreviewing(true);
 
     try {
       const parsed = await parseBrandsModelsXlsx(file);
       if (!parsed.length) {
         toast.error("No data found in the file");
+        setPreviewing(false);
         return;
       }
 
-      toast.info(`Processing ${parsed.length} rows…`, { duration: 4000 });
-
-      // Collect unique brands
       const uniqueBrands = [...new Set(parsed.map((r) => r.brand))];
 
-      // Fetch existing brands
-      const { data: existingBrands } = await supabase.from("car_brands").select("id, name");
+      const { data: existingBrandsData } = await supabase.from("car_brands").select("id, name");
       const brandMap = new Map<string, string>();
-      for (const b of existingBrands ?? []) brandMap.set(b.name.toLowerCase(), b.id);
+      for (const b of existingBrandsData ?? []) brandMap.set(b.name.toLowerCase(), b.id);
+
+      const newBrands: string[] = [];
+      const existingBrands: string[] = [];
+      for (const name of uniqueBrands) {
+        if (brandMap.has(name.toLowerCase())) {
+          existingBrands.push(name);
+        } else {
+          newBrands.push(name);
+        }
+      }
+
+      const { data: existingModelsData } = await supabase
+        .from("car_models")
+        .select("id, name, car_brand_id");
+      const modelSet = new Set(
+        (existingModelsData ?? []).map((m) => `${m.car_brand_id}|${m.name.toLowerCase()}`)
+      );
+
+      const newModels: { brand: string; model: string }[] = [];
+      const existingModelsArr: { brand: string; model: string }[] = [];
+      const seen = new Set<string>();
+
+      for (const row of parsed) {
+        const dedupKey = `${row.brand.toLowerCase()}|${row.model.toLowerCase()}`;
+        if (seen.has(dedupKey)) continue;
+        seen.add(dedupKey);
+
+        const brandId = brandMap.get(row.brand.toLowerCase());
+        if (brandId) {
+          const key = `${brandId}|${row.model.toLowerCase()}`;
+          if (modelSet.has(key)) {
+            existingModelsArr.push(row);
+          } else {
+            newModels.push(row);
+          }
+        } else {
+          newModels.push(row);
+        }
+      }
+
+      setImportPreview({ parsed, newBrands, existingBrands, newModels, existingModels: existingModelsArr });
+      setShowImportDialog(false);
+    } catch (err: any) {
+      toast.error(`Failed to parse file: ${err.message ?? "Unknown error"}`);
+    } finally {
+      setPreviewing(false);
+    }
+  };
+
+  /* ── confirm import ── */
+  const handleConfirmImport = async () => {
+    if (!importPreview) return;
+    const { parsed } = importPreview;
+    setImportPreview(null);
+    setImporting(true);
+
+    try {
+      const uniqueBrands = [...new Set(parsed.map((r) => r.brand))];
+      const { data: existingBrandsData } = await supabase.from("car_brands").select("id, name");
+      const brandMap = new Map<string, string>();
+      for (const b of existingBrandsData ?? []) brandMap.set(b.name.toLowerCase(), b.id);
 
       let brandsCreated = 0;
       for (const name of uniqueBrands) {
@@ -230,7 +298,6 @@ function BrandsModelsTab() {
           brandMap.set(name.toLowerCase(), ins.id);
           brandsCreated++;
         } else if (error) {
-          // May already exist with slightly different casing
           const { data: ex } = await supabase
             .from("car_brands")
             .select("id")
@@ -240,12 +307,11 @@ function BrandsModelsTab() {
         }
       }
 
-      // Fetch existing models
-      const { data: existingModels } = await supabase
+      const { data: existingModelsData } = await supabase
         .from("car_models")
         .select("id, name, car_brand_id");
       const modelSet = new Set(
-        (existingModels ?? []).map((m) => `${m.car_brand_id}|${m.name.toLowerCase()}`)
+        (existingModelsData ?? []).map((m) => `${m.car_brand_id}|${m.name.toLowerCase()}`)
       );
 
       let modelsCreated = 0;
@@ -265,7 +331,7 @@ function BrandsModelsTab() {
       }
 
       toast.success(
-        `Import complete! ${brandsCreated} new brand${brandsCreated !== 1 ? "s" : ""}, ${modelsCreated} new model${modelsCreated !== 1 ? "s" : ""} added. Duplicates were skipped.`,
+        `Import complete! ${brandsCreated} new brand${brandsCreated !== 1 ? "s" : ""}, ${modelsCreated} new model${modelsCreated !== 1 ? "s" : ""} added.`,
         { duration: 6000 }
       );
       qc.invalidateQueries({ queryKey: ["admin-car-brands"] });
@@ -330,7 +396,7 @@ function BrandsModelsTab() {
             type="file"
             accept=".xlsx,.xls"
             className="hidden"
-            onChange={handleBulkImport}
+            onChange={handleFileSelect}
           />
           <Button
             variant="outline"
@@ -505,17 +571,115 @@ function BrandsModelsTab() {
               <Button
                 className="flex-1"
                 onClick={() => fileRef.current?.click()}
-                disabled={importing}
+                disabled={previewing}
               >
-                {importing ? (
+                {previewing ? (
                   <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
                 ) : (
                   <Upload className="h-4 w-4 mr-1.5" />
                 )}
-                {importing ? "Importing…" : "Choose File & Import"}
+                {previewing ? "Analyzing…" : "Choose File"}
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Import Preview Dialog */}
+      <Dialog open={!!importPreview} onOpenChange={(open) => { if (!open) setImportPreview(null); }}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Import Preview</DialogTitle>
+            <DialogDescription>
+              Review what will be imported before confirming.
+            </DialogDescription>
+          </DialogHeader>
+
+          {importPreview && (
+            <div className="space-y-4">
+              {/* Summary cards */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg border p-3 text-center">
+                  <div className="text-2xl font-bold text-primary">{importPreview.newBrands.length}</div>
+                  <div className="text-xs text-muted-foreground">New Brands</div>
+                </div>
+                <div className="rounded-lg border p-3 text-center">
+                  <div className="text-2xl font-bold text-primary">{importPreview.newModels.length}</div>
+                  <div className="text-xs text-muted-foreground">New Models</div>
+                </div>
+              </div>
+
+              {importPreview.existingBrands.length > 0 && (
+                <div className="text-xs text-muted-foreground">
+                  {importPreview.existingBrands.length} brand{importPreview.existingBrands.length !== 1 ? "s" : ""} already exist and will be skipped.
+                </div>
+              )}
+              {importPreview.existingModels.length > 0 && (
+                <div className="text-xs text-muted-foreground">
+                  {importPreview.existingModels.length} model{importPreview.existingModels.length !== 1 ? "s" : ""} already exist and will be skipped.
+                </div>
+              )}
+
+              {/* New brands list */}
+              {importPreview.newBrands.length > 0 && (
+                <div className="space-y-1.5">
+                  <h4 className="text-sm font-semibold">New Brands</h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {importPreview.newBrands.map((b) => (
+                      <span key={b} className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                        {b}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* New models list */}
+              {importPreview.newModels.length > 0 && (
+                <div className="space-y-1.5">
+                  <h4 className="text-sm font-semibold">New Models</h4>
+                  <div className="rounded border bg-card max-h-48 overflow-y-auto divide-y text-xs">
+                    {importPreview.newModels.slice(0, 100).map((m, i) => (
+                      <div key={i} className="flex px-3 py-1.5">
+                        <span className="text-muted-foreground w-1/3 truncate">{m.brand}</span>
+                        <span className="flex-1">{m.model}</span>
+                      </div>
+                    ))}
+                    {importPreview.newModels.length > 100 && (
+                      <div className="px-3 py-1.5 text-muted-foreground text-center">
+                        …and {importPreview.newModels.length - 100} more
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {importPreview.newBrands.length === 0 && importPreview.newModels.length === 0 && (
+                <div className="text-sm text-muted-foreground text-center py-4">
+                  Everything in this file already exists. Nothing new to import.
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex items-center gap-3 pt-2">
+                <Button variant="outline" className="flex-1" onClick={() => setImportPreview(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={handleConfirmImport}
+                  disabled={importing || (importPreview.newBrands.length === 0 && importPreview.newModels.length === 0)}
+                >
+                  {importing ? (
+                    <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4 mr-1.5" />
+                  )}
+                  {importing ? "Importing…" : "Confirm Import"}
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

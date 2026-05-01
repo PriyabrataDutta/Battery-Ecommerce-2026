@@ -47,6 +47,18 @@ export function ProductEditor({
 }) {
   const isEdit = !!product;
   const [form, setForm] = useState<ProductEditableFields>(EMPTY_PRODUCT);
+  const [fitmentModelIds, setFitmentModelIds] = useState<string[]>([]);
+
+  // Load existing fitment when editing
+  const { data: existingFitment } = useQuery({
+    queryKey: ["product_fitment", product?.id],
+    queryFn: () => getProductFitmentModelIds(product!.id),
+    enabled: !!product?.id && open,
+  });
+
+  useEffect(() => {
+    if (existingFitment) setFitmentModelIds(existingFitment);
+  }, [existingFitment]);
 
   useEffect(() => {
     if (!open) return;

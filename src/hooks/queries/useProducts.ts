@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import * as productsApi from "@/api/products";
-import { listProductImages } from "@/api/productImages";
 import { qk } from "./keys";
 
 export const useProducts = (opts?: productsApi.ListProductsOptions) =>
@@ -9,11 +8,16 @@ export const useProducts = (opts?: productsApi.ListProductsOptions) =>
     queryFn: () => productsApi.listProducts(opts),
   });
 
+/**
+ * Single product by slug — includes brand, category, AND images in one query.
+ * Cached for 5 minutes so back-navigation is instant.
+ */
 export const useProductBySlug = (slug: string | undefined) =>
   useQuery({
     queryKey: qk.products.bySlug(slug),
     queryFn: () => productsApi.getProductBySlug(slug!),
     enabled: !!slug,
+    staleTime: 5 * 60_000,
   });
 
 export const useRelatedProducts = (
@@ -24,11 +28,5 @@ export const useRelatedProducts = (
     queryKey: qk.products.related(brandId ?? undefined, excludeId),
     queryFn: () => productsApi.getRelatedProducts(brandId!, excludeId!),
     enabled: !!brandId && !!excludeId,
-  });
-
-export const useProductImages = (productId: string | undefined) =>
-  useQuery({
-    queryKey: qk.products.images(productId),
-    queryFn: () => listProductImages(productId!),
-    enabled: !!productId,
+    staleTime: 5 * 60_000,
   });

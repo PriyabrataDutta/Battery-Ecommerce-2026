@@ -13,6 +13,8 @@ const Shop = () => {
   const carModelSlug = params.get("car_model");
   const carBrandSlug = params.get("car_brand");
   const brandSlug = params.get("battery_brand");
+  const minPriceParam = params.get("min_price");
+  const maxPriceParam = params.get("max_price");
 
   // Resolve free-text q to a brand or car model so searches like "amaron" or "baleno" return useful results
   const { data: qResolved } = useQuery({
@@ -84,15 +86,34 @@ const Shop = () => {
     },
   });
 
-  // Products after car/category filters but BEFORE battery brand filter — used to count by battery brand
+  // Full price bounds across all products in current category/search (ignores price filter)
+  const priceBounds = useMemo(() => {
+    if (products.length === 0) return { min: 0, max: 0 };
+    let min = Infinity, max = -Infinity;
+    for (const p of products) {
+      const v = Number(p.price) || 0;
+      if (v < min) min = v;
+      if (v > max) max = v;
+    }
+    return { min: Math.floor(min), max: Math.ceil(max) };
+  }, [products]);
+
+  const minPrice = minPriceParam !== null ? Number(minPriceParam) : priceBounds.min;
+  const maxPrice = maxPriceParam !== null ? Number(maxPriceParam) : priceBounds.max;
+
+  // Products after car/category/price filters but BEFORE battery brand filter — used to count by battery brand
   const preBrandFiltered = useMemo(() => {
     let list = products;
     const useFitment = !!carModelSlug || !!qResolved?.carModelId || !!carBrandSlug;
     if (useFitment && fitmentProductIds) {
       list = list.filter((p) => fitmentProductIds.includes(p.id));
     }
+    list = list.filter((p) => {
+      const v = Number(p.price) || 0;
+      return v >= minPrice && v <= maxPrice;
+    });
     return list;
-  }, [products, carModelSlug, qResolved?.carModelId, carBrandSlug, fitmentProductIds]);
+  }, [products, carModelSlug, qResolved?.carModelId, carBrandSlug, fitmentProductIds, minPrice, maxPrice]);
 
   const filtered = useMemo(() => {
     if (!effectiveBrand) return preBrandFiltered;
@@ -125,13 +146,13 @@ const Shop = () => {
               <span className="text-primary text-base group-open:rotate-45 transition-transform">+</span>
             </summary>
             <div className="px-4 pb-4">
-              <ShopFilters counts={counts} />
+              <ShopFilters counts={counts} priceBounds={priceBounds} />
             </div>
           </details>
 
           <div className="hidden lg:block bg-white border border-line p-5">
             <h3 className="font-display font-bold text-sm uppercase tracking-wider mb-4">Filters</h3>
-            <ShopFilters counts={counts} />
+            <ShopFilters counts={counts} priceBounds={priceBounds} />
           </div>
         </aside>
         <div>

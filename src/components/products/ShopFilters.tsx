@@ -1,9 +1,10 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import { X } from "lucide-react";
 import type { CarBrand, CarModel, BatteryBrand } from "@/types/catalog";
 
@@ -14,11 +15,12 @@ type Counts = {
 
 interface Props {
   counts?: Counts;
+  priceBounds?: { min: number; max: number };
 }
 
 const ALL = "__all__";
 
-export function ShopFilters({ counts }: Props) {
+export function ShopFilters({ counts, priceBounds }: Props) {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -90,7 +92,34 @@ export function ShopFilters({ counts }: Props) {
     update({ battery_brand: slug });
   };
 
-  const hasAny = !!(carBrandSlug || carModelSlug || batteryBrandSlug);
+  // Price range slider — local state for smooth dragging, URL update on commit
+  const minBound = priceBounds?.min ?? 0;
+  const maxBound = priceBounds?.max ?? 0;
+  const minPriceParam = params.get("min_price");
+  const maxPriceParam = params.get("max_price");
+  const urlMin = minPriceParam !== null ? Number(minPriceParam) : minBound;
+  const urlMax = maxPriceParam !== null ? Number(maxPriceParam) : maxBound;
+
+  const [range, setRange] = useState<[number, number]>([urlMin, urlMax]);
+  // Sync local state when URL or bounds change externally
+  useEffect(() => {
+    setRange([urlMin, urlMax]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlMin, urlMax, minBound, maxBound]);
+
+  const commitPrice = (vals: [number, number]) => {
+    const [lo, hi] = vals;
+    const p = new URLSearchParams(params);
+    if (lo > minBound) p.set("min_price", String(lo)); else p.delete("min_price");
+    if (hi < maxBound) p.set("max_price", String(hi)); else p.delete("max_price");
+    setParams(p, { replace: true });
+  };
+
+  const priceActive = urlMin !== minBound || urlMax !== maxBound;
+  const hasAny = !!(carBrandSlug || carModelSlug || batteryBrandSlug || priceActive);
+
+  const fmt = (n: number) =>
+    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
 
   return (
     <div className="space-y-5">
@@ -135,6 +164,41 @@ export function ShopFilters({ counts }: Props) {
           </SelectContent>
         </Select>
       </div>
+
+      {priceBounds && maxBound > minBound && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-display font-bold text-xs uppercase tracking-wider text-muted-foreground">
+              Price Range
+            </h3>
+            {priceActive && (
+              <button
+                type="button"
+                onClick={() => update({ min_price: null, max_price: null })}
+                className="text-[11px] text-primary hover:underline"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+          <Slider
+            min={minBound}
+            max={maxBound}
+            step={Math.max(1, Math.round((maxBound - minBound) / 100))}
+            value={range}
+            onValueChange={(v) => {
+              const next: [number, number] = [v[0], v[1]];
+              setRange(next);
+              commitPrice(next);
+            }}
+            className="my-3"
+          />
+          <div className="flex items-center justify-between text-xs text-ink font-medium">
+            <span>{fmt(range[0])}</span>
+            <span>{fmt(range[1])}</span>
+          </div>
+        </div>
+      )}
 
       <div>
         <h3 className="font-display font-bold text-xs uppercase tracking-wider mb-2 text-muted-foreground">

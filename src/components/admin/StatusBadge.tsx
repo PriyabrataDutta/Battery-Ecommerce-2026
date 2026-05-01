@@ -10,7 +10,10 @@ const tones: Record<string, string> = {
   refunded: "bg-slate-100 text-slate-800 border-slate-200",
   // request_status
   new: "bg-sky-100 text-sky-800 border-sky-200",
+  reviewed: "bg-violet-100 text-violet-800 border-violet-200",
+  quoted: "bg-amber-100 text-amber-800 border-amber-200",
   contacted: "bg-violet-100 text-violet-800 border-violet-200",
+  in_progress: "bg-blue-100 text-blue-800 border-blue-200",
   closed: "bg-slate-100 text-slate-700 border-slate-200",
   // product status
   active: "bg-emerald-100 text-emerald-800 border-emerald-200",

@@ -11,8 +11,9 @@ export function AdminPlaceholder({ title, description }: { title: string; descri
   );
 }
 
-export const AdminProducts = () => <AdminPlaceholder title="Products" />;
-export const AdminOrders = () => <AdminPlaceholder title="Orders" />;
+// AdminProducts and AdminOrders are now real feature folders:
+//   src/pages/admin/products/  and  src/pages/admin/orders/
+// The other panels below are still placeholders awaiting build-out.
 export const AdminUsers = () => <AdminPlaceholder title="Users" />;
 export const AdminBrands = () => <AdminPlaceholder title="Brands" />;
 export const AdminCategories = () => <AdminPlaceholder title="Categories" />;

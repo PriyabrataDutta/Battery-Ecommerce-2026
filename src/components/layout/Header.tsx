@@ -6,6 +6,7 @@ import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { SmartSearch } from "@/components/search/SmartSearch";
+import { CartDrawer } from "@/components/cart/CartDrawer";
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -8,7 +8,6 @@ const AccountOrders = () => {
   const { user } = useAuth();
   const { data: orders, isLoading } = useMyOrders(user?.id);
 
-
   return (
     <div className="bg-white border border-line">
       <div className="p-5 border-b border-line flex items-center gap-2">
@@ -16,7 +15,7 @@ const AccountOrders = () => {
         <h2 className="font-display font-bold uppercase tracking-wide text-sm">Order history</h2>
       </div>
 
-      {orders === null ? (
+      {isLoading || !orders ? (
         <p className="p-6 text-sm text-muted-foreground">Loading orders…</p>
       ) : orders.length === 0 ? (
         <p className="p-6 text-sm text-muted-foreground">

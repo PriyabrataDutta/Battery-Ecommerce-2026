@@ -69,6 +69,7 @@ const AdminProducts = () => {
         state={filters}
         onChange={setFilters}
         onCreate={openCreate}
+        onMapFitment={() => setFitmentOpen(true)}
         brands={brandsQuery.data ?? []}
         categories={categoriesQuery.data ?? []}
         count={productsQuery.data?.length ?? 0}

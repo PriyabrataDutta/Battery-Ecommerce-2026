@@ -127,12 +127,13 @@ export function Header() {
 
         <SmartSearch className="hidden md:flex flex-1 min-w-0 items-center" />
 
-        <div className="ml-auto flex flex-shrink-0 flex-nowrap items-center gap-1 sm:gap-1.5 lg:gap-2 whitespace-nowrap">
-          {/* Shared icon button styling: gray (muted) hover bg, red (primary) icon on hover, 2px primary focus ring with offset */}
+        <div className="ml-auto -mr-1 sm:mr-0 flex flex-shrink-0 flex-nowrap items-center gap-0.5 sm:gap-1.5 lg:gap-2 whitespace-nowrap">
+          {/* Shared icon button styling: gray (muted) hover bg, red (primary) icon on hover, 2px primary focus ring with offset.
+              Mobile uses 44px tap targets per WCAG; desktop uses tighter 40px. */}
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden h-10 w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="md:hidden h-11 w-11 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             onClick={() => setMobileSearchOpen(true)}
             aria-label="Search"
           >
@@ -142,7 +143,7 @@ export function Header() {
             asChild
             variant="ghost"
             size="icon"
-            className="relative h-10 w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="relative h-11 w-11 sm:h-10 sm:w-10 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             <Link
               to="/cart"

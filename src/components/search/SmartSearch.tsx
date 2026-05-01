@@ -174,7 +174,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
       case "car_model": path = `/shop?type=car-batteries&car_model=${s.slug}`; break;
       case "product": path = `/product/${s.slug}`; break;
     }
-    pushRecent({ label: s.label, path, sublabel, kind: s.kind });
+    pushRecent({ label: s.label, path, sublabel, kind: s.kind, productType: inferProductType(path, s.kind) });
     return go(path);
   };
 
@@ -192,7 +192,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
     }
     if (term.trim()) {
       const path = `/search?q=${encodeURIComponent(term.trim())}`;
-      pushRecent({ label: term.trim(), path, sublabel: "Search", kind: "query" });
+      pushRecent({ label: term.trim(), path, sublabel: "Search", kind: "query", productType: "other" });
       go(path);
     }
   };

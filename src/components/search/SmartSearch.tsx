@@ -117,7 +117,15 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
     e.preventDefault();
     if (activeIdx >= 0 && suggestions[activeIdx]) {
       pick(suggestions[activeIdx]);
-    } else if (term.trim()) {
+      return;
+    }
+    // Smart Enter: jump straight to the best match (brand / car model / category / product) instead of a generic search page.
+    const best = suggestions[0];
+    if (best) {
+      pick(best);
+      return;
+    }
+    if (term.trim()) {
       go(`/shop?q=${encodeURIComponent(term.trim())}`);
     }
   };

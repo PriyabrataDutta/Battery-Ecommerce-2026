@@ -322,13 +322,23 @@ function BrandsModelsTab() {
     }
   };
 
-  /* ── confirm import with progress & retry ── */
-  const handleConfirmImport = useCallback(async () => {
+  /* ── confirm import with progress & per-row retry ── */
+  const handleConfirmImport = useCallback(async (retryOnly = false) => {
     if (!importPreview) return;
     const { parsed } = importPreview;
     const isStrict = importMode === "strict";
     setImporting(true);
-    const initProgress: ImportProgress = { phase: "brands", current: 0, total: 0, brandsCreated: 0, brandsUpdated: 0, modelsCreated: 0, modelsUpdated: 0 };
+
+    const prevProgress = retryOnly ? importProgress : null;
+    const initProgress: ImportProgress = {
+      phase: "brands", current: 0, total: 0,
+      brandsCreated: prevProgress?.brandsCreated ?? 0,
+      brandsUpdated: prevProgress?.brandsUpdated ?? 0,
+      modelsCreated: prevProgress?.modelsCreated ?? 0,
+      modelsUpdated: prevProgress?.modelsUpdated ?? 0,
+      failedBrands: [],
+      failedModels: [],
+    };
     setImportProgress(initProgress);
 
     try {
@@ -342,55 +352,70 @@ function BrandsModelsTab() {
         brandSlugMap.set(b.slug, { id: b.id, name: b.name });
       }
 
-      const brandsToProcess = isStrict ? uniqueBrands : uniqueBrands.filter((n) => !brandMap.has(n.toLowerCase()));
-      let brandsCreated = 0;
-      let brandsUpdated = 0;
+      // Determine which brands to process
+      let brandsToProcess: string[];
+      if (retryOnly && prevProgress?.failedBrands.length) {
+        brandsToProcess = prevProgress.failedBrands.map((fb) => fb.name);
+      } else if (retryOnly) {
+        brandsToProcess = []; // no brand failures to retry
+      } else {
+        brandsToProcess = isStrict ? uniqueBrands : uniqueBrands.filter((n) => !brandMap.has(n.toLowerCase()));
+      }
 
-      setImportProgress({ ...initProgress, total: brandsToProcess.length });
+      let brandsCreated = initProgress.brandsCreated;
+      let brandsUpdated = initProgress.brandsUpdated;
+      const failedBrands: FailedBrand[] = [];
+
+      setImportProgress((p) => p ? { ...p, total: brandsToProcess.length } : p);
 
       for (let i = 0; i < brandsToProcess.length; i++) {
         const name = brandsToProcess[i];
         const slug = slugify(name);
 
-        if (isStrict) {
-          const existing = brandSlugMap.get(slug);
-          if (existing) {
-            // Update name if it differs (e.g. casing fix)
-            if (existing.name !== name) {
-              await supabase.from("car_brands").update({ name }).eq("id", existing.id);
-              brandsUpdated++;
+        try {
+          if (isStrict) {
+            const existing = brandSlugMap.get(slug);
+            if (existing) {
+              if (existing.name !== name) {
+                const { error } = await supabase.from("car_brands").update({ name }).eq("id", existing.id);
+                if (error) throw error;
+                brandsUpdated++;
+              }
+              brandMap.set(name.toLowerCase(), existing.id);
+            } else {
+              const { data: ins, error } = await supabase
+                .from("car_brands")
+                .insert({ name, slug })
+                .select("id")
+                .single();
+              if (error) throw error;
+              if (ins) {
+                brandMap.set(name.toLowerCase(), ins.id);
+                brandsCreated++;
+              }
             }
-            brandMap.set(name.toLowerCase(), existing.id);
           } else {
-            const { data: ins } = await supabase
-              .from("car_brands")
-              .insert({ name, slug })
-              .select("id")
-              .single();
-            if (ins) {
-              brandMap.set(name.toLowerCase(), ins.id);
-              brandsCreated++;
+            if (!brandMap.has(name.toLowerCase())) {
+              const { data: ins, error } = await supabase
+                .from("car_brands")
+                .insert({ name, slug })
+                .select("id")
+                .single();
+              if (error) {
+                // Try to find it in case of race/duplicate
+                const { data: ex } = await supabase.from("car_brands").select("id").ilike("name", name).maybeSingle();
+                if (ex) brandMap.set(name.toLowerCase(), ex.id);
+                else throw error;
+              } else if (ins) {
+                brandMap.set(name.toLowerCase(), ins.id);
+                brandsCreated++;
+              }
             }
           }
-        } else {
-          // Append mode — only create new
-          if (brandMap.has(name.toLowerCase())) { /* skip */ }
-          else {
-            const { data: ins, error } = await supabase
-              .from("car_brands")
-              .insert({ name, slug })
-              .select("id")
-              .single();
-            if (ins) {
-              brandMap.set(name.toLowerCase(), ins.id);
-              brandsCreated++;
-            } else if (error) {
-              const { data: ex } = await supabase.from("car_brands").select("id").ilike("name", name).maybeSingle();
-              if (ex) brandMap.set(name.toLowerCase(), ex.id);
-            }
-          }
+        } catch (err: any) {
+          failedBrands.push({ name, error: err.message ?? "Unknown error" });
         }
-        setImportProgress((p) => p ? { ...p, current: i + 1, brandsCreated, brandsUpdated } : p);
+        setImportProgress((p) => p ? { ...p, current: i + 1, brandsCreated, brandsUpdated, failedBrands: [...failedBrands] } : p);
       }
 
       // --- Phase 2: Models ---
@@ -402,69 +427,98 @@ function BrandsModelsTab() {
         modelKeyMap.set(`${m.car_brand_id}|${m.slug}`, { id: m.id, name: m.name });
       }
 
-      // Deduplicate
-      const modelsToProcess: { brand: string; model: string }[] = [];
-      const seen = new Set<string>();
-      for (const row of parsed) {
-        const brandId = brandMap.get(row.brand.toLowerCase());
-        if (!brandId) continue;
-        const slug = slugify(row.model);
-        const key = `${brandId}|${slug}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-
-        if (isStrict) {
-          modelsToProcess.push(row);
-        } else {
-          if (!modelKeyMap.has(key)) modelsToProcess.push(row);
+      // Determine which models to process
+      let modelsToProcess: { brand: string; model: string }[];
+      if (retryOnly && prevProgress?.failedModels.length) {
+        modelsToProcess = prevProgress.failedModels.map((fm) => ({ brand: fm.brand, model: fm.model }));
+      } else if (retryOnly) {
+        modelsToProcess = [];
+      } else {
+        const seen = new Set<string>();
+        modelsToProcess = [];
+        for (const row of parsed) {
+          const brandId = brandMap.get(row.brand.toLowerCase());
+          if (!brandId) continue;
+          const slug = slugify(row.model);
+          const key = `${brandId}|${slug}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          if (isStrict) {
+            modelsToProcess.push(row);
+          } else {
+            if (!modelKeyMap.has(key)) modelsToProcess.push(row);
+          }
         }
       }
 
-      let modelsCreated = 0;
-      let modelsUpdated = 0;
-      setImportProgress({ phase: "models", current: 0, total: modelsToProcess.length, brandsCreated, brandsUpdated, modelsCreated: 0, modelsUpdated: 0 });
+      let modelsCreated = initProgress.modelsCreated;
+      let modelsUpdated = initProgress.modelsUpdated;
+      const failedModels: FailedModel[] = [];
+      setImportProgress((p) => p ? { ...p, phase: "models", current: 0, total: modelsToProcess.length, failedBrands: [...failedBrands] } : p);
 
       for (let i = 0; i < modelsToProcess.length; i++) {
         const row = modelsToProcess[i];
         const brandId = brandMap.get(row.brand.toLowerCase());
-        if (!brandId) continue;
+        if (!brandId) {
+          failedModels.push({ brand: row.brand, model: row.model, error: `Brand "${row.brand}" not found` });
+          setImportProgress((p) => p ? { ...p, current: i + 1, modelsCreated, modelsUpdated, failedModels: [...failedModels] } : p);
+          continue;
+        }
         const slug = slugify(row.model);
         const key = `${brandId}|${slug}`;
 
-        if (isStrict) {
-          const existing = modelKeyMap.get(key);
-          if (existing) {
-            if (existing.name !== row.model) {
-              await supabase.from("car_models").update({ name: row.model }).eq("id", existing.id);
-              modelsUpdated++;
+        try {
+          if (isStrict) {
+            const existing = modelKeyMap.get(key);
+            if (existing) {
+              if (existing.name !== row.model) {
+                const { error } = await supabase.from("car_models").update({ name: row.model }).eq("id", existing.id);
+                if (error) throw error;
+                modelsUpdated++;
+              }
+            } else {
+              const { error } = await supabase
+                .from("car_models")
+                .insert({ name: row.model, slug, car_brand_id: brandId });
+              if (error) throw error;
+              modelsCreated++;
             }
           } else {
             const { error } = await supabase
               .from("car_models")
               .insert({ name: row.model, slug, car_brand_id: brandId });
-            if (!error) modelsCreated++;
+            if (error) throw error;
+            modelsCreated++;
           }
-        } else {
-          const { error } = await supabase
-            .from("car_models")
-            .insert({ name: row.model, slug, car_brand_id: brandId });
-          if (!error) modelsCreated++;
+        } catch (err: any) {
+          failedModels.push({ brand: row.brand, model: row.model, error: err.message ?? "Unknown error" });
         }
-        setImportProgress((p) => p ? { ...p, current: i + 1, modelsCreated, modelsUpdated } : p);
+        setImportProgress((p) => p ? { ...p, current: i + 1, modelsCreated, modelsUpdated, failedModels: [...failedModels] } : p);
       }
 
+      const totalFailed = failedBrands.length + failedModels.length;
       const parts: string[] = [];
       if (brandsCreated) parts.push(`${brandsCreated} brand${brandsCreated !== 1 ? "s" : ""} added`);
       if (brandsUpdated) parts.push(`${brandsUpdated} brand${brandsUpdated !== 1 ? "s" : ""} updated`);
       if (modelsCreated) parts.push(`${modelsCreated} model${modelsCreated !== 1 ? "s" : ""} added`);
       if (modelsUpdated) parts.push(`${modelsUpdated} model${modelsUpdated !== 1 ? "s" : ""} updated`);
 
-      toast.success(
-        parts.length ? `Import complete! ${parts.join(", ")}.` : "Import complete — everything was already up to date.",
-        { duration: 6000 }
-      );
-      setImportPreview(null);
-      setImportProgress(null);
+      if (totalFailed > 0) {
+        setImportProgress((p) => p ? {
+          ...p,
+          failedBrands: [...failedBrands],
+          failedModels: [...failedModels],
+          error: `${totalFailed} item${totalFailed !== 1 ? "s" : ""} failed. You can retry just the failed items.`,
+        } : p);
+        if (parts.length) toast.info(`Partial import: ${parts.join(", ")}. ${totalFailed} failed.`, { duration: 6000 });
+      } else {
+        toast.success(
+          parts.length ? `Import complete! ${parts.join(", ")}.` : "Import complete — everything was already up to date.",
+          { duration: 6000 }
+        );
+        setImportPreview(null);
+        setImportProgress(null);
+      }
       qc.invalidateQueries({ queryKey: ["admin-car-brands"] });
       qc.invalidateQueries({ queryKey: ["admin-car-models"] });
     } catch (err: any) {
@@ -473,7 +527,7 @@ function BrandsModelsTab() {
     } finally {
       setImporting(false);
     }
-  }, [importPreview, importMode, qc]);
+  }, [importPreview, importMode, importProgress, qc]);
 
   /* ── export (same format as example file so round-trip works) ── */
   const handleExport = () => {

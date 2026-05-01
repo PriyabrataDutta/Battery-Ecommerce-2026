@@ -948,6 +948,7 @@ export type Database = {
         }
         Returns: string
       }
+      admin_dashboard_summary: { Args: never; Returns: Json }
       admin_list_users: {
         Args: never
         Returns: {

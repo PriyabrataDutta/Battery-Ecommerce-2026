@@ -58,7 +58,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
       customer_name: input.customer.name,
       customer_email: input.customer.email,
       customer_phone: input.customer.phone,
-      address: input.address,
+      address: input.address as never,
       notes: input.notes,
       subtotal: input.subtotal,
       discount: input.discount,
@@ -74,7 +74,7 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
       scheduled_slot: input.scheduledSlot,
       scheduled_slot_label: input.scheduledSlotLabel,
       scheduled_slot_window: input.scheduledSlotWindow,
-    })
+    }])
     .select("id, order_number")
     .single();
 

@@ -424,6 +424,7 @@ export type Database = {
         Row: {
           alt_text: string | null
           bucket: string
+          checksum: string | null
           content_type: string | null
           created_at: string
           file_name: string
@@ -436,6 +437,7 @@ export type Database = {
         Insert: {
           alt_text?: string | null
           bucket?: string
+          checksum?: string | null
           content_type?: string | null
           created_at?: string
           file_name: string
@@ -448,6 +450,7 @@ export type Database = {
         Update: {
           alt_text?: string | null
           bucket?: string
+          checksum?: string | null
           content_type?: string | null
           created_at?: string
           file_name?: string

@@ -165,6 +165,38 @@ export function ShopFilters({ counts, priceBounds }: Props) {
         </Select>
       </div>
 
+      {priceBounds && maxBound > minBound && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-display font-bold text-xs uppercase tracking-wider text-muted-foreground">
+              Price Range
+            </h3>
+            {priceActive && (
+              <button
+                type="button"
+                onClick={() => update({ min_price: null, max_price: null })}
+                className="text-[11px] text-primary hover:underline"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+          <Slider
+            min={minBound}
+            max={maxBound}
+            step={Math.max(1, Math.round((maxBound - minBound) / 100))}
+            value={range}
+            onValueChange={(v) => setRange([v[0], v[1]] as [number, number])}
+            onValueCommit={commitPrice}
+            className="my-3"
+          />
+          <div className="flex items-center justify-between text-xs text-ink font-medium">
+            <span>{fmt(range[0])}</span>
+            <span>{fmt(range[1])}</span>
+          </div>
+        </div>
+      )}
+
       <div>
         <h3 className="font-display font-bold text-xs uppercase tracking-wider mb-2 text-muted-foreground">
           Battery Brand

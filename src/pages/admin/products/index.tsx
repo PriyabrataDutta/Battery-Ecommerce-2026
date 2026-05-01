@@ -87,6 +87,7 @@ const AdminProducts = () => {
         brands={brandsQuery.data ?? []}
         categories={categoriesQuery.data ?? []}
       />
+      <BulkFitmentDialog open={fitmentOpen} onOpenChange={setFitmentOpen} />
     </div>
   );
 };

@@ -25,14 +25,12 @@ import Dashboard from "@/pages/admin/Dashboard";
 import AuditLog from "@/pages/admin/AuditLog";
 import AdminProducts from "@/pages/admin/products";
 import AdminOrders from "@/pages/admin/orders";
-import {
-  AdminUsers,
-  AdminBrands,
-  AdminCategories,
-  AdminQuotes,
-  AdminMessages,
-  AdminSettings,
-} from "@/pages/admin/Placeholder";
+import AdminBrands from "@/pages/admin/brands";
+import AdminCategories from "@/pages/admin/categories";
+import AdminUsers from "@/pages/admin/users";
+import AdminQuotes from "@/pages/admin/quotes";
+import AdminMessages from "@/pages/admin/messages";
+import AdminSettings from "@/pages/admin/settings";
 
 const titleMap: Record<AdminTab, string> = {
   dashboard: "Sales Dashboard",

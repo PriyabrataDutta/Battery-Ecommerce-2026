@@ -15,10 +15,10 @@ import type { Product } from "@/types/catalog";
  * directly. See `src/api/README.md` for the convention.
  */
 
-export interface AdminProductRow extends Product {
+export type AdminProductRow = Omit<Product, "battery_brands" | "categories"> & {
   battery_brands: { id: string; name: string; slug: string } | null;
   categories: { id: string; name: string; slug: string } | null;
-}
+};
 
 export interface ListAdminProductsOptions {
   search?: string;

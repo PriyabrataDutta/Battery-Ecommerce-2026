@@ -67,8 +67,10 @@ export interface ProductEditableFields {
   sku: string;
   brand_id: string | null;
   category_id: string | null;
-  price: number;
   mrp: number | null;
+  price_with_exchange: number;
+  price_without_exchange: number;
+  price: number;
   stock: number;
   capacity_ah: number | null;
   warranty_months: number | null;

@@ -26,7 +26,7 @@ const mainNav = [
 
 export function Header() {
   const { count } = useCart();
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut, isStaff } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);

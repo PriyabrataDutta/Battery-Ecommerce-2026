@@ -143,13 +143,22 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
   };
 
   const pick = (s: Suggestion) => {
+    const sublabel =
+      s.kind === "category" ? "Battery Category" :
+      s.kind === "brand" ? "Battery Brand" :
+      s.kind === "car_brand" ? "Car Brand" :
+      s.kind === "car_model" ? `Car Model${("sublabel" in s && s.sublabel) ? ` · ${s.sublabel}` : ""}` :
+      "Product";
+    let path = "";
     switch (s.kind) {
-      case "category": return go(`/category/${s.slug}`);
-      case "brand": return go(`/brand/${s.slug}`);
-      case "car_brand": return go(`/shop?type=car-batteries&car_brand=${s.slug}`);
-      case "car_model": return go(`/shop?type=car-batteries&car_model=${s.slug}`);
-      case "product": return go(`/product/${s.slug}`);
+      case "category": path = `/category/${s.slug}`; break;
+      case "brand": path = `/brand/${s.slug}`; break;
+      case "car_brand": path = `/shop?type=car-batteries&car_brand=${s.slug}`; break;
+      case "car_model": path = `/shop?type=car-batteries&car_model=${s.slug}`; break;
+      case "product": path = `/product/${s.slug}`; break;
     }
+    pushRecent({ label: s.label, path, sublabel, kind: s.kind });
+    return go(path);
   };
 
   const submit = (e: React.FormEvent) => {
@@ -165,7 +174,9 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
       return;
     }
     if (term.trim()) {
-      go(`/shop?q=${encodeURIComponent(term.trim())}`);
+      const path = `/shop?q=${encodeURIComponent(term.trim())}`;
+      pushRecent({ label: term.trim(), path, sublabel: "Search", kind: "query" });
+      go(path);
     }
   };
 
@@ -177,6 +188,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
 
   const hasResults = suggestions.length > 0;
   const showPanel = open && term.trim().length >= 2;
+  const showRecents = open && term.trim().length === 0 && recent.length > 0;
 
   let renderIdx = -1;
   const renderRow = (

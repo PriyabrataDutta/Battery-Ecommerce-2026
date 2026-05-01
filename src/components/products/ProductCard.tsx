@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, Zap } from "lucide-react";
 import type { Product } from "@/types/catalog";
 import { formatINR, discountPct } from "@/lib/format";
+import { getProductImage } from "@/lib/productImage";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 
@@ -51,18 +52,12 @@ export function ProductCard({ product }: { product: Product }) {
       className="group bg-card border border-line hover:border-ink transition-all hover-lift flex flex-col overflow-hidden rounded-lg"
     >
       <div className="relative aspect-square bg-white overflow-hidden border-b border-line rounded-t-lg">
-        {product.primary_image_url ? (
-          <img
-            src={product.primary_image_url}
-            alt={product.name}
-            loading="lazy"
-            className="w-full h-full object-contain p-3 sm:p-4 group-hover:scale-105 transition-transform duration-500"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted-foreground/40 text-xs">
-            No image
-          </div>
-        )}
+        <img
+          src={getProductImage(product.primary_image_url, product.battery_brands?.name)}
+          alt={product.name}
+          loading="lazy"
+          className="w-full h-full object-contain p-3 sm:p-4 group-hover:scale-105 transition-transform duration-500"
+        />
         <div className="absolute top-2 left-2 right-2 flex flex-wrap gap-1 pointer-events-none">
           {product.is_bestseller && <span className="badge-pill bg-ink text-white text-[10px]">Bestseller</span>}
           {product.is_new && <span className="badge-pill bg-success text-white text-[10px]">New</span>}

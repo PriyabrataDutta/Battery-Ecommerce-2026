@@ -19,6 +19,7 @@ import {
   Zap,
 } from "lucide-react";
 import { formatINR, discountPct } from "@/lib/format";
+import { getProductImage } from "@/lib/productImage";
 import { useCart } from "@/hooks/useCart";
 import { toast } from "sonner";
 import { ProductCard } from "@/components/products/ProductCard";
@@ -89,6 +90,9 @@ const ProductDetail = () => {
     const set = new Set<string>();
     if (product.primary_image_url) set.add(product.primary_image_url);
     fromGallery.forEach((u) => set.add(u));
+    if (set.size === 0) {
+      set.add(getProductImage(null, product.battery_brands?.name));
+    }
     return Array.from(set);
   }, [product, gallery]);
 

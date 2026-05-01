@@ -230,13 +230,13 @@ const Shop = () => {
           <ActiveFilters priceBounds={priceBounds} />
 
           {/* Toolbar: sort + view toggle */}
-          <div className="flex items-center justify-between gap-3 mb-4 bg-white border border-line p-2.5 sm:p-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="hidden sm:inline text-xs uppercase tracking-wider font-display font-bold text-muted-foreground">
+          <div className="flex items-center justify-between gap-3 mb-4 bg-white border border-line p-5">
+            <div className="flex items-center gap-3 min-w-0">
+              <h3 className="font-display font-bold text-sm uppercase tracking-wider text-muted-foreground">
                 Sort
-              </span>
+              </h3>
               <Select value={sort} onValueChange={(v) => setParam("sort", v === "relevance" ? null : v)}>
-                <SelectTrigger className="h-9 w-[180px] sm:w-[200px] border-line text-sm">
+                <SelectTrigger className="h-10 w-[180px] sm:w-[220px] border-line text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-white z-50">

@@ -186,20 +186,38 @@ export function ProductEditor({
       {/* Pricing & stock */}
       <Section title="Pricing & stock">
         <div className="grid grid-cols-3 gap-3">
-          <Field label="Price (₹)" required>
-            <Input
-              type="number"
-              min={0}
-              value={form.price}
-              onChange={(e) => set("price", Number(e.target.value) || 0)}
-            />
-          </Field>
-          <Field label="MRP (₹)">
+          <Field label="MRP (₹)" required>
             <Input
               type="number"
               min={0}
               value={form.mrp ?? ""}
               onChange={(e) => set("mrp", e.target.value ? Number(e.target.value) : null)}
+            />
+          </Field>
+          <Field label="With Exchange (₹)" required>
+            <Input
+              type="number"
+              min={0}
+              value={form.price_with_exchange}
+              onChange={(e) => set("price_with_exchange", Number(e.target.value) || 0)}
+            />
+          </Field>
+          <Field label="Without Exchange (₹)" required>
+            <Input
+              type="number"
+              min={0}
+              value={form.price_without_exchange}
+              onChange={(e) => set("price_without_exchange", Number(e.target.value) || 0)}
+            />
+          </Field>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <Field label="Selling Price (₹)" hint="Legacy / fallback price">
+            <Input
+              type="number"
+              min={0}
+              value={form.price}
+              onChange={(e) => set("price", Number(e.target.value) || 0)}
             />
           </Field>
           <Field label="Stock">

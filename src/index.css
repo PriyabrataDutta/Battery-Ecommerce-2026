@@ -131,7 +131,7 @@
   }
 
   .badge-pill {
-    @apply inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider;
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider leading-tight;
   }
 
   .hover-lift {

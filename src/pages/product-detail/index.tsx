@@ -11,6 +11,7 @@
  * - SEO meta tags via react-helmet-async
  */
 import { lazy, Suspense, useMemo, useState } from "react";
+import { buildProductJsonLd } from "./lib/buildProductJsonLd";
 import { Link, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { toast } from "sonner";
@@ -137,82 +138,9 @@ const ProductDetail = () => {
         <meta property="product:price:amount" content={String(withoutExchange)} />
         <meta property="product:price:currency" content="INR" />
         {/* JSON-LD Product structured data */}
+        {/* JSON-LD Product structured data — built from admin fields with validation */}
         <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Product",
-            name: product.name,
-            description: seoDesc,
-            sku: product.sku,
-            image: allImages.length > 0 ? allImages : product.primary_image_url,
-            brand: {
-              "@type": "Brand",
-              name: product.battery_brands?.name ?? "Kachi Batteries",
-            },
-            ...(product.categories?.name && {
-              category: product.categories.name,
-            }),
-            ...(product.tags && product.tags.length > 0 && {
-              keywords: product.tags.join(", "),
-            }),
-            ...(product.capacity_ah && {
-              additionalProperty: [
-                {
-                  "@type": "PropertyValue",
-                  name: "Capacity",
-                  value: `${product.capacity_ah} Ah`,
-                },
-                ...(product.warranty_months
-                  ? [{
-                      "@type": "PropertyValue",
-                      name: "Warranty",
-                      value: `${product.warranty_months} months`,
-                    }]
-                  : []),
-              ],
-            }),
-            offers: {
-              "@type": "AggregateOffer",
-              url: canonicalUrl,
-              priceCurrency: "INR",
-              lowPrice: showExchange ? withExchangePrice : withoutExchange,
-              highPrice: product.mrp && product.mrp > withoutExchange ? product.mrp : withoutExchange,
-              offerCount: showExchange ? 2 : 1,
-              availability:
-                product.stock > 0
-                  ? "https://schema.org/InStock"
-                  : "https://schema.org/OutOfStock",
-              seller: {
-                "@type": "Organization",
-                name: "Kachi Batteries",
-              },
-              offers: [
-                {
-                  "@type": "Offer",
-                  name: "Without Exchange",
-                  price: withoutExchange,
-                  priceCurrency: "INR",
-                  availability:
-                    product.stock > 0
-                      ? "https://schema.org/InStock"
-                      : "https://schema.org/OutOfStock",
-                },
-                ...(showExchange
-                  ? [{
-                      "@type": "Offer",
-                      name: "With Exchange",
-                      price: withExchangePrice,
-                      priceCurrency: "INR",
-                      description: "Price with old battery exchange (BMHR compliant)",
-                      availability:
-                        product.stock > 0
-                          ? "https://schema.org/InStock"
-                          : "https://schema.org/OutOfStock",
-                    }]
-                  : []),
-              ],
-            },
-          })}
+          {JSON.stringify(buildProductJsonLd(product, allImages, canonicalUrl))}
         </script>
       </Helmet>
 

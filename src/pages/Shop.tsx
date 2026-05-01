@@ -203,9 +203,9 @@ const Shop = () => {
         break;
       case "newest":
         list.sort((a, b) => {
-          const da = a.created_at ? new Date(a.created_at).getTime() : 0;
-          const db = b.created_at ? new Date(b.created_at).getTime() : 0;
-          return db - da;
+          const da = (a as Product & { created_at?: string }).created_at;
+          const db = (b as Product & { created_at?: string }).created_at;
+          return (db ? new Date(db).getTime() : 0) - (da ? new Date(da).getTime() : 0);
         });
         break;
       default:

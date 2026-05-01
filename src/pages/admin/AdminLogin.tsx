@@ -68,27 +68,7 @@ const AdminLogin = () => {
     if (!password) {
       return fail("email-validation", "Please enter your password.");
     }
-
-    // Stage 2: Admin email check
-    console.info("[AdminLogin] stage: admin-email");
-    const { data: isAdmin, error: rpcError } = await supabase.rpc("is_admin_email", {
-      _email: normalizedEmail,
-    });
-    if (rpcError) {
-      return fail(
-        "admin-email",
-        `Could not verify admin email: ${rpcError.message}`,
-        rpcError,
-      );
-    }
-    if (!isAdmin) {
-      return fail(
-        "admin-email",
-        `"${normalizedEmail}" is not registered as an admin account. Check for typos, or use the customer sign-in.`,
-      );
-    }
-
-    // Stage 3: Sign in
+    // Stage 2: Sign in (no pre-check — is_admin_email is locked down to prevent enumeration)
     console.info("[AdminLogin] stage: sign-in");
     const { error: signInError } = await signIn(normalizedEmail, password);
     if (signInError) {

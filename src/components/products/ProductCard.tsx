@@ -48,9 +48,9 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <Link
       to={`/product/${product.slug}`}
-      className="group bg-card border border-line hover:border-ink transition-all hover-lift flex flex-col overflow-hidden"
+      className="group bg-card border border-line hover:border-ink transition-all hover-lift flex flex-col overflow-hidden rounded-lg"
     >
-      <div className="relative aspect-square bg-white overflow-hidden border-b border-line">
+      <div className="relative aspect-square bg-white overflow-hidden border-b border-line rounded-t-lg">
         {product.primary_image_url ? (
           <img
             src={product.primary_image_url}

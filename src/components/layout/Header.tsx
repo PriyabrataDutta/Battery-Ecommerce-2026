@@ -75,9 +75,7 @@ export function Header() {
         <SmartSearch className="hidden md:flex flex-1 min-w-0 items-center" />
 
         <div className="ml-auto flex flex-shrink-0 flex-nowrap items-center gap-1 sm:gap-1.5 lg:gap-2 whitespace-nowrap">
-          {(() => null)()}
-          {/* Shared icon button styles: gray hover bg, primary (red) icon on hover, consistent focus ring */}
-          {(() => null)()}
+          {/* Shared icon button styling: gray (muted) hover bg, red (primary) icon on hover, 2px primary focus ring with offset */}
           <Button
             variant="ghost"
             size="icon"

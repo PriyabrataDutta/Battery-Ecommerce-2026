@@ -571,17 +571,115 @@ function BrandsModelsTab() {
               <Button
                 className="flex-1"
                 onClick={() => fileRef.current?.click()}
-                disabled={importing}
+                disabled={previewing}
               >
-                {importing ? (
+                {previewing ? (
                   <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
                 ) : (
                   <Upload className="h-4 w-4 mr-1.5" />
                 )}
-                {importing ? "Importing…" : "Choose File & Import"}
+                {previewing ? "Analyzing…" : "Choose File"}
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Import Preview Dialog */}
+      <Dialog open={!!importPreview} onOpenChange={(open) => { if (!open) setImportPreview(null); }}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Import Preview</DialogTitle>
+            <DialogDescription>
+              Review what will be imported before confirming.
+            </DialogDescription>
+          </DialogHeader>
+
+          {importPreview && (
+            <div className="space-y-4">
+              {/* Summary cards */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg border p-3 text-center">
+                  <div className="text-2xl font-bold text-primary">{importPreview.newBrands.length}</div>
+                  <div className="text-xs text-muted-foreground">New Brands</div>
+                </div>
+                <div className="rounded-lg border p-3 text-center">
+                  <div className="text-2xl font-bold text-primary">{importPreview.newModels.length}</div>
+                  <div className="text-xs text-muted-foreground">New Models</div>
+                </div>
+              </div>
+
+              {importPreview.existingBrands.length > 0 && (
+                <div className="text-xs text-muted-foreground">
+                  {importPreview.existingBrands.length} brand{importPreview.existingBrands.length !== 1 ? "s" : ""} already exist and will be skipped.
+                </div>
+              )}
+              {importPreview.existingModels.length > 0 && (
+                <div className="text-xs text-muted-foreground">
+                  {importPreview.existingModels.length} model{importPreview.existingModels.length !== 1 ? "s" : ""} already exist and will be skipped.
+                </div>
+              )}
+
+              {/* New brands list */}
+              {importPreview.newBrands.length > 0 && (
+                <div className="space-y-1.5">
+                  <h4 className="text-sm font-semibold">New Brands</h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {importPreview.newBrands.map((b) => (
+                      <span key={b} className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
+                        {b}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* New models list */}
+              {importPreview.newModels.length > 0 && (
+                <div className="space-y-1.5">
+                  <h4 className="text-sm font-semibold">New Models</h4>
+                  <div className="rounded border bg-card max-h-48 overflow-y-auto divide-y text-xs">
+                    {importPreview.newModels.slice(0, 100).map((m, i) => (
+                      <div key={i} className="flex px-3 py-1.5">
+                        <span className="text-muted-foreground w-1/3 truncate">{m.brand}</span>
+                        <span className="flex-1">{m.model}</span>
+                      </div>
+                    ))}
+                    {importPreview.newModels.length > 100 && (
+                      <div className="px-3 py-1.5 text-muted-foreground text-center">
+                        …and {importPreview.newModels.length - 100} more
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {importPreview.newBrands.length === 0 && importPreview.newModels.length === 0 && (
+                <div className="text-sm text-muted-foreground text-center py-4">
+                  Everything in this file already exists. Nothing new to import.
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex items-center gap-3 pt-2">
+                <Button variant="outline" className="flex-1" onClick={() => setImportPreview(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={handleConfirmImport}
+                  disabled={importing || (importPreview.newBrands.length === 0 && importPreview.newModels.length === 0)}
+                >
+                  {importing ? (
+                    <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4 mr-1.5" />
+                  )}
+                  {importing ? "Importing…" : "Confirm Import"}
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

@@ -720,23 +720,79 @@ function BrandsModelsTab() {
                 </div>
               )}
 
+              {/* Progress indicator */}
+              {importProgress && !importProgress.error && importing && (
+                <div className="space-y-2 rounded-lg border bg-muted/50 p-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-medium">
+                      {importProgress.phase === "brands" ? "Creating brands…" : "Creating models…"}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {importProgress.current} / {importProgress.total}
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all duration-300"
+                      style={{
+                        width: importProgress.total > 0
+                          ? `${Math.round((importProgress.current / importProgress.total) * 100)}%`
+                          : "0%",
+                      }}
+                    />
+                  </div>
+                  <div className="flex gap-3 text-xs text-muted-foreground">
+                    <span>{importProgress.brandsCreated} brand{importProgress.brandsCreated !== 1 ? "s" : ""} added</span>
+                    <span>•</span>
+                    <span>{importProgress.modelsCreated} model{importProgress.modelsCreated !== 1 ? "s" : ""} added</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Error with retry */}
+              {importProgress?.error && (
+                <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                    <div className="text-sm">
+                      <p className="font-medium text-destructive">Import failed</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{importProgress.error}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {importProgress.brandsCreated} brand{importProgress.brandsCreated !== 1 ? "s" : ""} and {importProgress.modelsCreated} model{importProgress.modelsCreated !== 1 ? "s" : ""} were added before the error. Retrying will skip already-created items.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Actions */}
               <div className="flex items-center gap-3 pt-2">
-                <Button variant="outline" className="flex-1" onClick={() => setImportPreview(null)}>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => { setImportPreview(null); setImportProgress(null); }}
+                  disabled={importing}
+                >
                   Cancel
                 </Button>
-                <Button
-                  className="flex-1"
-                  onClick={handleConfirmImport}
-                  disabled={importing || (importPreview.newBrands.length === 0 && importPreview.newModels.length === 0)}
-                >
-                  {importing ? (
-                    <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-                  ) : (
-                    <Upload className="h-4 w-4 mr-1.5" />
-                  )}
-                  {importing ? "Importing…" : "Confirm Import"}
-                </Button>
+                {importProgress?.error ? (
+                  <Button className="flex-1" onClick={() => { setImportProgress(null); handleConfirmImport(); }}>
+                    <RotateCcw className="h-4 w-4 mr-1.5" /> Retry Import
+                  </Button>
+                ) : (
+                  <Button
+                    className="flex-1"
+                    onClick={handleConfirmImport}
+                    disabled={importing || (importPreview.newBrands.length === 0 && importPreview.newModels.length === 0)}
+                  >
+                    {importing ? (
+                      <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                    ) : (
+                      <Upload className="h-4 w-4 mr-1.5" />
+                    )}
+                    {importing ? "Importing…" : "Confirm Import"}
+                  </Button>
+                )}
               </div>
             </div>
           )}

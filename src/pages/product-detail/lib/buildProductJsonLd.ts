@@ -32,7 +32,30 @@ export function buildProductJsonLd(
   if (highPrice < withoutExchange) highPrice = withoutExchange;
   if (lowPrice > highPrice) [lowPrice, highPrice] = [highPrice, lowPrice];
 
-  // ─── Additional properties (only if admin filled them) ───
+  // ─── Availability ───
+  const stockNum = Number(product.stock);
+  const availability =
+    Number.isFinite(stockNum) && stockNum > 0 ? AVAILABILITY_IN : AVAILABILITY_OUT;
+
+  // ─── Offers — always include both with and without exchange ───
+  const offerList = [
+    {
+      "@type": "Offer" as const,
+      name: "With Exchange",
+      price: withExchangePrice,
+      priceCurrency: "INR",
+      description: "Price with old battery exchange",
+      availability,
+    },
+    {
+      "@type": "Offer" as const,
+      name: "Without Exchange",
+      price: withoutExchange,
+      priceCurrency: "INR",
+      availability,
+    },
+  ];
+
   const additionalProperty: Array<{
     "@type": "PropertyValue";
     name: string;

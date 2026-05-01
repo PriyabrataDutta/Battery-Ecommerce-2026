@@ -28,6 +28,10 @@ export const EMPTY_PRODUCT: ProductEditableFields = {
   is_on_sale: false,
   has_exchange: true,
   exchange_rebate: 0,
+  meta_title: null,
+  meta_description: null,
+  meta_keywords: null,
+  tags: [],
 };
 
 export const PRODUCT_STATUSES = ["active", "draft", "archived"] as const;

@@ -1,12 +1,12 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Truck, Wrench, ShieldCheck, Phone, Award, IndianRupee, HeadphonesIcon, Package } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { ArrowRight, Truck, Wrench, ShieldCheck, Award, IndianRupee, HeadphonesIcon, Package } from "lucide-react";
 import { ProductCard } from "@/components/products/ProductCard";
 import { FitmentSearch } from "@/components/products/FitmentSearch";
-import type { Product, BatteryBrand, Category } from "@/types/catalog";
+import { useProducts } from "@/hooks/queries/useProducts";
+import { useBatteryBrands } from "@/hooks/queries/useBrands";
+import { useCategories } from "@/hooks/queries/useCategories";
 import heroCar from "@/assets/hero-car.jpg";
 import batteryStack from "@/assets/battery-stack.png";
 import { gsap } from "gsap";
@@ -25,37 +25,9 @@ const Home = () => {
     return () => ctx.revert();
   }, []);
 
-  const { data: featured = [] } = useQuery({
-    queryKey: ["home_featured"],
-    queryFn: async (): Promise<Product[]> => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*, battery_brands(*)")
-        .eq("status", "active")
-        .eq("is_featured", true)
-        .limit(8);
-      if (error) throw error;
-      return data as unknown as Product[];
-    },
-  });
-
-  const { data: brands = [] } = useQuery({
-    queryKey: ["home_brands"],
-    queryFn: async (): Promise<BatteryBrand[]> => {
-      const { data, error } = await supabase.from("battery_brands").select("*").order("sort_order");
-      if (error) throw error;
-      return data as BatteryBrand[];
-    },
-  });
-
-  const { data: categories = [] } = useQuery({
-    queryKey: ["home_categories"],
-    queryFn: async (): Promise<Category[]> => {
-      const { data, error } = await supabase.from("categories").select("*").order("sort_order");
-      if (error) throw error;
-      return data as Category[];
-    },
-  });
+  const { data: featured = [] } = useProducts({ isFeatured: true, limit: 8 });
+  const { data: brands = [] } = useBatteryBrands();
+  const { data: categories = [] } = useCategories();
 
   return (
     <>

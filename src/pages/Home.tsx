@@ -219,8 +219,8 @@ function SectionHead({ eyebrow, title, dark }: { eyebrow: string; title: string;
   return (
     <div className="flex items-end justify-between gap-4 flex-wrap">
       <div>
-        <div className={`text-xs font-bold uppercase tracking-[0.25em] ${dark ? "text-primary" : "text-primary"}`}>{eyebrow}</div>
-        <h2 className={`font-display-tight text-3xl lg:text-4xl font-bold mt-1 ${dark ? "text-white" : "text-ink"}`}>{title}</h2>
+        <div className={`text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] sm:tracking-[0.25em] ${dark ? "text-primary" : "text-primary"}`}>{eyebrow}</div>
+        <h2 className={`font-display-tight text-2xl sm:text-3xl lg:text-4xl font-bold mt-1 ${dark ? "text-white" : "text-ink"}`}>{title}</h2>
       </div>
     </div>
   );

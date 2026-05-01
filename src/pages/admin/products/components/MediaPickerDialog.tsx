@@ -283,6 +283,7 @@ export function MediaPickerDialog({
           </div>
         )}
 
+        <div
           className="flex-1 overflow-y-auto min-h-0 mt-3 relative"
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}

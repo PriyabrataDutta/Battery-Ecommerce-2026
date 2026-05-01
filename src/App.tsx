@@ -18,7 +18,7 @@ const SearchResults = lazy(() => import("./pages/SearchResults"));
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const BrandPage = lazy(() => import("./pages/BrandPage"));
 const Brands = lazy(() => import("./pages/Brands"));
-const Checkout = lazy(() => import("./pages/Checkout"));
+const Checkout = lazy(() => import("./pages/checkout"));
 const OrderConfirmation = lazy(() => import("./pages/OrderConfirmation"));
 const Quote = lazy(() => import("./pages/Quote"));
 const Contact = lazy(() => import("./pages/Contact"));

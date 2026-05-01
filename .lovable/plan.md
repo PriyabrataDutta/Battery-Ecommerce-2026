@@ -1,161 +1,282 @@
-# Backend-Ready Code Restructure (revised)
+# Make the codebase granular + newbie-friendly
 
-You're right — Checkout is exactly where backend rewrites hurt most (order creation, address prefill, payment hookup). Migrating it now means your future backend swap is a 1-file change in `src/api/orders.ts`, not surgery on 1,595 lines of UI code.
+## Goal
 
-## Revised scope
+Two things, done together so they stay consistent:
 
-**Migrate now (catalog + checkout flow + cart-adjacent):**
-- All 10 catalog/search files (Shop, Home, ProductDetail, Brands, BrandPage, SearchResults, FitmentSearch, ShopFilters, ActiveFilters, SmartSearch)
-- **Checkout.tsx** — split supabase calls into `api/addresses.ts` + `api/orders.ts`; UI/validation logic untouched
-- **Account pages** (Overview, Orders, Profile, Addresses) — these read/write the same tables Checkout does, keeping them consistent
+1. **Granularity** — break the few oversized files into small, focused pieces grouped by feature. Today four files do most of the heavy lifting and are hard to navigate (Checkout = 1,575 lines, ProductDetail = 482, Header = 400, OrderConfirmation = 374).
+2. **Developer guide + comments** — add a top-level `docs/` guide and a header comment block to every page/feature folder explaining what it is, where its data comes from, and how to extend it. Written for someone who has never opened the project before.
 
-**Still left as-is (lower-value, can migrate later):**
-- Auth flow (Auth, ResetPassword, AddPhone, VerifyPhone, useAuth) — auth is a Supabase-specific surface; abstracting it now adds noise without payoff
-- Admin pages (AdminLayout, AdminLogin, Dashboard, AuditLog) — internal tooling, low backend-rewrite impact
-- Forms (Contact, Quote) — single insert each
-- Misc admin helpers (ImageUpload, StatusPicker, RequireStaff, adminLog)
+No behavior changes. No new features. Same routes, same UI, same network calls.
 
-The api/ layer **still includes** these domains (auth, admin, contact, quote) — files exist, just not wired into the unmigrated pages yet. Swap is trivial when you want it.
+---
 
-## New folder structure
+## Current size hot-spots (lines)
+
+```
+1575  src/pages/Checkout.tsx
+ 482  src/pages/ProductDetail.tsx
+ 400  src/components/layout/Header.tsx
+ 374  src/pages/OrderConfirmation.tsx
+ 342  src/pages/admin/Dashboard.tsx
+ 309  src/components/products/ShopFilters.tsx
+ 307  src/pages/Shop.tsx
+ 269  src/pages/Auth.tsx
+```
+
+Everything else is already a reasonable size.
+
+---
+
+## Part 1 — Granular file structure
+
+Pattern used everywhere: a page that grew big becomes a **folder** with one
+`index.tsx` (the page shell + routing-level logic) plus a `components/`
+subfolder for its parts and a `lib/` subfolder for its pure helpers/constants.
+Imports of the page from `App.tsx` keep working because the folder has an
+`index.tsx`.
+
+### 1a. `src/pages/Checkout.tsx` → `src/pages/checkout/`
+
+```
+src/pages/checkout/
+├── index.tsx                  ← Checkout shell: stepper, draft persistence, placeOrder
+├── README.md                  ← how the checkout flow works, top to bottom
+├── components/
+│   ├── AddressStep.tsx        (was lines 987–1146)
+│   ├── DeliveryStep.tsx       (was 1147–1349)
+│   ├── PaymentStep.tsx        (was 1350–1424)
+│   ├── ReviewStep.tsx         (was 1425–1526)
+│   ├── Field.tsx              (was 1527–1556)
+│   ├── ReviewBlock.tsx        (was 1557–1574)
+│   ├── OrderSummary.tsx       (extract the right-hand totals card)
+│   └── PromoInput.tsx         (extract promo-code apply/remove block)
+├── lib/
+│   ├── constants.ts           DELIVERY_OPTIONS, PAYMENT_OPTIONS, STEPS,
+│   │                          PROMO_CODES, slot lists, lead-day maps,
+│   │                          DRAFT_KEY/TTL, EMPTY_ADDRESS
+│   ├── validation.ts          SAFE_TEXT, GSTIN_REGEX, address validators
+│   ├── totals.ts              subtotal / discount / shipping / tax / grand-total
+│   ├── draft.ts               read/write/clear the localStorage draft
+│   └── types.ts               Address, DeliveryId, PaymentId, Slot, Promo
+└── hooks/
+    └── useCheckoutState.ts    useReducer or grouped useState for the wizard
+```
+
+### 1b. `src/pages/ProductDetail.tsx` → `src/pages/product-detail/`
+
+```
+src/pages/product-detail/
+├── index.tsx                  ← page shell + data hooks
+├── components/
+│   ├── ProductGallery.tsx     image carousel + thumbnails
+│   ├── ProductInfo.tsx        title, brand, price, stock, add-to-cart
+│   ├── ProductSpecs.tsx       spec table (uses SpecRow)
+│   ├── ProductTrust.tsx       Trust badges row
+│   ├── ProductFitment.tsx     compatible vehicles section
+│   ├── RelatedProducts.tsx    related list
+│   ├── SpecRow.tsx
+│   └── Row.tsx
+└── lib/
+    └── format.ts              warranty/Ah/CCA formatting helpers
+```
+
+### 1c. `src/pages/OrderConfirmation.tsx` → `src/pages/order-confirmation/`
+
+```
+src/pages/order-confirmation/
+├── index.tsx
+└── components/
+    ├── OrderHero.tsx          success banner + order number
+    ├── OrderItemsList.tsx
+    ├── OrderTotals.tsx
+    ├── OrderAddressCard.tsx
+    └── OrderTimeline.tsx
+```
+
+### 1d. `src/components/layout/Header.tsx` → `src/components/layout/header/`
+
+```
+src/components/layout/header/
+├── index.tsx                  ← Header composition only
+├── TopBar.tsx                 promo strip + contact row
+├── BrandLogo.tsx
+├── DesktopNav.tsx             primary nav links
+├── MegaMenu.tsx + MegaCol.tsx
+├── HeaderActions.tsx          search button, account, cart badge
+├── MobileMenu.tsx             sheet + MobileLink
+└── MobileLink.tsx
+```
+
+### 1e. `src/pages/admin/Dashboard.tsx` → `src/pages/admin/dashboard/`
+
+```
+src/pages/admin/dashboard/
+├── index.tsx
+└── components/
+    ├── KpiCards.tsx
+    ├── OrdersByStatusChart.tsx
+    ├── RecentOrdersTable.tsx
+    ├── LowStockList.tsx
+    └── StorageUsageCard.tsx
+```
+
+### 1f. `src/pages/Shop.tsx` + `src/components/products/ShopFilters.tsx`
+
+Shop stays a single file but extracts:
+- `src/pages/shop/components/ResultsHeader.tsx` (count + sort dropdown + view toggle)
+- `src/pages/shop/components/ProductGrid.tsx`
+- `src/pages/shop/lib/parseSearchParams.ts` and `buildSearchParams.ts`
+
+`ShopFilters.tsx` splits into:
+- `src/components/products/filters/index.tsx` (composition + mobile sheet)
+- `filters/PriceRangeFilter.tsx`
+- `filters/CarBrandFilter.tsx`
+- `filters/CarModelFilter.tsx`
+- `filters/BatteryBrandFilter.tsx`
+- `filters/CategoryFilter.tsx`
+
+### 1g. `src/pages/Auth.tsx`
+
+Split tabs into:
+- `src/pages/auth/index.tsx` (tab shell)
+- `auth/SignInForm.tsx`
+- `auth/SignUpForm.tsx`
+- `auth/GoogleButton.tsx`
+- `auth/lib/schemas.ts` (zod schemas)
+
+### What does NOT move
+
+Files under ~150 lines stay where they are. Everything in `src/api/`,
+`src/hooks/queries/`, `src/components/ui/`, `src/stores/`, `src/lib/` is
+already granular and well-placed.
+
+---
+
+## Part 2 — Newbie developer guide + comments
+
+### 2a. New `docs/` folder at project root
+
+```
+docs/
+├── README.md                  ← landing page: "start here"
+├── 01-architecture.md         ← layers + data flow diagram (ASCII)
+├── 02-folder-tour.md          ← every top-level folder, one paragraph each
+├── 03-adding-a-page.md        ← step-by-step: route → page folder → api → hook
+├── 04-adding-a-table.md       ← migration → types regen → api → hook → UI
+├── 05-forms-and-validation.md ← zod + react-hook-form patterns used here
+├── 06-auth-and-roles.md       ← useAuth, RequirePhoneVerified, admin gate
+├── 07-state-management.md     ← React Query (server) vs Zustand (cart) vs URL (filters)
+├── 08-styling.md              ← Tailwind tokens, design system, container-x, ui/
+├── 09-common-tasks.md         ← cookbook: add filter, add admin metric, etc.
+└── 10-troubleshooting.md      ← typical errors + fixes
+```
+
+The architecture diagram (text):
 
 ```text
-src/
-├── api/
-│   ├── README.md
-│   ├── client.ts                 ← single supabase re-export
-│   ├── products.ts               ← list, getBySlug, getRelated, byBrand, search
-│   ├── productImages.ts
-│   ├── categories.ts
-│   ├── batteryBrands.ts
-│   ├── carBrands.ts
-│   ├── carModels.ts
-│   ├── productFitment.ts
-│   ├── orders.ts                 ← createOrder, listMine, getById
-│   ├── addresses.ts              ← list, upsert, delete, getDefault
-│   ├── wishlist.ts
-│   ├── offers.ts
-│   ├── quotes.ts
-│   ├── contact.ts
-│   ├── blog.ts
-│   ├── catalogs.ts
-│   ├── settings.ts
-│   ├── auth.ts                   ← signUp, signIn, signOut, resetPassword
-│   ├── profile.ts                ← getMine, update, verifyPhone
-│   ├── storage.ts                ← bucket-specific upload helpers
-│   └── admin/
-│       ├── users.ts
-│       ├── activity.ts
-│       └── stats.ts
-│
-├── hooks/queries/
-│   ├── keys.ts                   ← centralized queryKey factory
-│   ├── useProducts.ts
-│   ├── useCategories.ts
-│   ├── useBrands.ts              ← battery + car brands
-│   ├── useFitment.ts
-│   ├── useAddresses.ts
-│   ├── useOrders.ts              ← list + create mutation
-│   ├── useProfile.ts
-│   ├── useWishlist.ts
-│   └── ... (added on demand)
+ ┌─────────────────────────────────────────────────────────┐
+ │ Pages (src/pages)        — route entry points           │
+ │   ├─ compose feature components                         │
+ │   └─ call hooks from src/hooks/queries                  │
+ ├─────────────────────────────────────────────────────────┤
+ │ Feature components (src/components, page-local folders) │
+ │   └─ presentational + small interactions                │
+ ├─────────────────────────────────────────────────────────┤
+ │ Hooks (src/hooks/queries)                               │
+ │   └─ React Query wrappers around api/* functions        │
+ ├─────────────────────────────────────────────────────────┤
+ │ API layer (src/api)                                     │
+ │   └─ ONLY place that imports the supabase client        │
+ ├─────────────────────────────────────────────────────────┤
+ │ Backend (Lovable Cloud / Supabase)                      │
+ └─────────────────────────────────────────────────────────┘
 ```
 
-## Pattern
+### 2b. `README.md` at every feature folder
 
-**api/ file** — pure async, typed, throws on error:
+Each new folder (`pages/checkout/`, `pages/product-detail/`, etc.) gets a
+short `README.md` that answers four questions:
+
+1. What does this page do (in one sentence)?
+2. Which routes hit it?
+3. Which api/hook files does it use?
+4. Where to add a new field / step / section.
+
+### 2c. File header comments (newbie tone)
+
+Every page/component file in the touched areas gets a header block like:
+
 ```ts
-// src/api/orders.ts
-import { supabase } from "./client";
-
-export interface CreateOrderInput {
-  userId: string;
-  items: Array<{ product_id: string; product_name: string; product_sku?: string; qty: number; unit_price: number }>;
-  subtotal: number; tax: number; shipping: number; discount: number; total: number;
-  customer: { name: string; email: string; phone: string };
-  address: Record<string, unknown>;
-  payment_method: string;
-  delivery_method: string; delivery_label: string;
-  scheduled_date?: string; scheduled_slot?: string;
-  promo_code?: string; promo_label?: string;
-  notes?: string;
-}
-
-export async function createOrder(input: CreateOrderInput) {
-  const { data: order, error } = await supabase.from("orders").insert({
-    user_id: input.userId, subtotal: input.subtotal, tax: input.tax,
-    shipping: input.shipping, discount: input.discount, total: input.total,
-    customer_name: input.customer.name, customer_email: input.customer.email,
-    customer_phone: input.customer.phone, address: input.address,
-    payment_method: input.payment_method, delivery_method: input.delivery_method,
-    delivery_label: input.delivery_label, scheduled_date: input.scheduled_date,
-    scheduled_slot: input.scheduled_slot, promo_code: input.promo_code,
-    promo_label: input.promo_label, notes: input.notes, status: "pending",
-  }).select("id, order_number").single();
-  if (error) throw error;
-  const { error: itemsErr } = await supabase.from("order_items").insert(
-    input.items.map(i => ({ ...i, order_id: order.id }))
-  );
-  if (itemsErr) throw itemsErr;
-  return order;
-}
-
-export async function listMyOrders(userId: string) { /* ... */ }
-export async function getOrderById(id: string)     { /* ... */ }
+/**
+ * Checkout — multi-step purchase wizard.
+ *
+ * Flow: Address → Delivery → Payment → Review → place order.
+ *
+ * Data in:
+ *   - useCart()                  — line items
+ *   - useDefaultAddress(userId)  — prefill (api/addresses.ts)
+ *   - useMyProfile()             — name/email/phone (api/profile.ts)
+ *
+ * Data out:
+ *   - useCreateOrder()           — writes the order (api/orders.ts),
+ *                                  then navigates to /order-confirmation.
+ *
+ * Adding a new step:
+ *   1. Add it to STEPS in lib/constants.ts
+ *   2. Create components/<Name>Step.tsx
+ *   3. Render it in index.tsx's switch
+ *   4. Add validation in lib/validation.ts
+ */
 ```
 
-**hooks/queries/ file** — React Query wrapper:
-```ts
-// src/hooks/queries/useOrders.ts
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import * as ordersApi from "@/api/orders";
-import { qk } from "./keys";
+Inline comments are added **only** where intent isn't obvious — promo logic,
+tax rules, draft expiry, the `RequirePhoneVerified` gate. We will not
+litter every line with comments; we explain the *why*, not the *what*.
 
-export const useMyOrders = (userId: string | undefined) =>
-  useQuery({
-    queryKey: qk.orders.mine(userId),
-    queryFn: () => ordersApi.listMyOrders(userId!),
-    enabled: !!userId,
-  });
+### 2d. Refresh `src/api/README.md`
 
-export const useCreateOrder = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ordersApi.createOrder,
-    onSuccess: () => qc.invalidateQueries({ queryKey: qk.orders.all }),
-  });
-};
-```
+The migration-status section currently lists pages as "pending" that have
+since been migrated. Update it to reflect today's reality and remove stale
+pending lists.
 
-**Rules** (in `api/README.md`):
-1. Components/pages never import `@/integrations/supabase/client`. Only `src/api/` does.
-2. One api file per domain, named after the table/concern.
-3. Reads → `useQuery` hook. Writes → `useMutation` hook.
-4. All query keys live in `keys.ts` for predictable invalidation.
-5. When you swap to a custom backend, you edit `src/api/*` only — the rest of the app is untouched.
+### 2e. Top-level `README.md` updates
 
-## Files touched
+Add a "Where do I start?" pointer at the top of the project README that
+links into `docs/README.md`, plus a one-screen quickstart (install, run,
+where the routes live, where the data lives).
 
-**New (~22):** all `src/api/*` files + `src/hooks/queries/*` + `api/README.md`
+---
 
-**Edited (~15):**
-- 10 catalog/search files
-- `src/pages/Checkout.tsx` (replace 2 supabase calls with `useAddresses` + `useCreateOrder`)
-- `src/pages/account/AccountOrders.tsx`
-- `src/pages/account/AccountAddresses.tsx`
-- `src/pages/account/AccountProfile.tsx`
-- `src/pages/account/AccountOverview.tsx`
+## Out of scope
 
-**Untouched (working as-is):** Auth flow, Admin pages, Contact, Quote, OrderConfirmation, misc helpers.
+- No new features, no UI changes.
+- No api/hook signature changes — only file moves and comment additions.
+- No test additions (no test setup exists for these pages today).
+- Auth, Admin, Contact, Quote pages keep their direct supabase usage for now;
+  they're flagged in the api README as "migrate when next touched."
 
-## Tasks
+## Risk and verification
 
-1. Build `src/api/client.ts` + all 18 api domain files (full domain coverage).
-2. Build `src/hooks/queries/keys.ts` + hooks for migrated domains.
-3. Migrate 10 catalog/search files.
-4. Migrate Checkout.tsx (api calls only — UI/validation untouched).
-5. Migrate 4 account pages.
-6. Write `src/api/README.md`.
-7. Verify catalog pages, checkout end-to-end, and account pages render and submit identically.
+- All moves preserve default exports, so `App.tsx` lazy imports keep working
+  (`pages/checkout/index.tsx` resolves the same as `pages/Checkout.tsx`
+  did via the folder import).
+- After each move, the dev server typecheck must pass. We do that
+  incrementally (Checkout, then ProductDetail, then Header, then the rest)
+  so any breakage is isolated.
+- I will manually click through Home → Shop → ProductDetail → Cart → Checkout
+  → OrderConfirmation, plus the Account and Admin shells, in the preview
+  after the work is done.
 
-Approve and I'll execute.
+## Order of execution
+
+1. Add `docs/` skeleton + updated `src/api/README.md` + root README pointer.
+2. Split Checkout (biggest win, biggest risk — done first while attention is fresh).
+3. Split ProductDetail.
+4. Split Header.
+5. Split OrderConfirmation.
+6. Split Admin Dashboard.
+7. Split Shop + ShopFilters.
+8. Split Auth.
+9. Add header comments to every touched file + the feature READMEs.
+10. Final click-through QA in the preview.

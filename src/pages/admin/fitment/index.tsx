@@ -130,12 +130,16 @@ interface ImportPreview {
   existingModels: { brand: string; model: string }[];
 }
 
+type ImportMode = "append" | "strict";
+
 interface ImportProgress {
   phase: "brands" | "models";
   current: number;
   total: number;
   brandsCreated: number;
+  brandsUpdated: number;
   modelsCreated: number;
+  modelsUpdated: number;
   error?: string;
 }
 
@@ -153,6 +157,7 @@ function BrandsModelsTab() {
   const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [importProgress, setImportProgress] = useState<ImportProgress | null>(null);
+  const [importMode, setImportMode] = useState<ImportMode>("append");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const { data: brands = [], isLoading: brandsLoading } = useQuery({
@@ -310,81 +315,141 @@ function BrandsModelsTab() {
   const handleConfirmImport = useCallback(async () => {
     if (!importPreview) return;
     const { parsed } = importPreview;
+    const isStrict = importMode === "strict";
     setImporting(true);
-    setImportProgress({ phase: "brands", current: 0, total: 0, brandsCreated: 0, modelsCreated: 0 });
+    const initProgress: ImportProgress = { phase: "brands", current: 0, total: 0, brandsCreated: 0, brandsUpdated: 0, modelsCreated: 0, modelsUpdated: 0 };
+    setImportProgress(initProgress);
 
     try {
       // --- Phase 1: Brands ---
       const uniqueBrands = [...new Set(parsed.map((r) => r.brand))];
-      const { data: existingBrandsData } = await supabase.from("car_brands").select("id, name");
+      const { data: existingBrandsData } = await supabase.from("car_brands").select("id, name, slug");
       const brandMap = new Map<string, string>();
-      for (const b of existingBrandsData ?? []) brandMap.set(b.name.toLowerCase(), b.id);
+      const brandSlugMap = new Map<string, { id: string; name: string }>();
+      for (const b of existingBrandsData ?? []) {
+        brandMap.set(b.name.toLowerCase(), b.id);
+        brandSlugMap.set(b.slug, { id: b.id, name: b.name });
+      }
 
-      const brandsToCreate = uniqueBrands.filter((n) => !brandMap.has(n.toLowerCase()));
+      const brandsToProcess = isStrict ? uniqueBrands : uniqueBrands.filter((n) => !brandMap.has(n.toLowerCase()));
       let brandsCreated = 0;
+      let brandsUpdated = 0;
 
-      setImportProgress({ phase: "brands", current: 0, total: brandsToCreate.length, brandsCreated: 0, modelsCreated: 0 });
+      setImportProgress({ ...initProgress, total: brandsToProcess.length });
 
-      for (let i = 0; i < brandsToCreate.length; i++) {
-        const name = brandsToCreate[i];
-        const { data: ins, error } = await supabase
-          .from("car_brands")
-          .insert({ name, slug: slugify(name) })
-          .select("id")
-          .single();
-        if (ins) {
-          brandMap.set(name.toLowerCase(), ins.id);
-          brandsCreated++;
-        } else if (error) {
-          const { data: ex } = await supabase
-            .from("car_brands")
-            .select("id")
-            .ilike("name", name)
-            .maybeSingle();
-          if (ex) brandMap.set(name.toLowerCase(), ex.id);
+      for (let i = 0; i < brandsToProcess.length; i++) {
+        const name = brandsToProcess[i];
+        const slug = slugify(name);
+
+        if (isStrict) {
+          const existing = brandSlugMap.get(slug);
+          if (existing) {
+            // Update name if it differs (e.g. casing fix)
+            if (existing.name !== name) {
+              await supabase.from("car_brands").update({ name }).eq("id", existing.id);
+              brandsUpdated++;
+            }
+            brandMap.set(name.toLowerCase(), existing.id);
+          } else {
+            const { data: ins } = await supabase
+              .from("car_brands")
+              .insert({ name, slug })
+              .select("id")
+              .single();
+            if (ins) {
+              brandMap.set(name.toLowerCase(), ins.id);
+              brandsCreated++;
+            }
+          }
+        } else {
+          // Append mode — only create new
+          if (brandMap.has(name.toLowerCase())) { /* skip */ }
+          else {
+            const { data: ins, error } = await supabase
+              .from("car_brands")
+              .insert({ name, slug })
+              .select("id")
+              .single();
+            if (ins) {
+              brandMap.set(name.toLowerCase(), ins.id);
+              brandsCreated++;
+            } else if (error) {
+              const { data: ex } = await supabase.from("car_brands").select("id").ilike("name", name).maybeSingle();
+              if (ex) brandMap.set(name.toLowerCase(), ex.id);
+            }
+          }
         }
-        setImportProgress((p) => p ? { ...p, current: i + 1, brandsCreated } : p);
+        setImportProgress((p) => p ? { ...p, current: i + 1, brandsCreated, brandsUpdated } : p);
       }
 
       // --- Phase 2: Models ---
       const { data: existingModelsData } = await supabase
         .from("car_models")
-        .select("id, name, car_brand_id");
-      const modelSet = new Set(
-        (existingModelsData ?? []).map((m) => `${m.car_brand_id}|${m.name.toLowerCase()}`)
-      );
+        .select("id, name, slug, car_brand_id");
+      const modelKeyMap = new Map<string, { id: string; name: string }>();
+      for (const m of existingModelsData ?? []) {
+        modelKeyMap.set(`${m.car_brand_id}|${m.slug}`, { id: m.id, name: m.name });
+      }
 
-      // Deduplicate models to create
-      const modelsToCreate: { brand: string; model: string }[] = [];
+      // Deduplicate
+      const modelsToProcess: { brand: string; model: string }[] = [];
       const seen = new Set<string>();
       for (const row of parsed) {
         const brandId = brandMap.get(row.brand.toLowerCase());
         if (!brandId) continue;
-        const key = `${brandId}|${row.model.toLowerCase()}`;
-        if (modelSet.has(key) || seen.has(key)) continue;
+        const slug = slugify(row.model);
+        const key = `${brandId}|${slug}`;
+        if (seen.has(key)) continue;
         seen.add(key);
-        modelsToCreate.push(row);
+
+        if (isStrict) {
+          modelsToProcess.push(row);
+        } else {
+          if (!modelKeyMap.has(key)) modelsToProcess.push(row);
+        }
       }
 
       let modelsCreated = 0;
-      setImportProgress({ phase: "models", current: 0, total: modelsToCreate.length, brandsCreated, modelsCreated: 0 });
+      let modelsUpdated = 0;
+      setImportProgress({ phase: "models", current: 0, total: modelsToProcess.length, brandsCreated, brandsUpdated, modelsCreated: 0, modelsUpdated: 0 });
 
-      for (let i = 0; i < modelsToCreate.length; i++) {
-        const row = modelsToCreate[i];
+      for (let i = 0; i < modelsToProcess.length; i++) {
+        const row = modelsToProcess[i];
         const brandId = brandMap.get(row.brand.toLowerCase());
         if (!brandId) continue;
+        const slug = slugify(row.model);
+        const key = `${brandId}|${slug}`;
 
-        const { error } = await supabase
-          .from("car_models")
-          .insert({ name: row.model, slug: slugify(row.model), car_brand_id: brandId });
-        if (!error) {
-          modelsCreated++;
+        if (isStrict) {
+          const existing = modelKeyMap.get(key);
+          if (existing) {
+            if (existing.name !== row.model) {
+              await supabase.from("car_models").update({ name: row.model }).eq("id", existing.id);
+              modelsUpdated++;
+            }
+          } else {
+            const { error } = await supabase
+              .from("car_models")
+              .insert({ name: row.model, slug, car_brand_id: brandId });
+            if (!error) modelsCreated++;
+          }
+        } else {
+          const { error } = await supabase
+            .from("car_models")
+            .insert({ name: row.model, slug, car_brand_id: brandId });
+          if (!error) modelsCreated++;
         }
-        setImportProgress((p) => p ? { ...p, current: i + 1, modelsCreated } : p);
+        setImportProgress((p) => p ? { ...p, current: i + 1, modelsCreated, modelsUpdated } : p);
       }
 
+      const parts: string[] = [];
+      if (brandsCreated) parts.push(`${brandsCreated} brand${brandsCreated !== 1 ? "s" : ""} added`);
+      if (brandsUpdated) parts.push(`${brandsUpdated} brand${brandsUpdated !== 1 ? "s" : ""} updated`);
+      if (modelsCreated) parts.push(`${modelsCreated} model${modelsCreated !== 1 ? "s" : ""} added`);
+      if (modelsUpdated) parts.push(`${modelsUpdated} model${modelsUpdated !== 1 ? "s" : ""} updated`);
+
       toast.success(
-        `Import complete! ${brandsCreated} brand${brandsCreated !== 1 ? "s" : ""}, ${modelsCreated} model${modelsCreated !== 1 ? "s" : ""} added.`,
+        parts.length ? `Import complete! ${parts.join(", ")}.` : "Import complete — everything was already up to date.",
         { duration: 6000 }
       );
       setImportPreview(null);
@@ -397,7 +462,7 @@ function BrandsModelsTab() {
     } finally {
       setImporting(false);
     }
-  }, [importPreview, qc]);
+  }, [importPreview, importMode, qc]);
 
   /* ── export (same format as example file so round-trip works) ── */
   const handleExport = () => {
@@ -657,26 +722,73 @@ function BrandsModelsTab() {
 
           {importPreview && (
             <div className="space-y-4">
+              {/* Mode toggle */}
+              <div className="flex rounded-lg border overflow-hidden text-sm">
+                <button
+                  type="button"
+                  className={`flex-1 px-3 py-2 text-center transition-colors ${importMode === "append" ? "bg-primary text-primary-foreground font-medium" : "bg-muted/50 hover:bg-muted"}`}
+                  onClick={() => setImportMode("append")}
+                  disabled={importing}
+                >
+                  Append Only
+                </button>
+                <button
+                  type="button"
+                  className={`flex-1 px-3 py-2 text-center transition-colors ${importMode === "strict" ? "bg-primary text-primary-foreground font-medium" : "bg-muted/50 hover:bg-muted"}`}
+                  onClick={() => setImportMode("strict")}
+                  disabled={importing}
+                >
+                  Strict (Update)
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {importMode === "append"
+                  ? "Only adds new brands and models. Existing entries are skipped."
+                  : "Matches by slug — creates missing items and updates names of existing ones (e.g. casing fixes). Safe to re-import your exported file."}
+              </p>
+
               {/* Summary cards */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className={`grid gap-3 ${importMode === "strict" ? "grid-cols-4" : "grid-cols-2"}`}>
                 <div className="rounded-lg border p-3 text-center">
                   <div className="text-2xl font-bold text-primary">{importPreview.newBrands.length}</div>
                   <div className="text-xs text-muted-foreground">New Brands</div>
                 </div>
+                {importMode === "strict" && (
+                  <div className="rounded-lg border p-3 text-center">
+                    <div className="text-2xl font-bold text-amber-500">{importPreview.existingBrands.length}</div>
+                    <div className="text-xs text-muted-foreground">Existing Brands</div>
+                  </div>
+                )}
                 <div className="rounded-lg border p-3 text-center">
                   <div className="text-2xl font-bold text-primary">{importPreview.newModels.length}</div>
                   <div className="text-xs text-muted-foreground">New Models</div>
                 </div>
+                {importMode === "strict" && (
+                  <div className="rounded-lg border p-3 text-center">
+                    <div className="text-2xl font-bold text-amber-500">{importPreview.existingModels.length}</div>
+                    <div className="text-xs text-muted-foreground">Existing Models</div>
+                  </div>
+                )}
               </div>
 
-              {importPreview.existingBrands.length > 0 && (
-                <div className="text-xs text-muted-foreground">
-                  {importPreview.existingBrands.length} brand{importPreview.existingBrands.length !== 1 ? "s" : ""} already exist and will be skipped.
-                </div>
+              {importMode === "append" && (
+                <>
+                  {importPreview.existingBrands.length > 0 && (
+                    <div className="text-xs text-muted-foreground">
+                      {importPreview.existingBrands.length} brand{importPreview.existingBrands.length !== 1 ? "s" : ""} already exist and will be skipped.
+                    </div>
+                  )}
+                  {importPreview.existingModels.length > 0 && (
+                    <div className="text-xs text-muted-foreground">
+                      {importPreview.existingModels.length} model{importPreview.existingModels.length !== 1 ? "s" : ""} already exist and will be skipped.
+                    </div>
+                  )}
+                </>
               )}
-              {importPreview.existingModels.length > 0 && (
-                <div className="text-xs text-muted-foreground">
-                  {importPreview.existingModels.length} model{importPreview.existingModels.length !== 1 ? "s" : ""} already exist and will be skipped.
+
+              {importMode === "strict" && (importPreview.existingBrands.length > 0 || importPreview.existingModels.length > 0) && (
+                <div className="text-xs text-muted-foreground rounded-lg border bg-amber-500/10 p-2.5">
+                  <strong>Strict mode:</strong> Existing items will be matched by slug and their names updated if they differ (e.g. "maruti suzuki" → "Maruti Suzuki").
                 </div>
               )}
 
@@ -714,7 +826,7 @@ function BrandsModelsTab() {
                 </div>
               )}
 
-              {importPreview.newBrands.length === 0 && importPreview.newModels.length === 0 && (
+              {importMode === "append" && importPreview.newBrands.length === 0 && importPreview.newModels.length === 0 && (
                 <div className="text-sm text-muted-foreground text-center py-4">
                   Everything in this file already exists. Nothing new to import.
                 </div>
@@ -725,7 +837,9 @@ function BrandsModelsTab() {
                 <div className="space-y-2 rounded-lg border bg-muted/50 p-3">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-medium">
-                      {importProgress.phase === "brands" ? "Creating brands…" : "Creating models…"}
+                      {importProgress.phase === "brands"
+                        ? (importMode === "strict" ? "Processing brands…" : "Creating brands…")
+                        : (importMode === "strict" ? "Processing models…" : "Creating models…")}
                     </span>
                     <span className="text-muted-foreground">
                       {importProgress.current} / {importProgress.total}
@@ -741,10 +855,11 @@ function BrandsModelsTab() {
                       }}
                     />
                   </div>
-                  <div className="flex gap-3 text-xs text-muted-foreground">
-                    <span>{importProgress.brandsCreated} brand{importProgress.brandsCreated !== 1 ? "s" : ""} added</span>
-                    <span>•</span>
-                    <span>{importProgress.modelsCreated} model{importProgress.modelsCreated !== 1 ? "s" : ""} added</span>
+                  <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                    {importProgress.brandsCreated > 0 && <span>{importProgress.brandsCreated} brand{importProgress.brandsCreated !== 1 ? "s" : ""} added</span>}
+                    {importProgress.brandsUpdated > 0 && <span>{importProgress.brandsUpdated} brand{importProgress.brandsUpdated !== 1 ? "s" : ""} updated</span>}
+                    {importProgress.modelsCreated > 0 && <span>{importProgress.modelsCreated} model{importProgress.modelsCreated !== 1 ? "s" : ""} added</span>}
+                    {importProgress.modelsUpdated > 0 && <span>{importProgress.modelsUpdated} model{importProgress.modelsUpdated !== 1 ? "s" : ""} updated</span>}
                   </div>
                 </div>
               )}
@@ -758,7 +873,7 @@ function BrandsModelsTab() {
                       <p className="font-medium text-destructive">Import failed</p>
                       <p className="text-xs text-muted-foreground mt-0.5">{importProgress.error}</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {importProgress.brandsCreated} brand{importProgress.brandsCreated !== 1 ? "s" : ""} and {importProgress.modelsCreated} model{importProgress.modelsCreated !== 1 ? "s" : ""} were added before the error. Retrying will skip already-created items.
+                        {importProgress.brandsCreated + importProgress.brandsUpdated} brand{(importProgress.brandsCreated + importProgress.brandsUpdated) !== 1 ? "s" : ""} and {importProgress.modelsCreated + importProgress.modelsUpdated} model{(importProgress.modelsCreated + importProgress.modelsUpdated) !== 1 ? "s" : ""} were processed before the error. Retrying is safe — duplicates are skipped.
                       </p>
                     </div>
                   </div>
@@ -770,7 +885,7 @@ function BrandsModelsTab() {
                 <Button
                   variant="outline"
                   className="flex-1"
-                  onClick={() => { setImportPreview(null); setImportProgress(null); }}
+                  onClick={() => { setImportPreview(null); setImportProgress(null); setImportMode("append"); }}
                   disabled={importing}
                 >
                   Cancel
@@ -783,14 +898,14 @@ function BrandsModelsTab() {
                   <Button
                     className="flex-1"
                     onClick={handleConfirmImport}
-                    disabled={importing || (importPreview.newBrands.length === 0 && importPreview.newModels.length === 0)}
+                    disabled={importing || (importMode === "append" && importPreview.newBrands.length === 0 && importPreview.newModels.length === 0)}
                   >
                     {importing ? (
                       <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
                     ) : (
                       <Upload className="h-4 w-4 mr-1.5" />
                     )}
-                    {importing ? "Importing…" : "Confirm Import"}
+                    {importing ? "Importing…" : importMode === "strict" ? "Confirm Sync" : "Confirm Import"}
                   </Button>
                 )}
               </div>

@@ -130,12 +130,16 @@ interface ImportPreview {
   existingModels: { brand: string; model: string }[];
 }
 
+type ImportMode = "append" | "strict";
+
 interface ImportProgress {
   phase: "brands" | "models";
   current: number;
   total: number;
   brandsCreated: number;
+  brandsUpdated: number;
   modelsCreated: number;
+  modelsUpdated: number;
   error?: string;
 }
 

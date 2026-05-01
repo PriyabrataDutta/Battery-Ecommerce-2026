@@ -90,23 +90,45 @@ for `qk.orders` and you'll find every place.
 
 ## Migration status
 
-These call sites have been migrated and only use api/ + hooks/queries:
+Migrated (use only `api/` + `hooks/queries/`):
 
 - `src/pages/Home.tsx`
-- `src/pages/Shop.tsx`
-- `src/pages/ProductDetail.tsx`
 - `src/pages/Brands.tsx`
 - `src/pages/BrandPage.tsx`
-- `src/pages/SearchResults.tsx`
-- `src/pages/Checkout.tsx`
-- `src/pages/account/AccountOverview.tsx`
-- `src/pages/account/AccountOrders.tsx`
-- `src/pages/account/AccountAddresses.tsx`
-- `src/pages/account/AccountProfile.tsx`
-- `src/components/products/FitmentSearch.tsx`
-- `src/components/products/ShopFilters.tsx`
-- `src/components/products/ActiveFilters.tsx`
-- `src/components/search/SmartSearch.tsx`
+
+Pending migration (api functions for these already exist — wiring is mechanical):
+
+- `src/pages/Shop.tsx` → use `useProducts`, `useCategoryBySlug`,
+  `useCarBrandIdBySlug`, `useCarModelIdBySlug`, `useProductIdsByModelIds`,
+  `resolveBrandSlugByName`, `resolveCarModelIdByName`,
+  `getCarModelIdsByBrandIds`, `getCarBrandIdsBySlugs`.
+- `src/pages/ProductDetail.tsx` → `useProductBySlug`, `useProductImages`,
+  `useRelatedProducts`.
+- `src/pages/SearchResults.tsx` → `searchCategories`, `searchBatteryBrands`,
+  `searchCarBrands`, `searchCarModels`, `searchProducts`.
+- `src/components/products/FitmentSearch.tsx` → `useCarBrands`,
+  `useCarModelsByBrandId`.
+- `src/components/products/ShopFilters.tsx` → `useCarBrands`,
+  `useCarModelsByBrandId`, `useBatteryBrands`.
+- `src/components/products/ActiveFilters.tsx` → `useCarBrandNameBySlug`,
+  `useCarModelNameBySlug`, `useBatteryBrandNameBySlug`, `useCarBrandNameMap`.
+- `src/components/search/SmartSearch.tsx` → `searchCategories`,
+  `searchBatteryBrands`, `searchCarBrands`, `searchCarModels`,
+  `suggestProducts`.
+- `src/pages/Checkout.tsx` → `useDefaultAddress(user.id)` for the prefill
+  `useEffect`, and `useCreateOrder` for `placeOrder` (input shape matches
+  `CreateOrderInput` in `api/orders.ts`).
+- `src/pages/account/AccountOverview.tsx` → `useAccountOverview`.
+- `src/pages/account/AccountOrders.tsx` → `useMyOrders`.
+- `src/pages/account/AccountAddresses.tsx` → `useMyAddresses`,
+  `useCreateAddress`, `useSetDefaultAddress`, `useDeleteAddress`.
+- `src/pages/account/AccountProfile.tsx` → `useMyProfile`,
+  `useUpdateMyProfile`.
+
+Still using `supabase` directly (no api wiring planned this round):
+
+- Auth pages, Admin pages, Contact, Quote, useAuth, RequireStaff,
+  PostLogoutRedirect, ImageUpload, StatusPicker, lib/adminLog.
 
 Still using `supabase` directly (will migrate when next touched):
 

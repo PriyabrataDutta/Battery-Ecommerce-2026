@@ -11,7 +11,15 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, X, ImageIcon, Check, Upload, Loader2 } from "lucide-react";
+import { Search, X, ImageIcon, Check, Upload, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+
+interface UploadItem {
+  name: string;
+  status: "pending" | "uploading" | "done" | "error";
+  progress: number; // 0-100
+  error?: string;
+}
 
 interface MediaFile {
   id: string;

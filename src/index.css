@@ -169,3 +169,14 @@
     font-weight: 400;
   }
 }
+
+/* Hide scrollbars on horizontally scrollable rows (tabs, breadcrumbs) while keeping scrolling */
+@layer utilities {
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}

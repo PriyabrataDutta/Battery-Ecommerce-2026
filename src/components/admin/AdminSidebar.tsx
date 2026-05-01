@@ -1,15 +1,3 @@
-import {
-  LayoutDashboard,
-  Package,
-  Tags,
-  FolderTree,
-  ShoppingBag,
-  FileText,
-  Mail,
-  Settings,
-  Users,
-  Activity,
-} from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   Sidebar,
@@ -24,38 +12,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import logo from "@/assets/kachi-logo.png";
-import { useAdminTab, type AdminTab } from "@/stores/dashboardTabs";
-
-type Item = { title: string; tab: AdminTab; icon: any };
-type Section = { label: string; items: Item[] };
-
-const sections: Section[] = [
-  {
-    label: "Catalog",
-    items: [
-      { title: "Dashboard", tab: "dashboard", icon: LayoutDashboard },
-      { title: "Products", tab: "products", icon: Package },
-      { title: "Brands", tab: "brands", icon: Tags },
-      { title: "Categories", tab: "categories", icon: FolderTree },
-      { title: "Settings", tab: "settings", icon: Settings },
-    ],
-  },
-  {
-    label: "Management",
-    items: [
-      { title: "Users", tab: "users", icon: Users },
-      { title: "Orders", tab: "orders", icon: ShoppingBag },
-      { title: "Quotes", tab: "quotes", icon: FileText },
-      { title: "Messages", tab: "messages", icon: Mail },
-    ],
-  },
-  {
-    label: "Super Admin",
-    items: [
-      { title: "Audit Log", tab: "audit-log", icon: Activity },
-    ],
-  },
-];
+import { useAdminTab } from "@/stores/dashboardTabs";
+import { ADMIN_TAB_DEFS, SIDEBAR_SECTIONS } from "@/pages/admin/_lib/tabs";
 
 export function AdminSidebar() {
   const { state } = useSidebar();
@@ -84,36 +42,40 @@ export function AdminSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-1.5 py-2">
-        {sections.map((s) => (
-          <SidebarGroup key={s.label} className="mb-1">
-            {!collapsed && (
-              <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.14em] text-sidebar-foreground/50 px-2 mb-1">
-                {s.label}
-              </SidebarGroupLabel>
-            )}
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {s.items.map((item) => {
-                  const active = tab === item.tab;
-                  return (
-                    <SidebarMenuItem key={item.tab}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={active}
-                        className="h-10 data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary data-[active=true]:font-semibold hover:bg-sidebar-accent/60"
-                      >
-                        <Link to={`/admin/${item.tab}`} onClick={() => setTab(item.tab)}>
-                          <item.icon className="h-[18px] w-[18px] shrink-0" />
-                          {!collapsed && <span className="text-sm">{item.title}</span>}
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+        {SIDEBAR_SECTIONS.map((s) => {
+          const items = ADMIN_TAB_DEFS.filter((t) => t.section === s.key);
+          if (items.length === 0) return null;
+          return (
+            <SidebarGroup key={s.key} className="mb-1">
+              {!collapsed && (
+                <SidebarGroupLabel className="text-[10px] uppercase tracking-[0.14em] text-sidebar-foreground/50 px-2 mb-1">
+                  {s.label}
+                </SidebarGroupLabel>
+              )}
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {items.map((item) => {
+                    const active = tab === item.id;
+                    return (
+                      <SidebarMenuItem key={item.id}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={active}
+                          className="h-10 data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-primary data-[active=true]:font-semibold hover:bg-sidebar-accent/60"
+                        >
+                          <Link to={`/admin/${item.id}`} onClick={() => setTab(item.id)}>
+                            <item.icon className="h-[18px] w-[18px] shrink-0" />
+                            {!collapsed && <span className="text-sm">{item.title.replace("Sales ", "").replace("Admin ", "").replace(" Requests", "").replace(" Messages", "")}</span>}
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          );
+        })}
       </SidebarContent>
     </Sidebar>
   );

@@ -1,11 +1,13 @@
 import { Link, Navigate, useParams } from "react-router-dom";
+import { Suspense } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { RequireStaff } from "@/components/auth/RequireStaff";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Bell, ExternalLink, LogOut, MessageSquare, Settings as SettingsIcon, ShieldOff } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -21,69 +23,39 @@ import {
 } from "@/components/ui/alert-dialog";
 import { performAdminLogout } from "@/components/auth/PostLogoutRedirect";
 import { useAdminTab, isAdminTab, type AdminTab } from "@/stores/dashboardTabs";
-import Dashboard from "@/pages/admin/Dashboard";
-import AuditLog from "@/pages/admin/AuditLog";
-import AdminProducts from "@/pages/admin/products";
-import AdminOrders from "@/pages/admin/orders";
-import AdminBrands from "@/pages/admin/brands";
-import AdminCategories from "@/pages/admin/categories";
-import AdminUsers from "@/pages/admin/users";
-import AdminQuotes from "@/pages/admin/quotes";
-import AdminMessages from "@/pages/admin/messages";
-import AdminSettings from "@/pages/admin/settings";
+import { TAB_MAP } from "@/pages/admin/_lib/tabs";
 
-const titleMap: Record<AdminTab, string> = {
-  dashboard: "Sales Dashboard",
-  products: "Products",
-  brands: "Brands",
-  categories: "Categories",
-  settings: "Settings",
-  users: "Users",
-  orders: "Orders",
-  quotes: "Quote Requests",
-  messages: "Contact Messages",
-  "audit-log": "Admin Audit Log",
-};
-
-const PANELS: Record<AdminTab, () => JSX.Element> = {
-  dashboard: Dashboard,
-  products: AdminProducts,
-  brands: AdminBrands,
-  categories: AdminCategories,
-  settings: AdminSettings,
-  users: AdminUsers,
-  orders: AdminOrders,
-  quotes: AdminQuotes,
-  messages: AdminMessages,
-  "audit-log": AuditLog,
-};
+const PanelLoader = () => (
+  <div className="flex items-center justify-center py-20 text-muted-foreground">Loading panel…</div>
+);
 
 const AdminLayout = () => {
   const { user } = useAuth();
-  const [role, setRole] = useState<string>("");
 
-  useEffect(() => {
-    if (!user) return;
-    supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .then(({ data }) => {
-        const roles = (data ?? []).map((r: any) => r.role as string);
-        const top = roles.includes("admin")
-          ? "Super Admin"
-          : roles.includes("staff")
+  // Single cached role query — replaces the old raw supabase fetch
+  const { data: role = "" } = useQuery({
+    queryKey: ["admin-role-label", user?.id],
+    queryFn: async () => {
+      if (!user) return "";
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id);
+      const roles = (data ?? []).map((r: any) => r.role as string);
+      return roles.includes("admin")
+        ? "Super Admin"
+        : roles.includes("staff")
           ? "Staff"
           : roles[0] ?? "";
-        setRole(top);
-      });
-  }, [user]);
+    },
+    enabled: !!user,
+    staleTime: 5 * 60_000,
+  });
 
   const { tab: urlTab } = useParams<{ tab?: string }>();
   const storeTab = useAdminTab((s) => s.tab);
   const setTab = useAdminTab((s) => s.setTab);
 
-  // /admin/login is handled by a separate route, but guard against any other invalid path.
   if (urlTab !== undefined && !isAdminTab(urlTab)) {
     return <Navigate to="/admin" replace />;
   }
@@ -94,8 +66,8 @@ const AdminLayout = () => {
     if (tab !== storeTab) setTab(tab);
   }, [tab, storeTab, setTab]);
 
-  const ActivePanel = PANELS[tab] ?? Dashboard;
-  const meta = { title: titleMap[tab] ?? "Admin" };
+  const tabDef = TAB_MAP[tab] ?? TAB_MAP["dashboard"];
+  const ActivePanel = tabDef.component;
 
   return (
     <RequireStaff>
@@ -108,7 +80,7 @@ const AdminLayout = () => {
                 <SidebarTrigger className="mt-1" />
                 <div className="flex-1 min-w-0">
                   <h1 className="font-display-tight font-bold text-2xl md:text-3xl leading-tight tracking-tight">
-                    {meta.title}
+                    {tabDef.title}
                   </h1>
                   <div className="mt-2 flex items-center gap-3 flex-wrap">
                     {role && (
@@ -196,8 +168,10 @@ const AdminLayout = () => {
               </div>
             </header>
 
-            <main key={tab} className="flex-1 p-4 md:p-6 overflow-x-auto">
-              <ActivePanel />
+            <main className="flex-1 p-4 md:p-6 overflow-x-auto">
+              <Suspense fallback={<PanelLoader />}>
+                <ActivePanel />
+              </Suspense>
             </main>
 
             {/* Floating action stack */}

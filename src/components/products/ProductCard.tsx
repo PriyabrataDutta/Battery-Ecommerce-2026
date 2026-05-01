@@ -107,12 +107,12 @@ export function ProductCard({ product }: { product: Product }) {
           </div>
         )}
 
-        <div className="mt-auto pt-3 grid grid-cols-2 gap-2">
-          <Button size="sm" variant="outline" className="text-xs h-9 px-2" onClick={handleAdd}>
-            <ShoppingCart className="h-3.5 w-3.5 mr-1" /> Add
+        <div className="mt-auto pt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <Button size="sm" variant="outline" className="text-xs h-9 px-2 w-full" onClick={handleAdd}>
+            <ShoppingCart className="h-3.5 w-3.5 mr-1.5" /> Add
           </Button>
-          <Button size="sm" className="text-xs h-9 px-2" onClick={handleBuyNow}>
-            <Zap className="h-3.5 w-3.5 mr-1" /> Buy Now
+          <Button size="sm" className="text-xs h-9 px-2 w-full" onClick={handleBuyNow}>
+            <Zap className="h-3.5 w-3.5 mr-1.5" /> Buy Now
           </Button>
         </div>
       </div>

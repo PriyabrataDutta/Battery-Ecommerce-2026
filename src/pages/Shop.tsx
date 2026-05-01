@@ -60,7 +60,7 @@ const Shop = () => {
           (p.short_description ?? "").toLowerCase().includes(q)
         );
       }
-      if (effectiveBrand) list = list.filter((p) => p.battery_brands?.slug === effectiveBrand);
+      // battery brand filter applied later (client-side) so we can compute per-brand counts
       return list;
     },
   });

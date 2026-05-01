@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Tag, Battery, Car, Package } from "lucide-react";
+import { Search, BatteryCharging, Car, CarFront, Package, LayoutGrid } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { formatINR } from "@/lib/format";
@@ -9,6 +9,7 @@ import { formatINR } from "@/lib/format";
 type Suggestion =
   | { kind: "category"; id: string; label: string; slug: string }
   | { kind: "brand"; id: string; label: string; slug: string }
+  | { kind: "car_brand"; id: string; label: string; slug: string }
   | { kind: "car_model"; id: string; label: string; sublabel?: string; slug: string }
   | { kind: "product"; id: string; label: string; slug: string; price: number; image: string | null; brand?: string };
 
@@ -49,10 +50,11 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
     enabled: debounced.length >= 2,
     queryFn: async () => {
       const like = `%${debounced}%`;
-      const [cats, brands, models, prods] = await Promise.all([
+      const [cats, brands, carBrands, models, prods] = await Promise.all([
         supabase.from("categories").select("id,name,slug").ilike("name", like).limit(4),
         supabase.from("battery_brands").select("id,name,slug").ilike("name", like).limit(4),
-        supabase.from("car_models").select("id,name,slug, car_brands(name)").ilike("name", like).limit(5),
+        supabase.from("car_brands").select("id,name,slug").ilike("name", like).limit(4),
+        supabase.from("car_models").select("id,name,slug, car_brands(name,slug)").ilike("name", like).limit(5),
         supabase
           .from("products")
           .select("id,name,slug,sku,price,primary_image_url, battery_brands(name)")
@@ -63,7 +65,8 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
       return {
         categories: (cats.data ?? []) as Array<{ id: string; name: string; slug: string }>,
         brands: (brands.data ?? []) as Array<{ id: string; name: string; slug: string }>,
-        models: (models.data ?? []) as Array<{ id: string; name: string; slug: string; car_brands: { name: string } | null }>,
+        carBrands: (carBrands.data ?? []) as Array<{ id: string; name: string; slug: string }>,
+        models: (models.data ?? []) as Array<{ id: string; name: string; slug: string; car_brands: { name: string; slug: string } | null }>,
         products: (prods.data ?? []) as Array<{
           id: string; name: string; slug: string; sku: string; price: number;
           primary_image_url: string | null; battery_brands: { name: string } | null;
@@ -76,6 +79,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
   if (data) {
     data.categories.forEach((c) => suggestions.push({ kind: "category", id: c.id, label: c.name, slug: c.slug }));
     data.brands.forEach((b) => suggestions.push({ kind: "brand", id: b.id, label: b.name, slug: b.slug }));
+    data.carBrands.forEach((b) => suggestions.push({ kind: "car_brand", id: b.id, label: b.name, slug: b.slug }));
     data.models.forEach((m) =>
       suggestions.push({ kind: "car_model", id: m.id, label: m.name, sublabel: m.car_brands?.name, slug: m.slug })
     );
@@ -103,6 +107,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
     switch (s.kind) {
       case "category": return go(`/category/${s.slug}`);
       case "brand": return go(`/brand/${s.slug}`);
+      case "car_brand": return go(`/shop?type=car-batteries&car_brand=${s.slug}`);
       case "car_model": return go(`/shop?type=car-batteries&car_model=${s.slug}`);
       case "product": return go(`/product/${s.slug}`);
     }

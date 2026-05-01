@@ -57,6 +57,13 @@ export function MediaPickerDialog({
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [picked, setPicked] = useState<Set<string>>(new Set(selected));
+
+  // Sync picked state when dialog opens or selected prop changes
+  useEffect(() => {
+    if (open) {
+      setPicked(new Set(selected));
+    }
+  }, [open, selected]);
   const [uploading, setUploading] = useState(false);
   const [uploadItems, setUploadItems] = useState<UploadItem[]>([]);
   const [dragging, setDragging] = useState(false);

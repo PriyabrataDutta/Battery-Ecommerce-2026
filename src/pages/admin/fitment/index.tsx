@@ -99,6 +99,14 @@ function parseBrandsModelsXlsx(file: File): Promise<{ brand: string; model: stri
 }
 
 /* ─── Brands & Models Tab ─── */
+interface ImportPreview {
+  parsed: { brand: string; model: string }[];
+  newBrands: string[];
+  existingBrands: string[];
+  newModels: { brand: string; model: string }[];
+  existingModels: { brand: string; model: string }[];
+}
+
 function BrandsModelsTab() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
@@ -110,6 +118,8 @@ function BrandsModelsTab() {
   const [expandedBrand, setExpandedBrand] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
+  const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
+  const [previewing, setPreviewing] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const { data: brands = [], isLoading: brandsLoading } = useQuery({

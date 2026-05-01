@@ -40,7 +40,7 @@ export function Header() {
   };
   const scheduleCloseAccount = () => {
     if (accountCloseTimer) clearTimeout(accountCloseTimer);
-    const t = setTimeout(() => setAccountOpen(false), 150);
+    const t = setTimeout(() => setAccountOpen(false), 250);
     setAccountCloseTimer(t);
   };
   const closeAccountNow = () => {
@@ -57,8 +57,15 @@ export function Header() {
     }
   };
   const handleAccountBlur = (e: React.FocusEvent<HTMLDivElement>) => {
-    // Close when focus leaves the wrapper entirely (keyboard tab-out).
-    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+    // Radix portals the menu content outside this wrapper, so blur fires when
+    // the menu opens and steals focus. Ignore blur whose related target is the
+    // Radix dropdown content (data-radix-menu-content) — Escape / outside click
+    // / mouse-leave already handle dismissal.
+    const next = e.relatedTarget as HTMLElement | null;
+    if (next && next.closest("[data-radix-menu-content], [data-radix-popper-content-wrapper]")) {
+      return;
+    }
+    if (!e.currentTarget.contains(next as Node | null)) {
       closeAccountNow();
     }
   };
@@ -183,10 +190,11 @@ export function Header() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  sideOffset={8}
+                  sideOffset={4}
                   className="w-56 bg-white z-50"
                   onMouseEnter={openAccount}
                   onMouseLeave={scheduleCloseAccount}
+                  onCloseAutoFocus={(e) => e.preventDefault()}
                 >
                   <DropdownMenuLabel className="flex flex-col gap-0.5">
                     <span className="text-xs text-muted-foreground font-normal">Signed in as</span>

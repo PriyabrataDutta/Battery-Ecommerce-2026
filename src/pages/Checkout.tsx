@@ -401,7 +401,9 @@ const Checkout = () => {
     initialDraft?.deliveryDate ? new Date(initialDraft.deliveryDate) : undefined,
   );
   const [slot, setSlot] = useState<SlotId | "">(initialDraft?.slot ?? "");
-  const [scheduleError, setScheduleError] = useState<string>("");
+  const { data: defaultAddress } = useDefaultAddress(user?.id);
+  const createOrderMutation = useCreateOrder();
+
 
   // Persist a draft on every meaningful change. Self-destructs after 5 min via loadDraft().
   useEffect(() => {

@@ -79,33 +79,27 @@ export function Header() {
     <header className="sticky top-0 z-40 bg-white border-b border-line">
       {/* Utility bar */}
       <div className="bg-ink text-white text-xs">
-        <div className="container-x flex items-center justify-between h-9">
-          <div className="hidden sm:flex items-center gap-4">
-            <a href="tel:+919999999999" className="flex items-center gap-1.5 hover:text-primary transition-colors">
-              <Phone className="h-3 w-3" /> +91 99999 99999
+        <div className="container-x flex items-center justify-center sm:justify-between h-9 gap-4">
+          <div className="flex items-center gap-4 sm:gap-5">
+            <a
+              href="tel:+919999999999"
+              className="flex items-center gap-1.5 hover:text-primary transition-colors"
+            >
+              <Phone className="h-3 w-3" />
+              <span className="hidden sm:inline">+91 99999 99999</span>
+              <span className="sm:hidden">Call us</span>
             </a>
-            <a href="https://wa.me/919999999999" target="_blank" rel="noopener" className="flex items-center gap-1.5 hover:text-primary transition-colors">
+            <a
+              href="https://wa.me/919999999999"
+              target="_blank"
+              rel="noopener"
+              className="flex items-center gap-1.5 hover:text-primary transition-colors"
+            >
               <MessageCircle className="h-3 w-3" /> WhatsApp
             </a>
           </div>
-          <div className="flex items-center gap-4 ml-auto">
-            <Link to="/quote" className="hover:text-primary">Have a Question?</Link>
-            {loading ? null : user ? (
-              <>
-                <Link to="/account" className="hover:text-primary truncate max-w-[180px]">
-                  {user.email}
-                </Link>
-                <button
-                  onClick={signOut}
-                  className="hover:text-primary inline-flex items-center gap-1"
-                  aria-label="Sign out"
-                >
-                  <LogOut className="h-3 w-3" /> Sign out
-                </button>
-              </>
-            ) : (
-              <Link to="/auth" className="hover:text-primary">Sign in</Link>
-            )}
+          <div className="hidden md:block text-white/80">
+            Free shipping &amp; doorstep installation across India
           </div>
         </div>
       </div>

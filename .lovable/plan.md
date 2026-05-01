@@ -1,85 +1,41 @@
 ## Goal
 
-Upgrade the search bar in the header (next to the logo) to behave like Myntra: a single search box that understands many kinds of intent and shows live suggestions as the user types.
+Clean up the top black utility bar in the header. The logged-in email and sign-out controls are redundant now that the user icon has a full account dropdown. Replace that right-side block with the existing Phone number and WhatsApp shortcut, and make sure both show on mobile too.
 
-Examples that should work:
-- "car battery" → shows the Car Batteries category + all car batteries
-- "inverter" → Inverter & UPS category + matching products
-- "amaron" → Amaron brand page + all Amaron products
-- "baleno" → Baleno car model + all batteries that fit Baleno
-- "exide 150ah" → Exide products around 150 Ah
-- "din65" / SKU → matches products by name/SKU
+## Scope
 
-## UX
+Single file: `src/components/layout/Header.tsx` (the utility bar block, lines ~80–110).
 
-Live suggestions dropdown under the header search input (desktop + mobile drawer):
+## Changes
+
+1. Remove from the top bar:
+   - Logged-in user email link (`{user.email}` → `/account`)
+   - Sign-out button
+   - "Sign in" fallback link
+   - "Have a Question?" link (it duplicates Contact and the visible Request Call Back button)
+
+2. Keep and reposition Phone + WhatsApp:
+   - Show the phone number `+91 99999 99999` (tel: link, Phone icon)
+   - Show "WhatsApp" (wa.me link, MessageCircle icon)
+   - Visible on all breakpoints (drop the `hidden sm:flex` gating so mobile sees them too)
+   - On mobile only, hide the digits and keep the icon + short label so the bar doesn't wrap; show full number from `sm` upward
+
+3. Layout:
+   - Bar stays full-width black (`bg-ink text-white text-xs`), height `h-9`
+   - Group both contact items on the left
+   - Add a short tagline on the right that's only visible from `md` upward, e.g. "Free shipping & doorstep installation across India" — keeps the bar visually balanced on desktop without clutter on phones
+   - On mobile, the two contact items center-justify so the bar doesn't look empty
+
+4. Remove now-unused imports if any become dead (`LogOut` is still used inside the user dropdown menu, so it stays; `useAuth` destructuring no longer needs `signOut` for the top bar but still needs it for the dropdown — no import changes needed)
+
+## Result
 
 ```text
-┌─────────────────────────────────────────┐
-│ [Search batteries, brands, models...] 🔍│
-├─────────────────────────────────────────┤
-│ CATEGORIES                              │
-│  • Car Batteries                        │
-│  • Inverter & UPS                       │
-│ BRANDS                                  │
-│  • Amaron                               │
-│ CAR MODELS                              │
-│  • Maruti Baleno  → Batteries for Baleno│
-│ PRODUCTS                                │
-│  [img] Amaron DIN65  ₹6,499             │
-│  [img] Exide MILEAGE ₹5,899             │
-│ ─────────────────────────────────────── │
-│  See all results for "baleno"           │
-└─────────────────────────────────────────┘
+Mobile (<sm):
+[ ☎ Call  |  💬 WhatsApp ]                 (centered, compact)
+
+Desktop (md+):
+[ ☎ +91 99999 99999   💬 WhatsApp ]   ...   Free shipping & doorstep installation
 ```
 
-- Debounced (~200ms) as the user types.
-- Keyboard support: ↑/↓ to navigate, Enter to select, Esc to close.
-- Click outside or selecting an item closes the dropdown.
-- Pressing Enter with no selection navigates to `/shop?q=<term>` (current behavior, kept as fallback).
-- "See all results for X" link at the bottom goes to `/shop?q=X`.
-
-## Routing behavior on selection
-
-- Category → `/category/<slug>`
-- Battery brand → `/brand/<slug>`
-- Car model → `/shop?type=car-batteries&car_model=<slug>` (uses existing fitment filter)
-- Product → `/product/<slug>` (existing detail route)
-- Free text fallback → `/shop?q=<term>`
-
-## Shop page upgrade (so "See all results" works well)
-
-Currently `/shop?q=` only matches `name` and `sku`. Extend it so a term like "baleno" or "amaron" still returns useful results from the shop page:
-
-1. If `q` exactly matches a `car_models.slug` or name, auto-apply the car model fitment filter.
-2. If `q` matches a `battery_brands.slug` or name, auto-apply the brand filter.
-3. Otherwise fall back to current name/SKU `ilike` filter (broaden to also match `short_description`).
-
-## Technical implementation
-
-New component: `src/components/search/SmartSearch.tsx`
-- Replaces the inline `<form>` + `<Input>` block currently in `src/components/layout/Header.tsx` (and reused in the mobile drawer).
-- Internal state: `term`, `open`, `activeIndex`.
-- Uses `useQuery` with key `["smart_search", debouncedTerm]`, enabled when term length ≥ 2.
-- Single query function runs 4 parallel Supabase calls with `Promise.all`:
-  - `categories`: `select('name,slug').ilike('name', %q%).limit(4)`
-  - `battery_brands`: `select('name,slug').ilike('name', %q%).limit(4)`
-  - `car_models`: `select('name,slug, car_brands(name)').ilike('name', %q%).limit(5)`
-  - `products`: `select('id,name,slug,sku,price,primary_image_url,battery_brands(slug,name)').eq('status','active').or(\`name.ilike.%q%,sku.ilike.%q%,short_description.ilike.%q%\`).limit(6)`
-- Results grouped and rendered in the dropdown described above.
-- Use `useRef` + click-outside hook to close the panel.
-
-Header changes (`src/components/layout/Header.tsx`):
-- Remove existing local `search` state and inline form.
-- Render `<SmartSearch />` in the desktop header (where the form is now) and inside the mobile drawer.
-
-Shop page changes (`src/pages/Shop.tsx`):
-- Extend the query function so when `q` is present, also try to resolve it to a battery brand or car model and apply those filters in addition to the text match. This makes the "See all results for baleno" link return Baleno-fitting batteries.
-
-No DB schema changes. No new dependencies. All data already exists in `products`, `categories`, `battery_brands`, `car_models`, and `product_fitment`.
-
-## Out of scope
-
-- Search analytics / popular searches.
-- Typo tolerance / fuzzy matching beyond Postgres `ilike` (can be added later with `pg_trgm` if desired).
-- Recent searches history.
+The user's email and sign-out remain easily accessible via the user icon dropdown in the main header row.

@@ -174,7 +174,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
       return;
     }
     if (term.trim()) {
-      const path = `/shop?q=${encodeURIComponent(term.trim())}`;
+      const path = `/search?q=${encodeURIComponent(term.trim())}`;
       pushRecent({ label: term.trim(), path, sublabel: "Search", kind: "query" });
       go(path);
     }
@@ -373,7 +373,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
           {term.trim() && (
             <button
               type="button"
-              onClick={() => go(`/shop?q=${encodeURIComponent(term.trim())}`)}
+              onClick={() => go(`/search?q=${encodeURIComponent(term.trim())}`)}
               className="w-full border-t border-line px-4 py-3 text-sm font-bold text-primary hover:bg-muted text-left"
             >
               See all results for "{term.trim()}"

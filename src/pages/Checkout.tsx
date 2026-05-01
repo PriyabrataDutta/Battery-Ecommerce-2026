@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, Navigate } from "react-router-dom";
 import { format, addDays } from "date-fns";
-import { supabase } from "@/integrations/supabase/client";
+import { useDefaultAddress } from "@/hooks/queries/useAddresses";
+import { useCreateOrder } from "@/hooks/queries/useOrders";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart, lineKey, lineUnitPrice } from "@/hooks/useCart";
 import { Button } from "@/components/ui/button";
@@ -402,6 +403,11 @@ const Checkout = () => {
   const [slot, setSlot] = useState<SlotId | "">(initialDraft?.slot ?? "");
   const [scheduleError, setScheduleError] = useState<string>("");
 
+  const { data: defaultAddress } = useDefaultAddress(user?.id);
+  const createOrderMutation = useCreateOrder();
+
+
+
   // Persist a draft on every meaningful change. Self-destructs after 5 min via loadDraft().
   useEffect(() => {
     // Don't persist a totally empty form (avoids creating a stale entry on first visit).
@@ -436,41 +442,29 @@ const Checkout = () => {
   // Prefill from logged-in user: email + saved default address (if any).
   useEffect(() => {
     if (!user) return;
-    let cancelled = false;
-    (async () => {
-      const updates: Partial<Address> = {};
-      if (user.email) updates.email = user.email;
-      const { data } = await supabase
-        .from("customer_addresses")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("is_default", { ascending: false })
-        .order("updated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (data) {
-        updates.fullName = data.full_name ?? "";
-        updates.phone = data.phone ?? "";
-        updates.line1 = data.line1 ?? "";
-        updates.line2 = data.line2 ?? "";
-        updates.landmark = data.landmark ?? "";
-        updates.city = data.city ?? "";
-        updates.state = data.state ?? "";
-        updates.pincode = data.pincode ?? "";
-        updates.gstin = data.gstin ?? "";
+    const updates: Partial<Address> = {};
+    if (user.email) updates.email = user.email;
+    if (defaultAddress) {
+      updates.fullName = defaultAddress.full_name ?? "";
+      updates.phone = defaultAddress.phone ?? "";
+      updates.line1 = defaultAddress.line1 ?? "";
+      updates.line2 = defaultAddress.line2 ?? "";
+      updates.landmark = defaultAddress.landmark ?? "";
+      updates.city = defaultAddress.city ?? "";
+      updates.state = defaultAddress.state ?? "";
+      updates.pincode = defaultAddress.pincode ?? "";
+      updates.gstin = defaultAddress.gstin ?? "";
+    }
+    setAddress((prev) => {
+      // Don't clobber any field the user has already filled in.
+      const merged = { ...prev };
+      for (const k of Object.keys(updates) as (keyof Address)[]) {
+        if (!merged[k]) merged[k] = updates[k] ?? "";
       }
-      if (cancelled) return;
-      setAddress((prev) => {
-        // Don't clobber any field the user has already filled in.
-        const merged = { ...prev };
-        for (const k of Object.keys(updates) as (keyof Address)[]) {
-          if (!merged[k]) merged[k] = updates[k] ?? "";
-        }
-        return merged;
-      });
-    })();
-    return () => { cancelled = true; };
-  }, [user]);
+      return merged;
+    });
+  }, [user, defaultAddress]);
+
 
   const deliveryOption = useMemo(
     () => DELIVERY_OPTIONS.find((o) => o.id === delivery)!,
@@ -628,18 +622,13 @@ const Checkout = () => {
     const paymentMeta = PAYMENT_OPTIONS.find((p) => p.id === payment)!;
     const scheduledDateOnly = format(deliveryDate!, "yyyy-MM-dd");
 
-    // Persist order in two writes: order header, then items. order_items has
-    // no unique constraint we can rely on for upsert, so a second insert is
-    // simplest. RLS guarantees user_id = auth.uid().
-    const { data: orderRow, error: orderErr } = await supabase
-      .from("orders")
-      .insert({
-        user_id: user!.id,
-        order_number: orderNumber,
-        status: "pending",
-        customer_name: ok.fullName,
-        customer_email: ok.email,
-        customer_phone: ok.phone,
+    // Persist via the orders API layer (header + items in one call).
+    // RLS guarantees user_id = auth.uid().
+    try {
+      await createOrderMutation.mutateAsync({
+        userId: user!.id,
+        orderNumber,
+        customer: { name: ok.fullName, email: ok.email, phone: ok.phone },
         address: JSON.parse(JSON.stringify(ok)),
         notes: ok.notes || null,
         subtotal,
@@ -647,39 +636,30 @@ const Checkout = () => {
         tax,
         shipping: deliveryOption.price,
         total,
-        promo_code: appliedPromo?.code ?? null,
-        promo_label: appliedPromo?.label ?? null,
-        payment_method: paymentMeta.label,
-        delivery_method: deliveryOption.id,
-        delivery_label: deliveryOption.label,
-        scheduled_date: scheduledDateOnly,
-        scheduled_slot: slot,
-        scheduled_slot_label: slotMeta.label,
-        scheduled_slot_window: slotMeta.window,
-      })
-      .select("id, order_number")
-      .single();
-
-    if (orderErr || !orderRow) {
+        promoCode: appliedPromo?.code ?? null,
+        promoLabel: appliedPromo?.label ?? null,
+        paymentMethod: paymentMeta.label,
+        deliveryMethod: deliveryOption.id,
+        deliveryLabel: deliveryOption.label,
+        scheduledDate: scheduledDateOnly,
+        scheduledSlot: slot,
+        scheduledSlotLabel: slotMeta.label,
+        scheduledSlotWindow: slotMeta.window,
+        items: items.map((it) => ({
+          product_id: it.id,
+          product_name: it.name + (it.withExchange ? " (with exchange)" : ""),
+          product_sku: it.sku,
+          qty: it.qty,
+          unit_price: lineUnitPrice(it),
+        })),
+      });
+    } catch (err) {
       setSubmitting(false);
-      toast.error(orderErr?.message ?? "Could not place order. Please try again.");
+      const message = err instanceof Error ? err.message : "Could not place order. Please try again.";
+      toast.error(message);
       return;
     }
 
-    const itemRows = items.map((it) => ({
-      order_id: orderRow.id,
-      product_id: it.id,
-      product_name: it.name + (it.withExchange ? " (with exchange)" : ""),
-      product_sku: it.sku,
-      qty: it.qty,
-      unit_price: lineUnitPrice(it),
-    }));
-    const { error: itemsErr } = await supabase.from("order_items").insert(itemRows);
-    if (itemsErr) {
-      setSubmitting(false);
-      toast.error("Order placed but items failed to save: " + itemsErr.message);
-      return;
-    }
 
     // Mirror to sessionStorage so the OrderConfirmation page can render
     // immediately without re-fetching, and so guests who logged in mid-flow

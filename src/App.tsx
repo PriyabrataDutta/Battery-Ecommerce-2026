@@ -7,7 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { StoreLayout } from "@/components/layout/StoreLayout";
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
-import ProductDetail from "./pages/ProductDetail";
+import ProductDetail from "./pages/product-detail";
 import Cart from "./pages/Cart";
 import NotFound from "./pages/NotFound";
 import { PostLogoutRedirect } from "./components/auth/PostLogoutRedirect";

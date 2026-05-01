@@ -246,16 +246,25 @@ export function ShopFilters({ counts, priceBounds }: Props) {
         </ul>
       </div>
 
-      {hasAny && (
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full"
-          onClick={() => navigate("/shop")}
-        >
-          <X className="h-3.5 w-3.5 mr-1.5" /> Clear all filters
-        </Button>
-      )}
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-full sticky bottom-0"
+        disabled={!hasAny}
+        onClick={() => {
+          // Reset only filter-controlled params; preserve q (search) and type (category)
+          update({
+            car_brand: null,
+            car_model: null,
+            battery_brand: null,
+            min_price: null,
+            max_price: null,
+          });
+          setRange([minBound, maxBound]);
+        }}
+      >
+        <X className="h-3.5 w-3.5 mr-1.5" /> Clear all filters
+      </Button>
     </div>
   );
 }

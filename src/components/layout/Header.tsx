@@ -1,12 +1,11 @@
 import { Link, NavLink } from "react-router-dom";
-import { Search, ShoppingCart, User, Menu, Phone, MessageCircle, ChevronDown, X, LogOut } from "lucide-react";
+import { ShoppingCart, User, Menu, Phone, MessageCircle, ChevronDown, X, LogOut } from "lucide-react";
 import { useState } from "react";
 import logo from "@/assets/kachi-logo.png";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useNavigate } from "react-router-dom";
+import { SmartSearch } from "@/components/search/SmartSearch";
 
 const mainNav = [
   { label: "Home", to: "/" },
@@ -22,13 +21,6 @@ export function Header() {
   const { user, loading, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const navigate = useNavigate();
-
-  const onSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (search.trim()) navigate(`/shop?q=${encodeURIComponent(search.trim())}`);
-  };
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-line">
@@ -71,17 +63,7 @@ export function Header() {
           <img src={logo} alt="Kachi Batteries" className="h-12 w-auto" />
         </Link>
 
-        <form onSubmit={onSearch} className="hidden md:flex flex-1 max-w-2xl relative">
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search batteries, brands, models..."
-            className="h-11 pr-12 border-line focus-visible:ring-primary"
-          />
-          <button type="submit" className="absolute right-0 top-0 h-11 w-11 grid place-items-center text-ink hover:text-primary">
-            <Search className="h-5 w-5" />
-          </button>
-        </form>
+        <SmartSearch className="hidden md:flex flex-1 max-w-2xl" />
 
         <div className="ml-auto flex items-center gap-2">
           <Button asChild variant="ghost" size="icon" className="hidden sm:inline-flex">
@@ -159,9 +141,9 @@ export function Header() {
       {/* Mobile drawer */}
       {mobileOpen && (
         <div className="lg:hidden border-t border-line bg-white animate-fade-in">
-          <form onSubmit={onSearch} className="p-4 border-b border-line">
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search..." />
-          </form>
+          <div className="p-4 border-b border-line">
+            <SmartSearch onNavigate={() => setMobileOpen(false)} />
+          </div>
           <div className="flex flex-col py-2">
             <MobileLink to="/" label="Home" onClick={() => setMobileOpen(false)} />
             <MobileLink to="/shop" label="Shop" onClick={() => setMobileOpen(false)} />

@@ -13,8 +13,24 @@ const Shop = () => {
   const carModelSlug = params.get("car_model");
   const brandSlug = params.get("battery_brand");
 
+  // Resolve free-text q to a brand or car model so searches like "amaron" or "baleno" return useful results
+  const { data: qResolved } = useQuery({
+    queryKey: ["shop_q_resolve", q],
+    enabled: !!q,
+    queryFn: async () => {
+      const like = `%${q}%`;
+      const [brand, model] = await Promise.all([
+        supabase.from("battery_brands").select("slug").ilike("name", like).limit(1).maybeSingle(),
+        supabase.from("car_models").select("id,slug").ilike("name", like).limit(1).maybeSingle(),
+      ]);
+      return { brandSlug: brand.data?.slug ?? null, carModelId: model.data?.id ?? null };
+    },
+  });
+
+  const effectiveBrand = brandSlug || qResolved?.brandSlug || null;
+
   const { data: products = [], isLoading } = useQuery({
-    queryKey: ["shop", { q, type, carModelSlug, brandSlug }],
+    queryKey: ["shop", { q, type, carModelSlug, brandSlug, qBrand: qResolved?.brandSlug }],
     queryFn: async (): Promise<Product[]> => {
       let query = supabase
         .from("products")
@@ -24,29 +40,40 @@ const Shop = () => {
       const { data, error } = await query;
       if (error) throw error;
       let list = data as unknown as Product[];
-      if (q) list = list.filter((p) => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q));
-      if (brandSlug) list = list.filter((p) => p.battery_brands?.slug === brandSlug);
+      if (q && !qResolved?.brandSlug && !qResolved?.carModelId) {
+        list = list.filter((p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.sku.toLowerCase().includes(q) ||
+          (p.short_description ?? "").toLowerCase().includes(q)
+        );
+      }
+      if (effectiveBrand) list = list.filter((p) => p.battery_brands?.slug === effectiveBrand);
       return list;
     },
   });
 
-  // Apply car model fitment filter via separate query
+  // Apply car model fitment filter via separate query (from URL or resolved from q)
   const { data: fitmentProductIds } = useQuery({
-    queryKey: ["fitment_ids", carModelSlug],
-    enabled: !!carModelSlug,
+    queryKey: ["fitment_ids", carModelSlug, qResolved?.carModelId],
+    enabled: !!carModelSlug || !!qResolved?.carModelId,
     queryFn: async (): Promise<string[]> => {
-      const { data: model } = await supabase.from("car_models").select("id").eq("slug", carModelSlug!).maybeSingle();
-      if (!model) return [];
-      const { data } = await supabase.from("product_fitment").select("product_id").eq("car_model_id", model.id);
+      let modelId = qResolved?.carModelId ?? null;
+      if (!modelId && carModelSlug) {
+        const { data: model } = await supabase.from("car_models").select("id").eq("slug", carModelSlug).maybeSingle();
+        modelId = model?.id ?? null;
+      }
+      if (!modelId) return [];
+      const { data } = await supabase.from("product_fitment").select("product_id").eq("car_model_id", modelId);
       return (data ?? []).map((r) => r.product_id);
     },
   });
 
   const filtered = useMemo(() => {
-    if (!carModelSlug) return products;
+    const useFitment = !!carModelSlug || !!qResolved?.carModelId;
+    if (!useFitment) return products;
     if (!fitmentProductIds) return products;
     return products.filter((p) => fitmentProductIds.includes(p.id));
-  }, [products, carModelSlug, fitmentProductIds]);
+  }, [products, carModelSlug, qResolved?.carModelId, fitmentProductIds]);
 
   return (
     <div className="container-x py-10">

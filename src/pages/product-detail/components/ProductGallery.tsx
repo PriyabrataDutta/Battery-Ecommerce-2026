@@ -1,11 +1,10 @@
 /**
  * ProductGallery — main image + thumbnail strip.
  *
- * Owns the active-image state. Parent passes the full image URL list.
- * GSAP fade animation runs whenever `active` changes.
+ * Uses CSS transitions instead of GSAP for the image fade.
+ * Main image loads eagerly (LCP); thumbnails use loading="lazy".
  */
-import { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
+import { useEffect, useState } from "react";
 
 export const ProductGallery = ({
   images,
@@ -15,31 +14,29 @@ export const ProductGallery = ({
   alt: string;
 }) => {
   const [active, setActive] = useState<string | null>(images[0] ?? null);
-  const mainRef = useRef<HTMLImageElement>(null);
+  const [fadeKey, setFadeKey] = useState(0);
 
   useEffect(() => {
     if (!active && images.length) setActive(images[0]);
   }, [images, active]);
 
-  useEffect(() => {
-    if (mainRef.current && active) {
-      gsap.fromTo(
-        mainRef.current,
-        { opacity: 0, scale: 1.02 },
-        { opacity: 1, scale: 1, duration: 0.4, ease: "power2.out" },
-      );
+  const handleSelect = (url: string) => {
+    if (url !== active) {
+      setFadeKey((k) => k + 1);
+      setActive(url);
     }
-  }, [active]);
+  };
 
   return (
     <>
-      <div className="bg-white border border-line aspect-square overflow-hidden">
+      <div className="bg-white border border-line aspect-square overflow-hidden rounded-md">
         {active && (
           <img
-            ref={mainRef}
+            key={fadeKey}
             src={active}
             alt={alt}
-            className="w-full h-full object-contain p-4"
+            className="w-full h-full object-contain p-4 animate-fade-in"
+            fetchPriority="high"
           />
         )}
       </div>
@@ -48,12 +45,19 @@ export const ProductGallery = ({
           {images.slice(0, 5).map((url) => (
             <button
               key={url}
-              onClick={() => setActive(url)}
-              className={`bg-white border aspect-square overflow-hidden ${
-                active === url ? "border-primary ring-1 ring-primary" : "border-line"
+              onClick={() => handleSelect(url)}
+              className={`bg-white border aspect-square overflow-hidden rounded ${
+                active === url
+                  ? "border-primary ring-1 ring-primary"
+                  : "border-line"
               }`}
             >
-              <img src={url} alt="" className="w-full h-full object-contain p-1" />
+              <img
+                src={url}
+                alt=""
+                loading="lazy"
+                className="w-full h-full object-contain p-1"
+              />
             </button>
           ))}
         </div>

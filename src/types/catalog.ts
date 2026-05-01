@@ -31,6 +31,13 @@ export interface Category {
   icon: string | null;
 }
 
+export interface ProductImage {
+  id: string;
+  url: string;
+  alt: string | null;
+  sort_order: number;
+}
+
 export interface Product {
   id: string;
   sku: string;
@@ -57,8 +64,14 @@ export interface Product {
   primary_image_url: string | null;
   has_exchange: boolean;
   exchange_rebate: number;
+  meta_title?: string | null;
+  meta_description?: string | null;
+  meta_keywords?: string | null;
+  tags?: string[];
   battery_brands?: BatteryBrand | null;
   categories?: Category | null;
+  /** Joined from product_images table (included in getProductBySlug) */
+  product_images?: ProductImage[];
 }
 
 export interface CartItem {

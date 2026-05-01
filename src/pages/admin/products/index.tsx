@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ProductsToolbar, type ProductsFilterState } from "./components/ProductsToolbar";
 import { ProductsTable } from "./components/ProductsTable";
 import { ProductEditor } from "./components/ProductEditor";
+import { BulkFitmentDialog } from "./components/BulkFitmentDialog";
 import {
   useAdminProductsQuery,
   useBrandsQuery,
@@ -41,6 +42,7 @@ const AdminProducts = () => {
   });
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<AdminProductRow | null>(null);
+  const [fitmentOpen, setFitmentOpen] = useState(false);
 
   const productsQuery = useAdminProductsQuery({
     search: filters.search || undefined,
@@ -67,6 +69,7 @@ const AdminProducts = () => {
         state={filters}
         onChange={setFilters}
         onCreate={openCreate}
+        onMapFitment={() => setFitmentOpen(true)}
         brands={brandsQuery.data ?? []}
         categories={categoriesQuery.data ?? []}
         count={productsQuery.data?.length ?? 0}
@@ -84,6 +87,7 @@ const AdminProducts = () => {
         brands={brandsQuery.data ?? []}
         categories={categoriesQuery.data ?? []}
       />
+      <BulkFitmentDialog open={fitmentOpen} onOpenChange={setFitmentOpen} />
     </div>
   );
 };

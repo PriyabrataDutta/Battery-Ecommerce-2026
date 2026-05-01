@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { EntityDrawer } from "@/components/admin/EntityDrawer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +15,8 @@ import {
 import { slugify } from "@/lib/adminLog";
 import { EMPTY_PRODUCT, PRODUCT_STATUSES } from "../lib/constants";
 import { useCreateProduct, useUpdateProduct, useDeleteProduct } from "../hooks/useAdminProducts";
+import { FitmentEditor } from "./FitmentEditor";
+import { getProductFitmentModelIds, saveProductFitment } from "@/api/admin/productFitment";
 import type { AdminProductRow } from "@/api/admin/products";
 import type { BatteryBrand, Category } from "@/types/catalog";
 import type { ProductEditableFields } from "@/api/admin/products";
@@ -44,6 +47,18 @@ export function ProductEditor({
 }) {
   const isEdit = !!product;
   const [form, setForm] = useState<ProductEditableFields>(EMPTY_PRODUCT);
+  const [fitmentModelIds, setFitmentModelIds] = useState<string[]>([]);
+
+  // Load existing fitment when editing
+  const { data: existingFitment } = useQuery({
+    queryKey: ["product_fitment", product?.id],
+    queryFn: () => getProductFitmentModelIds(product!.id),
+    enabled: !!product?.id && open,
+  });
+
+  useEffect(() => {
+    if (existingFitment) setFitmentModelIds(existingFitment);
+  }, [existingFitment]);
 
   useEffect(() => {
     if (!open) return;
@@ -76,6 +91,7 @@ export function ProductEditor({
       });
     } else {
       setForm(EMPTY_PRODUCT);
+      setFitmentModelIds([]);
     }
   }, [open, product]);
 
@@ -91,11 +107,16 @@ export function ProductEditor({
     if (!form.name.trim() || !form.sku.trim() || form.price < 0) return;
     const slug = form.slug.trim() || slugify(form.name);
     const payload = { ...form, slug };
+    let productId: string;
     if (isEdit && product) {
       await update.mutateAsync({ id: product.id, patch: payload });
+      productId = product.id;
     } else {
-      await create.mutateAsync(payload);
+      const created = await create.mutateAsync(payload);
+      productId = created.id;
     }
+    // Save fitment mappings
+    await saveProductFitment(productId, fitmentModelIds);
     onOpenChange(false);
   };
 
@@ -293,6 +314,14 @@ export function ProductEditor({
             onChange={(e) => set("exchange_rebate", Number(e.target.value) || 0)}
           />
         </Field>
+      </Section>
+
+      {/* Car Fitment */}
+      <Section title="Car Fitment">
+        <FitmentEditor
+          selectedModelIds={fitmentModelIds}
+          onChange={setFitmentModelIds}
+        />
       </Section>
     </EntityDrawer>
   );

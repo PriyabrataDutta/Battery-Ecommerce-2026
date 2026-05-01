@@ -1,27 +1,17 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  useMyAddresses,
+  useCreateAddress,
+  useSetDefaultAddress,
+  useDeleteAddress,
+} from "@/hooks/queries/useAddresses";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { MapPin, Plus, Star, Trash2 } from "lucide-react";
-
-interface AddressRow {
-  id: string;
-  label: string | null;
-  full_name: string;
-  phone: string;
-  line1: string;
-  line2: string | null;
-  landmark: string | null;
-  city: string;
-  state: string;
-  pincode: string;
-  gstin: string | null;
-  is_default: boolean;
-}
 
 const empty = {
   label: "Home",
@@ -38,62 +28,50 @@ const empty = {
 
 const AccountAddresses = () => {
   const { user } = useAuth();
-  const [rows, setRows] = useState<AddressRow[] | null>(null);
+  const { data: rows, isLoading } = useMyAddresses(user?.id);
+  const createAddress = useCreateAddress();
+  const setDefaultMut = useSetDefaultAddress();
+  const deleteMut = useDeleteAddress();
+
   const [adding, setAdding] = useState(false);
   const [form, setForm] = useState(empty);
-  const [saving, setSaving] = useState(false);
 
-  const load = async () => {
-    if (!user) return;
-    const { data } = await supabase
-      .from("customer_addresses")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("is_default", { ascending: false })
-      .order("updated_at", { ascending: false });
-    setRows((data ?? []) as AddressRow[]);
-  };
-
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [user]);
-
-  const save = async () => {
+  const save = () => {
     if (!user) return;
     if (!form.full_name || !form.phone || !form.line1 || !form.city || !form.state || !/^[1-9][0-9]{5}$/.test(form.pincode)) {
       toast.error("Please fill all required fields including a valid 6-digit PIN.");
       return;
     }
-    setSaving(true);
-    const { error } = await supabase.from("customer_addresses").insert({
-      user_id: user.id,
-      label: form.label || null,
-      full_name: form.full_name,
-      phone: form.phone,
-      line1: form.line1,
-      line2: form.line2 || null,
-      landmark: form.landmark || null,
-      city: form.city,
-      state: form.state,
-      pincode: form.pincode,
-      gstin: form.gstin || null,
-      is_default: rows?.length === 0,
-    });
-    setSaving(false);
-    if (error) return toast.error(error.message);
-    toast.success("Address saved");
-    setForm(empty);
-    setAdding(false);
-    load();
+    createAddress.mutate(
+      {
+        user_id: user.id,
+        label: form.label || null,
+        full_name: form.full_name,
+        phone: form.phone,
+        line1: form.line1,
+        line2: form.line2 || null,
+        landmark: form.landmark || null,
+        city: form.city,
+        state: form.state,
+        pincode: form.pincode,
+        gstin: form.gstin || null,
+        is_default: (rows?.length ?? 0) === 0,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Address saved");
+          setForm(empty);
+          setAdding(false);
+        },
+        onError: (e) => toast.error(e instanceof Error ? e.message : "Could not save"),
+      },
+    );
   };
 
-  const setDefault = async (id: string) => {
-    await supabase.from("customer_addresses").update({ is_default: true }).eq("id", id);
-    load();
-  };
-
-  const remove = async (id: string) => {
+  const setDefault = (id: string) => setDefaultMut.mutate(id);
+  const remove = (id: string) => {
     if (!confirm("Delete this address?")) return;
-    await supabase.from("customer_addresses").delete().eq("id", id);
-    load();
+    deleteMut.mutate(id);
   };
 
   return (
@@ -125,13 +103,15 @@ const AccountAddresses = () => {
             <Field label="GSTIN" className="sm:col-span-2"><Input value={form.gstin} onChange={(e) => setForm({ ...form, gstin: e.target.value.toUpperCase().slice(0, 15) })} /></Field>
           </div>
           <div className="flex gap-2">
-            <Button onClick={save} disabled={saving}>{saving ? "Saving…" : "Save address"}</Button>
+            <Button onClick={save} disabled={createAddress.isPending}>
+              {createAddress.isPending ? "Saving…" : "Save address"}
+            </Button>
             <Button variant="outline" onClick={() => { setAdding(false); setForm(empty); }}>Cancel</Button>
           </div>
         </div>
       )}
 
-      {rows === null ? (
+      {isLoading || rows === undefined ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : rows.length === 0 && !adding ? (
         <p className="text-sm text-muted-foreground bg-white border border-line p-6">No saved addresses yet.</p>

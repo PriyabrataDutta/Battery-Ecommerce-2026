@@ -186,6 +186,35 @@ const Shop = () => {
     return preBrandFiltered.filter((p) => p.battery_brands?.slug === effectiveBrand);
   }, [preBrandFiltered, effectiveBrand]);
 
+  // Apply sort to the visible product list
+  const sorted = useMemo(() => {
+    const list = [...filtered];
+    const popularity = (p: Product) =>
+      (p.is_bestseller ? 100 : 0) + (p.is_featured ? 50 : 0) + (p.is_new ? 10 : 0);
+    switch (sort) {
+      case "price_asc":
+        list.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
+        break;
+      case "price_desc":
+        list.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+        break;
+      case "popularity":
+        list.sort((a, b) => popularity(b) - popularity(a));
+        break;
+      case "newest":
+        list.sort((a, b) => {
+          const da = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const db = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return db - da;
+        });
+        break;
+      default:
+        // relevance: keep server order, but bump featured/bestseller slightly
+        list.sort((a, b) => popularity(b) - popularity(a));
+    }
+    return list;
+  }, [filtered, sort]);
+
   const counts = useMemo(() => {
     const byBatteryBrand: Record<string, number> = {};
     for (const p of preBrandFiltered) {

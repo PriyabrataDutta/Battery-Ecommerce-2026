@@ -16,9 +16,17 @@ import { Progress } from "@/components/ui/progress";
 
 interface UploadItem {
   name: string;
-  status: "pending" | "uploading" | "done" | "error";
+  status: "pending" | "uploading" | "done" | "error" | "skipped";
   progress: number; // 0-100
   error?: string;
+}
+
+async function computeSha256(file: File): Promise<string> {
+  const buffer = await file.arrayBuffer();
+  const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 interface MediaFile {

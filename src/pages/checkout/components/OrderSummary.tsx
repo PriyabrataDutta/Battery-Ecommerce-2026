@@ -1,14 +1,12 @@
 /**
  * OrderSummary — sticky right-hand sidebar in the Checkout layout.
  *
- * Shows the cart line items, the promo input, the totals breakdown, and a
- * "secure checkout" badge. Composes <PromoInput /> rather than inlining it.
- *
- * Totals come from the parent (already calculated via lib/totals.ts) so we
- * never duplicate the math.
+ * Shows the cart line items with exchange status, promo input, totals breakdown,
+ * and a "secure checkout" badge.
  */
-import { Lock } from "lucide-react";
-import { lineKey, lineUnitPrice, useCart } from "@/hooks/useCart";
+import { ArrowLeftRight, Lock } from "lucide-react";
+import { lineKey, lineUnitPrice, hasExchangeOption, useCart } from "@/hooks/useCart";
+import { Switch } from "@/components/ui/switch";
 import { formatINR } from "@/lib/format";
 import { PromoInput } from "./PromoInput";
 import type { DeliveryOption, Promo } from "../lib/types";
@@ -39,6 +37,7 @@ export const OrderSummary = ({
   onRemovePromo: () => void;
 }) => {
   const { subtotal, discount, tax, total } = totals;
+  const { setExchange } = useCart();
 
   return (
     <aside className="bg-white border border-line p-6 h-fit lg:sticky lg:top-32">
@@ -48,27 +47,46 @@ export const OrderSummary = ({
         {items.map((it) => {
           const k = lineKey(it);
           const unit = lineUnitPrice(it);
+          const canExchange = hasExchangeOption(it);
           return (
-            <li key={k} className="py-3 flex gap-3">
-              {it.image ? (
-                <img
-                  src={it.image}
-                  alt={it.name}
-                  className="h-14 w-14 object-cover bg-muted shrink-0"
-                />
-              ) : (
-                <div className="h-14 w-14 bg-muted shrink-0" />
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-display font-semibold line-clamp-2">{it.name}</div>
-                <div className="text-[11px] text-muted-foreground">
-                  Qty {it.qty}
-                  {it.withExchange ? " · with exchange" : ""}
+            <li key={k} className="py-3">
+              <div className="flex gap-3">
+                {it.image ? (
+                  <img
+                    src={it.image}
+                    alt={it.name}
+                    className="h-14 w-14 object-cover bg-muted shrink-0"
+                  />
+                ) : (
+                  <div className="h-14 w-14 bg-muted shrink-0" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-display font-semibold line-clamp-2">{it.name}</div>
+                  <div className="text-[11px] text-muted-foreground">
+                    Qty {it.qty}
+                  </div>
+                </div>
+                <div className="text-sm font-semibold whitespace-nowrap">
+                  {formatINR(unit * it.qty)}
                 </div>
               </div>
-              <div className="text-sm font-semibold whitespace-nowrap">
-                {formatINR(unit * it.qty)}
-              </div>
+
+              {/* Exchange toggle in checkout */}
+              {canExchange && (
+                <label className="mt-1.5 flex items-center gap-2 cursor-pointer select-none pl-[62px]">
+                  <Switch
+                    checked={!!it.withExchange}
+                    onCheckedChange={(v) => setExchange(k, v)}
+                    className="data-[state=checked]:bg-primary scale-[0.8]"
+                  />
+                  <div className="flex items-center gap-1">
+                    <ArrowLeftRight className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-[10px] font-semibold">
+                      {it.withExchange ? "With exchange" : "Without exchange"}
+                    </span>
+                  </div>
+                </label>
+              )}
             </li>
           );
         })}

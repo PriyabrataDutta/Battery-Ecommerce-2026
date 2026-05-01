@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
-import { useCart, lineKey, lineUnitPrice } from "@/hooks/useCart";
+import { useCart, lineKey, lineUnitPrice, hasExchangeOption } from "@/hooks/useCart";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { formatINR } from "@/lib/format";
-import { Trash2, Minus, Plus } from "lucide-react";
+import { Trash2, Minus, Plus, ArrowLeftRight } from "lucide-react";
 
 const Cart = () => {
-  const { items, setQty, removeItem, subtotal, clear } = useCart();
+  const { items, setQty, removeItem, setExchange, subtotal, clear } = useCart();
 
   return (
     <div className="container-x py-10">
@@ -21,27 +22,61 @@ const Cart = () => {
             {items.map((it) => {
               const key = lineKey(it);
               const unit = lineUnitPrice(it);
+              const canExchange = hasExchangeOption(it);
               return (
-                <div key={key} className="p-4 flex gap-4 items-center">
-                  {it.image && <img src={it.image} alt={it.name} className="h-20 w-20 object-cover bg-muted" />}
-                  <div className="flex-1 min-w-0">
-                    <Link to={`/product/${it.slug}`} className="font-display font-semibold hover:text-primary line-clamp-2">{it.name}</Link>
-                    <div className="text-xs text-muted-foreground">SKU: {it.sku}</div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="font-bold">{formatINR(unit)}</div>
-                      {it.withExchange ? (
-                        <span className="badge-pill bg-primary text-white text-[10px]">With Exchange</span>
-                      ) : it.exchangeRebate ? (
-                        <span className="badge-pill bg-muted text-ink-soft text-[10px]">No Exchange</span>
-                      ) : null}
+                <div key={key} className="p-4 sm:p-5">
+                  <div className="flex gap-4 items-start">
+                    {it.image && (
+                      <Link to={`/product/${it.slug}`} className="shrink-0">
+                        <img src={it.image} alt={it.name} className="h-20 w-20 object-contain bg-muted rounded border border-line" />
+                      </Link>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <Link to={`/product/${it.slug}`} className="font-display font-semibold hover:text-primary line-clamp-2">{it.name}</Link>
+                      <div className="text-xs text-muted-foreground mt-0.5">SKU: {it.sku}</div>
+
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="font-display text-lg font-bold">{formatINR(unit)}</div>
+                        {canExchange && it.withExchange && it.priceWithoutExchange > 0 && (
+                          <span className="text-xs text-muted-foreground line-through">{formatINR(it.priceWithoutExchange)}</span>
+                        )}
+                      </div>
+                    </div>
+                    <button onClick={() => removeItem(key)} className="text-muted-foreground hover:text-primary p-1 shrink-0">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  {/* Exchange toggle + qty row */}
+                  <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
+                    {canExchange ? (
+                      <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                        <Switch
+                          checked={!!it.withExchange}
+                          onCheckedChange={(v) => setExchange(key, v)}
+                          className="data-[state=checked]:bg-primary"
+                        />
+                        <div className="flex items-center gap-1.5">
+                          <ArrowLeftRight className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="text-xs font-semibold">
+                            {it.withExchange ? "With exchange" : "Without exchange"}
+                          </span>
+                        </div>
+                        {it.withExchange && (
+                          <span className="badge-pill bg-primary/10 text-primary text-[10px] font-semibold">
+                            Save {formatINR(it.priceWithoutExchange - it.priceWithExchange)}
+                          </span>
+                        )}
+                      </label>
+                    ) : (
+                      <div />
+                    )}
+                    <div className="flex items-center border border-line rounded">
+                      <button onClick={() => setQty(key, it.qty - 1)} className="h-9 w-9 grid place-items-center hover:bg-muted"><Minus className="h-3 w-3" /></button>
+                      <span className="w-10 text-center text-sm font-semibold">{it.qty}</span>
+                      <button onClick={() => setQty(key, it.qty + 1)} className="h-9 w-9 grid place-items-center hover:bg-muted"><Plus className="h-3 w-3" /></button>
                     </div>
                   </div>
-                  <div className="flex items-center border border-line">
-                    <button onClick={() => setQty(key, it.qty - 1)} className="h-9 w-9 grid place-items-center hover:bg-muted"><Minus className="h-3 w-3" /></button>
-                    <span className="w-10 text-center text-sm font-semibold">{it.qty}</span>
-                    <button onClick={() => setQty(key, it.qty + 1)} className="h-9 w-9 grid place-items-center hover:bg-muted"><Plus className="h-3 w-3" /></button>
-                  </div>
-                  <button onClick={() => removeItem(key)} className="text-muted-foreground hover:text-primary"><Trash2 className="h-4 w-4" /></button>
                 </div>
               );
             })}

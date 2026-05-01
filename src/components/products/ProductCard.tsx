@@ -11,39 +11,36 @@ import { toast } from "sonner";
 export const ProductCard = forwardRef<HTMLAnchorElement, { product: Product }>(function ProductCard({ product }, ref) {
   const { addItem } = useCart();
   const navigate = useNavigate();
-  const dpct = discountPct(product.price, product.mrp);
-  const showExchange = product.has_exchange && product.exchange_rebate > 0;
-  const exchangePrice = product.price - product.exchange_rebate;
+
+  const withoutExchange = product.price_without_exchange || product.price;
+  const withExchange = product.price_with_exchange || withoutExchange;
+  const dpct = discountPct(withoutExchange, product.mrp);
+  const showExchange = product.has_exchange && withExchange < withoutExchange;
+
+  const cartPayload = {
+    id: product.id,
+    name: product.name,
+    slug: product.slug,
+    sku: product.sku,
+    price: product.price,
+    priceWithExchange: withExchange,
+    priceWithoutExchange: withoutExchange,
+    image: product.primary_image_url,
+    withExchange: false as const,
+    exchangeRebate: product.exchange_rebate,
+  };
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem({
-      id: product.id,
-      name: product.name,
-      slug: product.slug,
-      sku: product.sku,
-      price: product.price,
-      image: product.primary_image_url,
-      withExchange: false,
-      exchangeRebate: product.exchange_rebate,
-    });
+    addItem(cartPayload);
     toast.success("Added to cart", { description: product.name });
   };
 
   const handleBuyNow = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem({
-      id: product.id,
-      name: product.name,
-      slug: product.slug,
-      sku: product.sku,
-      price: product.price,
-      image: product.primary_image_url,
-      withExchange: false,
-      exchangeRebate: product.exchange_rebate,
-    });
+    addItem(cartPayload);
     navigate("/checkout");
   };
 
@@ -78,8 +75,8 @@ export const ProductCard = forwardRef<HTMLAnchorElement, { product: Product }>(f
 
         {/* Without exchange (primary price) */}
         <div className="mt-2.5 sm:mt-3 flex items-baseline gap-2 flex-wrap">
-          <span className="font-display text-lg sm:text-xl font-bold text-ink">{formatINR(product.price)}</span>
-          {product.mrp && product.mrp > product.price && (
+          <span className="font-display text-lg sm:text-xl font-bold text-ink">{formatINR(withoutExchange)}</span>
+          {product.mrp && product.mrp > withoutExchange && (
             <span className="text-[11px] sm:text-xs text-muted-foreground line-through">{formatINR(product.mrp)}</span>
           )}
         </div>
@@ -92,14 +89,14 @@ export const ProductCard = forwardRef<HTMLAnchorElement, { product: Product }>(f
           <div className="mt-2 border-t border-dashed border-line pt-2">
             <div className="flex items-baseline gap-2 flex-wrap">
               <span className="font-display text-sm sm:text-base font-bold text-primary">
-                {formatINR(exchangePrice)}
+                {formatINR(withExchange)}
               </span>
               <span className="text-[10px] uppercase tracking-wider text-primary/80 font-semibold">
                 With exchange
               </span>
             </div>
             <div className="text-[10px] text-muted-foreground line-clamp-1">
-              Save {formatINR(product.exchange_rebate)} on old battery return
+              Save {formatINR(withoutExchange - withExchange)} on old battery return
             </div>
           </div>
         )}

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ProductsToolbar, type ProductsFilterState } from "./components/ProductsToolbar";
 import { ProductsTable } from "./components/ProductsTable";
 import { ProductEditor } from "./components/ProductEditor";
+import { BulkFitmentDialog } from "./components/BulkFitmentDialog";
 import {
   useAdminProductsQuery,
   useBrandsQuery,

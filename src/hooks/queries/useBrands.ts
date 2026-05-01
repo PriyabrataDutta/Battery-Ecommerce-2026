@@ -26,6 +26,41 @@ export const useBatteryBrandNameBySlug = (slug: string | undefined) =>
     enabled: !!slug,
   });
 
+export const useResolveBatteryBrandSlugByName = (term: string) =>
+  useQuery({
+    queryKey: qk.batteryBrands.resolveByName(term),
+    queryFn: () => battery.resolveBrandSlugByName(term),
+    enabled: !!term,
+  });
+
+export const useCarBrandIdsBySlugs = (slugs: string[]) =>
+  useQuery({
+    queryKey: qk.carBrands.idsBySlugs(slugs),
+    queryFn: () => cars.getCarBrandIdsBySlugs(slugs),
+    enabled: slugs.length > 0,
+  });
+
+export const useCarModelIdsByBrandIds = (brandIds: string[] | undefined) =>
+  useQuery({
+    queryKey: qk.carModels.idsByBrandIds(brandIds),
+    queryFn: () => models.getCarModelIdsByBrandIds(brandIds ?? []),
+    enabled: !!brandIds && brandIds.length > 0,
+  });
+
+export const useResolveCarModelIdByName = (term: string) =>
+  useQuery({
+    queryKey: qk.carModels.resolveByName(term),
+    queryFn: () => models.resolveCarModelIdByName(term),
+    enabled: !!term,
+  });
+
+export const useCarModelIdBySlug = (slug: string | undefined) =>
+  useQuery({
+    queryKey: qk.carModels.idBySlug(slug),
+    queryFn: () => models.getCarModelIdBySlug(slug!),
+    enabled: !!slug,
+  });
+
 // ---------- Car brands ----------
 
 export const useCarBrands = () =>

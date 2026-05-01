@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +13,8 @@ import {
 } from "@/components/ui/select";
 import { EntityDrawer } from "@/components/admin/EntityDrawer";
 import { toast } from "sonner";
-import { Plus, Search, Trash2 } from "lucide-react";
+import { Plus, Search, Trash2, Upload, Loader2 } from "lucide-react";
+import { parseProductsXlsx } from "@/lib/parseProductsXlsx";
 
 interface FitmentRow {
   product_id: string;
@@ -31,6 +31,8 @@ export default function FitmentPanel() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
+  const [importing, setImporting] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const { data: fitments = [], isLoading } = useQuery({
     queryKey: ["admin-fitment"],
@@ -103,6 +105,49 @@ export default function FitmentPanel() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Reset so the same file can be re-selected
+    e.target.value = "";
+
+    setImporting(true);
+    try {
+      const parsed = await parseProductsXlsx(file);
+      if (!parsed.rows.length) {
+        toast.error("No data found in the Excel file");
+        return;
+      }
+
+      toast.info(
+        `Importing ${parsed.rows.length} products, ${parsed.car_brand_count} car brands, ${parsed.car_model_count} models…`,
+        { duration: 5000 }
+      );
+
+      const { data, error } = await supabase.functions.invoke("bulk-import-fitment", {
+        body: { rows: parsed.rows },
+      });
+
+      if (error) throw error;
+
+      const s = data as Record<string, number>;
+      toast.success(
+        `Import complete! ${s.brands_created} brands, ${s.models_created} models, ${s.products_created} products created, ${s.products_updated} updated, ${s.fitments_created} fitments linked.`,
+        { duration: 8000 }
+      );
+
+      // Refresh all related queries
+      qc.invalidateQueries({ queryKey: ["admin-fitment"] });
+      qc.invalidateQueries({ queryKey: ["admin-fitment-products"] });
+      qc.invalidateQueries({ queryKey: ["admin-fitment-models"] });
+    } catch (err: any) {
+      console.error("Import failed:", err);
+      toast.error(`Import failed: ${err.message ?? "Unknown error"}`);
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const filtered = search
     ? fitments.filter(
         (f) =>
@@ -115,7 +160,7 @@ export default function FitmentPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -125,9 +170,30 @@ export default function FitmentPanel() {
             className="pl-9"
           />
         </div>
-        <Button onClick={() => setDrawerOpen(true)}>
-          <Plus className="h-4 w-4 mr-1.5" /> Add Fitment
-        </Button>
+        <div className="flex items-center gap-2">
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".xlsx,.xls"
+            className="hidden"
+            onChange={handleFileImport}
+          />
+          <Button
+            variant="outline"
+            onClick={() => fileRef.current?.click()}
+            disabled={importing}
+          >
+            {importing ? (
+              <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+            ) : (
+              <Upload className="h-4 w-4 mr-1.5" />
+            )}
+            {importing ? "Importing…" : "Import from Excel"}
+          </Button>
+          <Button onClick={() => setDrawerOpen(true)}>
+            <Plus className="h-4 w-4 mr-1.5" /> Add Fitment
+          </Button>
+        </div>
       </div>
 
       <div className="rounded-lg border bg-card">

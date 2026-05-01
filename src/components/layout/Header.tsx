@@ -63,7 +63,7 @@ export function Header() {
           <img src={logo} alt="Kachi Batteries" className="h-12 w-auto" />
         </Link>
 
-        <SmartSearch className="hidden md:flex flex-1" />
+        <SmartSearch className="hidden md:flex flex-1 md:w-[700px] md:max-w-[700px] mx-auto" />
 
         <div className="ml-auto flex items-center gap-2">
           <Button asChild variant="ghost" size="icon" className="hidden sm:inline-flex">

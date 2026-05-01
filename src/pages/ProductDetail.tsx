@@ -379,8 +379,8 @@ const ProductDetail = () => {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="desc" className="mt-12">
-        <TabsList className="bg-transparent border-b border-line w-full justify-start rounded-none h-auto p-0 overflow-x-auto">
+      <Tabs defaultValue="desc" className="mt-10 sm:mt-12">
+        <TabsList className="bg-transparent border-b border-line w-full justify-start rounded-none h-auto p-0 overflow-x-auto flex-nowrap whitespace-nowrap scrollbar-none">
           {[
             ["desc", "Details"],
             ["specs", "Specifications"],
@@ -390,7 +390,7 @@ const ProductDetail = () => {
             <TabsTrigger
               key={v}
               value={v}
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary px-4 py-2.5 font-semibold uppercase tracking-wider text-xs"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary px-3 sm:px-4 py-2.5 font-semibold uppercase tracking-wider text-[11px] sm:text-xs flex-shrink-0"
             >
               {l}
             </TabsTrigger>

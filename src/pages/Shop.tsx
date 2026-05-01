@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ShopFilters } from "@/components/products/ShopFilters";
+import { ActiveFilters } from "@/components/products/ActiveFilters";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LayoutGrid, List } from "lucide-react";
 import type { Product } from "@/types/catalog";
@@ -251,6 +252,8 @@ const Shop = () => {
           </div>
         </aside>
         <div>
+          <ActiveFilters priceBounds={priceBounds} />
+
           {/* Toolbar: sort + view toggle */}
           <div className="flex items-center justify-between gap-3 mb-4 bg-white border border-line p-2.5 sm:p-3">
             <div className="flex items-center gap-2 min-w-0">

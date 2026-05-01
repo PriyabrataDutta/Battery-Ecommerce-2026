@@ -210,7 +210,7 @@ export function Header() {
               className="inline-flex h-10 px-2 sm:px-3 gap-1.5 text-ink hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               <Link to="/auth" aria-label="Login or sign up">
-                <span className="text-sm font-medium">Login/Signup</span>
+                <span className="hidden sm:inline text-sm font-medium">Login/Signup</span>
                 <UserPlus className="h-4 w-4" />
               </Link>
             </Button>

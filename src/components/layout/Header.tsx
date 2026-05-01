@@ -58,14 +58,14 @@ export function Header() {
       </div>
 
       {/* Main header */}
-      <div className="container-x flex items-center gap-4 lg:gap-8 h-20">
+      <div className="container-x flex flex-nowrap items-center gap-4 lg:gap-6 h-20 min-w-0">
         <Link to="/" className="flex-shrink-0">
           <img src={logo} alt="Kachi Batteries" className="h-12 w-auto" />
         </Link>
 
-        <SmartSearch className="hidden md:flex flex-1 md:w-[700px] md:max-w-[700px] mx-auto" />
+        <SmartSearch className="hidden md:flex flex-1 min-w-0 md:max-w-[700px] mx-auto" />
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex flex-shrink-0 flex-nowrap items-center gap-2 whitespace-nowrap">
           <Button asChild variant="ghost" size="icon" className="hidden sm:inline-flex">
             <Link to={user ? "/account" : "/auth"} aria-label={user ? "Account" : "Sign in"}>
               <User className="h-5 w-5" />

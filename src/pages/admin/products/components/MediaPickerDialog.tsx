@@ -368,11 +368,22 @@ export function MediaPickerDialog({
                 {item.status === "error" && <AlertCircle className="h-3.5 w-3.5 text-destructive shrink-0" />}
                 {item.status === "pending" && <div className="h-3.5 w-3.5 rounded-full border-2 border-muted-foreground/40 shrink-0" />}
                 <span className="truncate flex-1 min-w-0" title={item.name}>{item.name}</span>
-                <div className="w-24 shrink-0">
+                <div className="w-24 shrink-0 flex items-center justify-end gap-1">
                   {(item.status === "uploading" || item.status === "pending") ? (
-                    <Progress value={item.progress} className="h-1.5" />
+                    <Progress value={item.progress} className="h-1.5 flex-1" />
                   ) : item.status === "error" ? (
-                    <span className="text-destructive text-[10px]">Failed</span>
+                    <>
+                      <span className="text-destructive text-[10px]">Failed</span>
+                      <button
+                        type="button"
+                        onClick={() => retryUpload(idx)}
+                        disabled={uploading}
+                        className="p-0.5 rounded hover:bg-muted transition-colors"
+                        title="Retry upload"
+                      >
+                        <RotateCw className="h-3 w-3 text-muted-foreground hover:text-primary" />
+                      </button>
+                    </>
                   ) : item.status === "skipped" ? (
                     <span className="text-amber-600 text-[10px]">Duplicate</span>
                   ) : (

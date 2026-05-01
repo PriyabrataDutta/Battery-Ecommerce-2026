@@ -70,25 +70,25 @@ const Home = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/70 to-transparent" />
 
-        <div className="container-x relative pt-16 pb-40 lg:pt-24 lg:pb-52 grid lg:grid-cols-2 gap-8 items-center">
+        <div className="container-x relative pt-10 pb-32 sm:pt-16 sm:pb-40 lg:pt-24 lg:pb-52 grid lg:grid-cols-2 gap-8 items-center">
           <div>
-            <div className="hero-line text-xs font-bold uppercase tracking-[0.25em] text-primary mb-4">
+            <div className="hero-line text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] sm:tracking-[0.25em] text-primary mb-3 sm:mb-4">
               India's Trusted Battery Store
             </div>
-            <h1 className="font-display-tight text-5xl sm:text-6xl lg:text-7xl font-bold leading-[0.9]">
+            <h1 className="font-display-tight text-[2.25rem] leading-[1.05] sm:text-5xl sm:leading-[0.95] md:text-6xl lg:text-7xl font-bold">
               <span className="hero-line block">Best Prices.</span>
               <span className="hero-line block">Free Shipping.</span>
               <span className="hero-line block text-primary">Free Installation.</span>
             </h1>
-            <p className="hero-line mt-6 text-base text-white/80 max-w-md">
+            <p className="hero-line mt-4 sm:mt-6 text-sm sm:text-base text-white/80 max-w-md">
               Genuine car & inverter batteries from Amaron, Exide, Power Zone and more.
               Same-day dispatch. Doorstep installation in major cities.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild size="lg" className="hero-cta font-bold uppercase tracking-wider">
+            <div className="mt-6 sm:mt-8 flex flex-wrap gap-2 sm:gap-3">
+              <Button asChild size="lg" className="hero-cta font-bold uppercase tracking-wider w-full sm:w-auto">
                 <Link to="/quote">Request Call Back</Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="hero-cta bg-transparent text-white border-white/30 hover:bg-white hover:text-ink font-bold uppercase tracking-wider">
+              <Button asChild size="lg" variant="outline" className="hero-cta bg-transparent text-white border-white/30 hover:bg-white hover:text-ink font-bold uppercase tracking-wider w-full sm:w-auto">
                 <Link to="/shop">Shop Now <ArrowRight className="h-4 w-4 ml-2" /></Link>
               </Button>
             </div>
@@ -100,32 +100,32 @@ const Home = () => {
       </section>
 
       {/* FITMENT SEARCH (overlapping) */}
-      <section className="-mt-24 relative z-10">
+      <section className="-mt-20 sm:-mt-24 relative z-10">
         <FitmentSearch />
       </section>
 
       {/* PERKS STRIP */}
-      <section className="container-x mt-12 grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <section className="container-x mt-8 sm:mt-12 grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
         {[
           { Icon: IndianRupee, t: "Best Prices", s: "Genuine MRP discounts" },
           { Icon: Truck, t: "Free Shipping", s: "Across major cities" },
           { Icon: Wrench, t: "Free Installation", s: "By trained technicians" },
           { Icon: ShieldCheck, t: "Genuine Warranty", s: "Direct from brands" },
         ].map(({ Icon, t, s }) => (
-          <div key={t} className="bg-white border border-line p-4 flex items-center gap-3">
-            <div className="h-11 w-11 grid place-items-center bg-primary/10 text-primary flex-shrink-0">
-              <Icon className="h-5 w-5" />
+          <div key={t} className="bg-white border border-line p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
+            <div className="h-9 w-9 sm:h-11 sm:w-11 grid place-items-center bg-primary/10 text-primary flex-shrink-0">
+              <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
-            <div>
-              <div className="font-display font-semibold text-sm uppercase tracking-wide">{t}</div>
-              <div className="text-xs text-muted-foreground">{s}</div>
+            <div className="min-w-0">
+              <div className="font-display font-semibold text-[13px] sm:text-sm uppercase tracking-wide truncate">{t}</div>
+              <div className="text-[11px] sm:text-xs text-muted-foreground truncate">{s}</div>
             </div>
           </div>
         ))}
       </section>
 
       {/* SHOP BY CATEGORY */}
-      <section className="container-x mt-20">
+      <section className="container-x mt-12 sm:mt-20">
         <SectionHead eyebrow="Browse" title="Shop by Category" />
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
           {categories.slice(0, 6).map((c) => (
@@ -145,7 +145,7 @@ const Home = () => {
       </section>
 
       {/* SHOP BY BRAND */}
-      <section className="mt-20 bg-white border-y border-line py-12 overflow-hidden">
+      <section className="mt-12 sm:mt-20 bg-white border-y border-line py-8 sm:py-12 overflow-hidden">
         <div className="container-x">
           <SectionHead eyebrow="Trusted Brands" title="Shop by Brand" />
         </div>
@@ -163,7 +163,7 @@ const Home = () => {
       </section>
 
       {/* FEATURED PRODUCTS */}
-      <section className="container-x mt-20">
+      <section className="container-x mt-12 sm:mt-20">
         <SectionHead eyebrow="Top Picks" title="Featured Products" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
           {featured.map((p) => <ProductCard key={p.id} product={p} />)}
@@ -176,7 +176,7 @@ const Home = () => {
       </section>
 
       {/* B2B TRUST */}
-      <section className="mt-20 bg-ink text-white py-16">
+      <section className="mt-12 sm:mt-20 bg-ink text-white py-10 sm:py-16">
         <div className="container-x">
           <SectionHead eyebrow="Why Kachi" title="Built for B2B" dark />
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
@@ -199,14 +199,14 @@ const Home = () => {
       </section>
 
       {/* QUICK QUOTE CTA */}
-      <section className="container-x mt-20">
-        <div className="bg-gradient-red text-white p-10 lg:p-14 grid lg:grid-cols-[1fr_auto] items-center gap-6">
+      <section className="container-x mt-12 sm:mt-20">
+        <div className="bg-gradient-red text-white p-6 sm:p-10 lg:p-14 grid lg:grid-cols-[1fr_auto] items-center gap-5 sm:gap-6">
           <div>
-            <div className="text-xs font-bold uppercase tracking-[0.25em] mb-3">B2B Pricing</div>
-            <h2 className="font-display-tight text-3xl lg:text-4xl font-bold">Need bulk pricing or custom requirement?</h2>
-            <p className="mt-2 text-white/85 max-w-xl">Get a personalized quote with dealer rates, BOQ support and dedicated account management.</p>
+            <div className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] sm:tracking-[0.25em] mb-2 sm:mb-3">B2B Pricing</div>
+            <h2 className="font-display-tight text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">Need bulk pricing or custom requirement?</h2>
+            <p className="mt-2 text-sm sm:text-base text-white/85 max-w-xl">Get a personalized quote with dealer rates, BOQ support and dedicated account management.</p>
           </div>
-          <Button asChild size="lg" variant="outline" className="bg-white text-primary border-white hover:bg-ink hover:text-white hover:border-ink font-bold uppercase tracking-wider">
+          <Button asChild size="lg" variant="outline" className="bg-white text-primary border-white hover:bg-ink hover:text-white hover:border-ink font-bold uppercase tracking-wider w-full lg:w-auto">
             <Link to="/quote">Request a Quote <ArrowRight className="h-4 w-4 ml-2" /></Link>
           </Button>
         </div>
@@ -219,8 +219,8 @@ function SectionHead({ eyebrow, title, dark }: { eyebrow: string; title: string;
   return (
     <div className="flex items-end justify-between gap-4 flex-wrap">
       <div>
-        <div className={`text-xs font-bold uppercase tracking-[0.25em] ${dark ? "text-primary" : "text-primary"}`}>{eyebrow}</div>
-        <h2 className={`font-display-tight text-3xl lg:text-4xl font-bold mt-1 ${dark ? "text-white" : "text-ink"}`}>{title}</h2>
+        <div className={`text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] sm:tracking-[0.25em] ${dark ? "text-primary" : "text-primary"}`}>{eyebrow}</div>
+        <h2 className={`font-display-tight text-2xl sm:text-3xl lg:text-4xl font-bold mt-1 ${dark ? "text-white" : "text-ink"}`}>{title}</h2>
       </div>
     </div>
   );

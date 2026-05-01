@@ -39,30 +39,30 @@ export function ProductCard({ product }: { product: Product }) {
             src={product.primary_image_url}
             alt={product.name}
             loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-contain p-3 sm:p-4 group-hover:scale-105 transition-transform duration-500"
           />
         )}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
-          {product.is_bestseller && <span className="badge-pill bg-ink text-white">Bestseller</span>}
-          {product.is_new && <span className="badge-pill bg-success text-white">New</span>}
-          {dpct && <span className="badge-pill bg-primary text-white">{dpct}% Off</span>}
+          {product.is_bestseller && <span className="badge-pill bg-ink text-white text-[10px]">Bestseller</span>}
+          {product.is_new && <span className="badge-pill bg-success text-white text-[10px]">New</span>}
+          {dpct && <span className="badge-pill bg-primary text-white text-[10px]">{dpct}% Off</span>}
         </div>
       </div>
 
-      <div className="p-4 flex-1 flex flex-col">
+      <div className="p-3 sm:p-4 flex-1 flex flex-col">
         <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
           {product.battery_brands?.name ?? "Genuine"}
         </div>
-        <h3 className="mt-1 font-display font-medium text-base text-ink line-clamp-2 leading-snug">
+        <h3 className="mt-1 font-display font-medium text-sm sm:text-base text-ink line-clamp-2 leading-snug">
           {product.name}
         </h3>
-        <div className="text-xs text-muted-foreground mt-1">SKU: {product.sku}</div>
+        <div className="text-[11px] sm:text-xs text-muted-foreground mt-1 truncate">SKU: {product.sku}</div>
 
         {/* Without exchange (primary price) */}
-        <div className="mt-3 flex items-baseline gap-2">
-          <span className="font-display text-xl font-bold text-ink">{formatINR(product.price)}</span>
+        <div className="mt-2.5 sm:mt-3 flex items-baseline gap-2 flex-wrap">
+          <span className="font-display text-lg sm:text-xl font-bold text-ink">{formatINR(product.price)}</span>
           {product.mrp && product.mrp > product.price && (
-            <span className="text-xs text-muted-foreground line-through">{formatINR(product.mrp)}</span>
+            <span className="text-[11px] sm:text-xs text-muted-foreground line-through">{formatINR(product.mrp)}</span>
           )}
         </div>
         <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">
@@ -72,25 +72,25 @@ export function ProductCard({ product }: { product: Product }) {
         {/* With exchange */}
         {showExchange && (
           <div className="mt-2 border-t border-dashed border-line pt-2">
-            <div className="flex items-baseline gap-2">
-              <span className="font-display text-base font-bold text-primary">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="font-display text-sm sm:text-base font-bold text-primary">
                 {formatINR(exchangePrice)}
               </span>
               <span className="text-[10px] uppercase tracking-wider text-primary/80 font-semibold">
                 With exchange
               </span>
             </div>
-            <div className="text-[10px] text-muted-foreground">
+            <div className="text-[10px] text-muted-foreground line-clamp-1">
               Save {formatINR(product.exchange_rebate)} on old battery return
             </div>
           </div>
         )}
 
         <div className="mt-auto pt-3 grid grid-cols-2 gap-2">
-          <Button size="sm" variant="outline" className="text-xs" onClick={handleAdd}>
+          <Button size="sm" variant="outline" className="text-xs h-9 px-2" onClick={handleAdd}>
             <ShoppingCart className="h-3.5 w-3.5 mr-1" /> Add
           </Button>
-          <Button asChild size="sm" className="text-xs">
+          <Button asChild size="sm" className="text-xs h-9 px-2">
             <Link to="/quote" onClick={(e) => e.stopPropagation()}>
               <FileText className="h-3.5 w-3.5 mr-1" /> Quote
             </Link>

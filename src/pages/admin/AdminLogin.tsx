@@ -74,7 +74,7 @@ const AdminLogin = () => {
     if (signInError) {
       const lower = signInError.toLowerCase();
       const friendly = lower.includes("invalid")
-        ? "Incorrect password for this admin account."
+        ? "Invalid email or password."
         : lower.includes("confirm")
           ? "This admin email has not been confirmed yet."
           : signInError;

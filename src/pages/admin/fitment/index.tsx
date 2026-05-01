@@ -233,7 +233,7 @@ function BrandsModelsTab() {
     setPreviewing(true);
 
     try {
-      const parsed = await parseBrandsModelsXlsx(file);
+      const parsed = await parseBrandsModelsFile(file);
       if (!parsed.length) {
         toast.error("No data found in the file");
         setPreviewing(false);

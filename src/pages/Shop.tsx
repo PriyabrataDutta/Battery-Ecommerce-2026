@@ -39,6 +39,15 @@ const Shop = () => {
   const minPriceParam = params.get("min_price");
   const maxPriceParam = params.get("max_price");
   const carBrandsCsv = params.get("car_brands") ?? "";
+
+  const { data: typeCategory } = useQuery({
+    queryKey: ["shop_category", type],
+    enabled: !!type,
+    queryFn: async () => {
+      const { data } = await supabase.from("categories").select("name, description").eq("slug", type!).maybeSingle();
+      return data;
+    },
+  });
   const carBrandSlugs = useMemo(
     () => carBrandsCsv.split(",").map((s) => s.trim()).filter(Boolean),
     [carBrandsCsv]
@@ -229,9 +238,22 @@ const Shop = () => {
   return (
     <div className="container-x py-6 sm:py-10">
       <nav className="text-xs text-muted-foreground mb-3 sm:mb-4">
-        <Link to="/" className="hover:text-primary">Home</Link> / <span className="text-ink">Shop</span>
+        <Link to="/" className="hover:text-primary">Home</Link> /{" "}
+        {type ? (
+          <>
+            <Link to="/shop" className="hover:text-primary">Shop</Link> /{" "}
+            <span className="text-ink">{typeCategory?.name ?? type}</span>
+          </>
+        ) : (
+          <span className="text-ink">Shop</span>
+        )}
       </nav>
-      <h1 className="font-display-tight text-2xl sm:text-3xl lg:text-4xl font-bold">Shop Batteries</h1>
+      <h1 className="font-display-tight text-2xl sm:text-3xl lg:text-4xl font-bold">
+        {type ? (typeCategory?.name ?? "Shop") : "Shop Batteries"}
+      </h1>
+      {type && typeCategory?.description && (
+        <p className="text-muted-foreground mt-2 max-w-2xl text-sm sm:text-base">{typeCategory.description}</p>
+      )}
       <p className="text-muted-foreground mt-1 text-sm">{filtered.length} products</p>
 
       <div className="grid lg:grid-cols-[280px_1fr] gap-6 sm:gap-8 mt-6 sm:mt-8">

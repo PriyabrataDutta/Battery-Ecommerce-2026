@@ -129,7 +129,7 @@ export function Header() {
           </Button>
           {user ? (
             <div
-              className="hidden sm:inline-flex"
+              className="inline-flex"
               onMouseEnter={openAccount}
               onMouseLeave={scheduleCloseAccount}
               onFocus={openAccount}

@@ -11,6 +11,7 @@ import {
   Users,
   Activity,
   Car,
+  ImageIcon,
 } from "lucide-react";
 import type { AdminTab } from "@/stores/dashboardTabs";
 
@@ -63,6 +64,14 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
     icon: Car,
     section: "catalog",
     component: lazy(() => import("@/pages/admin/fitment")),
+  },
+  {
+    id: "media",
+    title: "Media Gallery",
+    sidebarLabel: "Media",
+    icon: ImageIcon,
+    section: "catalog",
+    component: lazy(() => import("@/pages/admin/media")),
   },
   {
     id: "settings",

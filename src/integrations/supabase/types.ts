@@ -420,6 +420,45 @@ export type Database = {
         }
         Relationships: []
       }
+      media_files: {
+        Row: {
+          alt_text: string | null
+          bucket: string
+          content_type: string | null
+          created_at: string
+          file_name: string
+          file_url: string
+          id: string
+          path: string
+          size_bytes: number | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          alt_text?: string | null
+          bucket?: string
+          content_type?: string | null
+          created_at?: string
+          file_name: string
+          file_url: string
+          id?: string
+          path: string
+          size_bytes?: number | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          alt_text?: string | null
+          bucket?: string
+          content_type?: string | null
+          created_at?: string
+          file_name?: string
+          file_url?: string
+          id?: string
+          path?: string
+          size_bytes?: number | null
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       offers: {
         Row: {
           applies_to: Json

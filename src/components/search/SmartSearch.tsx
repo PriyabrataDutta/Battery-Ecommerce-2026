@@ -7,16 +7,33 @@ import { Input } from "@/components/ui/input";
 import { formatINR } from "@/lib/format";
 
 const RECENT_KEY = "kachi.recentSearches";
-const RECENT_MAX = 6;
+const RECENT_MAX = 12;
 
-type RecentItem = { label: string; path: string; sublabel?: string; kind: string };
+type ProductType = "car" | "inverter" | "other";
+type RecentItem = { label: string; path: string; sublabel?: string; kind: string; productType: ProductType };
+
+function inferProductType(path: string, kind: string): ProductType {
+  const p = path.toLowerCase();
+  if (kind === "car_brand" || kind === "car_model") return "car";
+  if (p.includes("type=car-batteries") || p.includes("/category/car") || p.includes("car_brand=") || p.includes("car_model=")) return "car";
+  if (p.includes("type=inverter") || p.includes("/category/inverter") || p.includes("/category/tubular") || p.includes("/category/smf") || p.includes("/category/lithium")) return "inverter";
+  return "other";
+}
 
 function loadRecent(): RecentItem[] {
   try {
     const raw = localStorage.getItem(RECENT_KEY);
     if (!raw) return [];
     const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr.slice(0, RECENT_MAX) : [];
+    if (!Array.isArray(arr)) return [];
+    // Backfill productType for older saved items
+    return arr.slice(0, RECENT_MAX).map((r: any) => ({
+      label: r.label,
+      path: r.path,
+      sublabel: r.sublabel,
+      kind: r.kind ?? "query",
+      productType: r.productType ?? inferProductType(r.path ?? "", r.kind ?? ""),
+    }));
   } catch {
     return [];
   }
@@ -75,6 +92,16 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
   };
 
   const clearRecent = () => { setRecent([]); saveRecent([]); };
+
+  const [recentFilter, setRecentFilter] = useState<"all" | "car" | "inverter">("all");
+  const filteredRecent = recent.filter((r) =>
+    recentFilter === "all" ? true : r.productType === recentFilter
+  );
+  const recentCounts = {
+    all: recent.length,
+    car: recent.filter((r) => r.productType === "car").length,
+    inverter: recent.filter((r) => r.productType === "inverter").length,
+  };
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -157,7 +184,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
       case "car_model": path = `/shop?type=car-batteries&car_model=${s.slug}`; break;
       case "product": path = `/product/${s.slug}`; break;
     }
-    pushRecent({ label: s.label, path, sublabel, kind: s.kind });
+    pushRecent({ label: s.label, path, sublabel, kind: s.kind, productType: inferProductType(path, s.kind) });
     return go(path);
   };
 
@@ -175,7 +202,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
     }
     if (term.trim()) {
       const path = `/search?q=${encodeURIComponent(term.trim())}`;
-      pushRecent({ label: term.trim(), path, sublabel: "Search", kind: "query" });
+      pushRecent({ label: term.trim(), path, sublabel: "Search", kind: "query", productType: "other" });
       go(path);
     }
   };
@@ -262,34 +289,62 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
               Clear all
             </button>
           </div>
-          {recent.map((r) => (
-            <div
-              key={r.path}
-              className="group flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted/60"
-            >
-              <button
-                type="button"
-                onClick={() => { pushRecent(r); go(r.path); }}
-                className="flex items-center gap-3 flex-1 min-w-0 text-left"
-              >
-                <span className="h-8 w-8 grid place-items-center rounded-md flex-shrink-0 bg-muted">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                </span>
-                <span className="flex-1 min-w-0">
-                  <span className="block truncate text-ink font-medium">{r.label}</span>
-                  {r.sublabel && <span className="block truncate text-[11px] text-muted-foreground">{r.sublabel}</span>}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => removeRecent(r.path)}
-                aria-label={`Remove ${r.label}`}
-                className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-primary"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
+          <div className="flex items-center gap-1 px-2 pt-2 pb-2 border-b border-line">
+            {([
+              { key: "all" as const, label: "All" },
+              { key: "car" as const, label: "Car battery" },
+              { key: "inverter" as const, label: "Inverter" },
+            ]).map((t) => {
+              const count = recentCounts[t.key];
+              const active = recentFilter === t.key;
+              return (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => setRecentFilter(t.key)}
+                  className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-sm transition-colors ${
+                    active ? "bg-primary text-primary-foreground" : "text-ink-soft hover:text-primary"
+                  }`}
+                >
+                  {t.label} <span className="opacity-70">({count})</span>
+                </button>
+              );
+            })}
+          </div>
+          {filteredRecent.length === 0 ? (
+            <div className="px-4 py-6 text-sm text-muted-foreground">
+              No recent {recentFilter === "car" ? "car battery" : recentFilter === "inverter" ? "inverter" : ""} searches yet.
             </div>
-          ))}
+          ) : (
+            filteredRecent.map((r) => (
+              <div
+                key={r.path}
+                className="group flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted/60"
+              >
+                <button
+                  type="button"
+                  onClick={() => { pushRecent(r); go(r.path); }}
+                  className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                >
+                  <span className="h-8 w-8 grid place-items-center rounded-md flex-shrink-0 bg-muted">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                  </span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block truncate text-ink font-medium">{r.label}</span>
+                    {r.sublabel && <span className="block truncate text-[11px] text-muted-foreground">{r.sublabel}</span>}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeRecent(r.path)}
+                  aria-label={`Remove ${r.label}`}
+                  className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-primary"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))
+          )}
         </div>
       )}
 

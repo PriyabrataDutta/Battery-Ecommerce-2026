@@ -20,42 +20,14 @@ export function buildProductJsonLd(
   images: string[],
   canonicalUrl: string,
 ) {
-  // ─── Base price logic (mirrors index.tsx) ───
+  // ─── Base price logic ───
+  // Primary price is ALWAYS the with-exchange price (admin-entered).
   const basePrice = safePrice(product.price, 0.01);
   const withoutExchange = safePrice(product.price_without_exchange, basePrice);
-  const withExchangePrice = safePrice(product.price_with_exchange, withoutExchange);
-  const showExchange =
-    product.has_exchange === true && withExchangePrice < withoutExchange;
+  const withExchangePrice = safePrice(product.price_with_exchange, basePrice);
 
-  // ─── Availability ───
-  const stockNum = Number(product.stock);
-  const availability =
-    Number.isFinite(stockNum) && stockNum > 0 ? AVAILABILITY_IN : AVAILABILITY_OUT;
-
-  // ─── Offers ───
-  const withoutOffer = {
-    "@type": "Offer" as const,
-    name: "Without Exchange",
-    price: withoutExchange,
-    priceCurrency: "INR",
-    availability,
-  };
-
-  const offers = showExchange
-    ? [
-        withoutOffer,
-        {
-          "@type": "Offer" as const,
-          name: "With Exchange",
-          price: withExchangePrice,
-          priceCurrency: "INR",
-          description: "Price with old battery exchange (BMHR compliant)",
-          availability,
-        },
-      ]
-    : [withoutOffer];
-
-  let lowPrice = showExchange ? withExchangePrice : withoutExchange;
+  // lowPrice = always with-exchange price (the price shown to customers)
+  let lowPrice = withExchangePrice;
   let highPrice = safePrice(product.mrp, withoutExchange);
   if (highPrice < withoutExchange) highPrice = withoutExchange;
   if (lowPrice > highPrice) [lowPrice, highPrice] = [highPrice, lowPrice];

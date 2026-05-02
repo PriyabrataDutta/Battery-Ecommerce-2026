@@ -23,6 +23,7 @@ export interface CategoryEditableFields {
   image_url: string | null;
   parent_id: string | null;
   sort_order: number;
+  hsn_code: string | null;
 }
 
 export const EMPTY_CATEGORY: CategoryEditableFields = {
@@ -33,6 +34,7 @@ export const EMPTY_CATEGORY: CategoryEditableFields = {
   image_url: null,
   parent_id: null,
   sort_order: 0,
+  hsn_code: null,
 };
 
 export async function listAdminCategories(search?: string): Promise<AdminCategoryRow[]> {

@@ -297,6 +297,17 @@ export function ProductEditor({
             />
           </Field>
         </div>
+        <Field label="GST Rate">
+          <SelectField
+            value={form.gst_rate_id}
+            onChange={(v) => set("gst_rate_id", v)}
+            placeholder="Use default rate"
+            options={(gstRates ?? []).map((r) => ({
+              value: r.id,
+              label: `${r.label} (${r.rate}%)${r.is_default ? " ★" : ""}`,
+            }))}
+          />
+        </Field>
       </CollapsibleSection>
 
       {/* ── Specifications ── */}

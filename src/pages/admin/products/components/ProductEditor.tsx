@@ -110,6 +110,7 @@ export function ProductEditor({
         meta_description: p.meta_description ?? null,
         meta_keywords: p.meta_keywords ?? null,
         tags: Array.isArray(p.tags) ? p.tags : [],
+        gst_rate_id: p.gst_rate_id ?? null,
       });
       setTagInput("");
     } else {

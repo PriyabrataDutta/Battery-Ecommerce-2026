@@ -115,7 +115,9 @@ export const OrderSummary = ({
           </div>
         )}
         <div className="flex justify-between">
-          <span className="text-muted-foreground">GST (18%)</span>
+          <span className="text-muted-foreground">
+            GST ({totals.effectiveGstPct}%)
+          </span>
           <span className="font-semibold">{formatINR(tax)}</span>
         </div>
         <div className="flex justify-between">

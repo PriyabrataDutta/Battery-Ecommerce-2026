@@ -157,8 +157,8 @@ const Checkout = () => {
   // Discount applies to subtotal. GST recomputes against the discounted
   // subtotal so the customer also saves the tax on the discounted amount.
   const totals = useMemo(
-    () => calcTotals(subtotal, appliedPromo, deliveryOption),
-    [subtotal, appliedPromo, deliveryOption],
+    () => calcTotals(subtotal, appliedPromo, deliveryOption, taxRate),
+    [subtotal, appliedPromo, deliveryOption, taxRate],
   );
   const { discount, tax, total } = totals;
 

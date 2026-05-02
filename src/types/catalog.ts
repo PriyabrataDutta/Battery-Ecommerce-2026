@@ -65,6 +65,7 @@ export interface Product {
   primary_image_url: string | null;
   has_exchange: boolean;
   exchange_rebate: number;
+  gst_rate_id?: string | null;
   meta_title?: string | null;
   meta_description?: string | null;
   meta_keywords?: string | null;
@@ -86,6 +87,8 @@ export interface CartItem {
   qty: number;
   image: string | null;
   withExchange?: boolean;
+  /** GST rate slab assigned to this product */
+  gst_rate_id?: string | null;
   /** @deprecated kept for old localStorage compat */
   exchangeRebate?: number;
 }

@@ -126,6 +126,15 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
     requiredPermission: "media.manage",
     component: lazy(() => import("@/pages/admin/media")),
   },
+  {
+    id: "reviews",
+    title: "Product Reviews",
+    sidebarLabel: "Reviews",
+    icon: Star,
+    section: "content",
+    requiredPermission: "reviews.manage",
+    component: lazy(() => import("@/pages/admin/reviews")),
+  },
 
   // ─── Administration ───
   {

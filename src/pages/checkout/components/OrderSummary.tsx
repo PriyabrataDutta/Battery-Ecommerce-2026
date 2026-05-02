@@ -11,7 +11,6 @@ import { formatINR } from "@/lib/format";
 import { PromoInput } from "./PromoInput";
 import type { DeliveryOption, Promo } from "../lib/types";
 import type { Totals } from "../lib/totals";
-import { TAX_RATE } from "../lib/constants";
 
 export const OrderSummary = ({
   items,
@@ -116,7 +115,9 @@ export const OrderSummary = ({
           </div>
         )}
         <div className="flex justify-between">
-          <span className="text-muted-foreground">GST (18%)</span>
+          <span className="text-muted-foreground">
+            GST ({totals.effectiveGstPct}%)
+          </span>
           <span className="font-semibold">{formatINR(tax)}</span>
         </div>
         <div className="flex justify-between">
@@ -132,8 +133,7 @@ export const OrderSummary = ({
       </div>
       {discount > 0 && (
         <div className="mt-1 text-xs text-success font-medium text-right">
-          You saved{" "}
-          {formatINR(discount + Math.round(subtotal * TAX_RATE - tax))} on this order
+          You saved {formatINR(discount)} on this order
         </div>
       )}
 

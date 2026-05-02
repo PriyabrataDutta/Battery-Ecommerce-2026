@@ -34,18 +34,60 @@ export type Totals = {
   tax: number;
   shipping: number;
   total: number;
+  /** Effective weighted GST % used (for display) */
+  effectiveGstPct: number;
 };
 
+export interface LineGst {
+  lineTotal: number;
+  /** Decimal rate, e.g. 0.18 */
+  rate: number;
+}
+
+/**
+ * Calculate totals with per-line-item GST rates.
+ *
+ * @param subtotal      - raw sum of line totals before discount
+ * @param promo         - applied promo, if any
+ * @param deliveryOption
+ * @param lineGstItems  - per-line-item amounts and their GST rates.
+ *                        If undefined, falls back to a single flat rate.
+ * @param fallbackRate  - flat rate fallback (decimal)
+ */
 export const calcTotals = (
   subtotal: number,
   promo: Promo | null,
   deliveryOption: DeliveryOption,
-  taxRate?: number,
+  lineGstItems?: LineGst[],
+  fallbackRate?: number,
 ): Totals => {
   const discount = calcDiscount(subtotal, promo);
   const discountedSubtotal = Math.max(0, subtotal - discount);
-  const tax = calcTax(discountedSubtotal, taxRate);
+
+  let tax: number;
+  let effectiveGstPct: number;
+
+  if (lineGstItems && lineGstItems.length > 0 && subtotal > 0) {
+    // Proportional discount: each line's share of the discount is proportional
+    // to its share of the subtotal.
+    const discountRatio = subtotal > 0 ? discountedSubtotal / subtotal : 1;
+    tax = Math.round(
+      lineGstItems.reduce(
+        (sum, li) => sum + li.lineTotal * discountRatio * li.rate,
+        0,
+      ),
+    );
+    effectiveGstPct =
+      discountedSubtotal > 0
+        ? Math.round((tax / discountedSubtotal) * 10000) / 100
+        : 0;
+  } else {
+    const rate = fallbackRate ?? TAX_RATE;
+    tax = calcTax(discountedSubtotal, rate);
+    effectiveGstPct = Math.round(rate * 10000) / 100;
+  }
+
   const shipping = deliveryOption.price;
   const total = discountedSubtotal + tax + shipping;
-  return { subtotal, discount, discountedSubtotal, tax, shipping, total };
+  return { subtotal, discount, discountedSubtotal, tax, shipping, total, effectiveGstPct };
 };

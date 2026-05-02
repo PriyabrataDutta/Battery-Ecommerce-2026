@@ -98,6 +98,7 @@ const ProductDetail = () => {
         image: product.primary_image_url,
         withExchange,
         exchangeRebate: product.exchange_rebate,
+        gst_rate_id: (product as any).gst_rate_id ?? null,
       },
       qty
     );

@@ -39,7 +39,8 @@ import { lineUnitPrice, useCart } from "@/hooks/useCart";
 import { useDefaultAddress } from "@/hooks/queries/useAddresses";
 import { useCreateOrder } from "@/hooks/queries/useOrders";
 import { formatINR } from "@/lib/format";
-import { useDefaultGstRate } from "@/hooks/useGstSettings";
+import { useDefaultGstRate, useGstRates } from "@/hooks/useGstSettings";
+import type { LineGst } from "./lib/totals";
 
 import { AddressStep } from "./components/AddressStep";
 import { DeliveryStep } from "./components/DeliveryStep";
@@ -75,8 +76,8 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { items, subtotal, clear } = useCart();
-  const taxRate = useDefaultGstRate();
-
+  const defaultTaxRate = useDefaultGstRate();
+  const { data: gstRates } = useGstRates();
   // Hydrate from any non-expired draft synchronously so a page refresh keeps
   // exactly what the user typed. Drafts older than 5 minutes self-destruct.
   const initialDraft = typeof window !== "undefined" ? loadDraft() : null;
@@ -154,11 +155,27 @@ const Checkout = () => {
     [delivery],
   );
 
+  // Build per-line-item GST mapping from the cart items' gst_rate_id
+  const ratesMap = useMemo(() => {
+    const m = new Map<string, number>();
+    (gstRates ?? []).forEach((r) => m.set(r.id, r.rate / 100));
+    return m;
+  }, [gstRates]);
+
+  const lineGstItems: LineGst[] = useMemo(
+    () =>
+      items.map((it) => ({
+        lineTotal: lineUnitPrice(it) * it.qty,
+        rate: it.gst_rate_id ? (ratesMap.get(it.gst_rate_id) ?? defaultTaxRate) : defaultTaxRate,
+      })),
+    [items, ratesMap, defaultTaxRate],
+  );
+
   // Discount applies to subtotal. GST recomputes against the discounted
   // subtotal so the customer also saves the tax on the discounted amount.
   const totals = useMemo(
-    () => calcTotals(subtotal, appliedPromo, deliveryOption, taxRate),
-    [subtotal, appliedPromo, deliveryOption, taxRate],
+    () => calcTotals(subtotal, appliedPromo, deliveryOption, lineGstItems, defaultTaxRate),
+    [subtotal, appliedPromo, deliveryOption, lineGstItems, defaultTaxRate],
   );
   const { discount, tax, total } = totals;
 

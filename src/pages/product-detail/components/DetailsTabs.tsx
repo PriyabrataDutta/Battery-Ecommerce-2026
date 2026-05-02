@@ -59,6 +59,10 @@ export const DetailsTabs = ({ product }: Props) => {
         </table>
       </TabsContent>
 
+      <TabsContent value="reviews" className="py-6">
+        <ProductReviewsSection productId={product.id} />
+      </TabsContent>
+
       <TabsContent value="warranty" className="py-6 text-sm text-ink-soft space-y-2">
         <p>
           <strong className="text-ink">{product.warranty_months ?? 0} months</strong>{" "}

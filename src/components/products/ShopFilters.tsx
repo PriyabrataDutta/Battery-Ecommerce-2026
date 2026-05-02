@@ -267,22 +267,39 @@ export function ShopFilters({ counts, priceBounds }: Props) {
           )}
         </div>
         <ul className="space-y-1.5 text-sm max-h-60 overflow-y-auto pr-1">
-          {carBrands.map((b) => {
-            const checked = selectedCarBrands.has(b.slug);
-            return (
-              <li key={b.id}>
-                <label className="flex items-center gap-2.5 px-2 py-1.5 cursor-pointer hover:text-primary transition-colors">
-                  <Checkbox
-                    checked={checked}
-                    onCheckedChange={() => toggleCarBrand(b.slug)}
-                  />
-                  <span className="capitalize">{b.name}</span>
-                </label>
+          {carBrandsLoading ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <li key={i} className="flex items-center gap-2.5 px-2 py-1.5">
+                <Skeleton className="h-4 w-4 rounded" />
+                <Skeleton className="h-4 w-24 rounded" />
+                <Skeleton className="h-3 w-6 rounded ml-auto" />
               </li>
-            );
-          })}
-          {carBrands.length === 0 && (
+            ))
+          ) : carBrands.length === 0 ? (
             <li className="text-xs text-muted-foreground px-2">No car brands available</li>
+          ) : (
+            carBrands.map((b) => {
+              const checked = selectedCarBrands.has(b.slug);
+              const count = carBrandCounts?.[b.slug] ?? 0;
+              const showCount = !carBrandCountsLoading;
+              return (
+                <li key={b.id}>
+                  <label className="flex items-center gap-2.5 px-2 py-1.5 cursor-pointer hover:text-primary transition-colors">
+                    <Checkbox
+                      checked={checked}
+                      onCheckedChange={() => toggleCarBrand(b.slug)}
+                    />
+                    <span className="capitalize flex-1">{b.name}</span>
+                    {showCount && (
+                      <span className="text-xs text-muted-foreground tabular-nums">{count}</span>
+                    )}
+                    {carBrandCountsLoading && (
+                      <Skeleton className="h-3 w-6 rounded ml-auto" />
+                    )}
+                  </label>
+                </li>
+              );
+            })
           )}
         </ul>
       </div>

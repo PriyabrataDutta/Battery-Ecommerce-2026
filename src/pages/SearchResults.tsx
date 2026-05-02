@@ -1,20 +1,57 @@
+import { useState, useEffect, useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, LayoutGrid, BatteryCharging, CarFront, Car, Package, SearchX } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ProductCard } from "@/components/products/ProductCard";
-import { formatINR } from "@/lib/format";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCarBrands, useCarModelsByBrandId } from "@/hooks/queries/useBrands";
+import { useProductIdsByModelIds } from "@/hooks/queries/useFitment";
+import { getCarModelIdsByBrandIds } from "@/api/carModels";
+
+const ALL = "__all__";
 
 const SearchResults = () => {
   const [params] = useSearchParams();
   const q = (params.get("q") ?? "").trim();
+
+  // ── Fitment filter state ──
+  const [selectedBrandId, setSelectedBrandId] = useState("");
+  const [selectedModelId, setSelectedModelId] = useState("");
+
+  const { data: carBrands = [] } = useCarBrands();
+  const selectedBrand = carBrands.find((b) => b.id === selectedBrandId) ?? null;
+  const { data: carModels = [] } = useCarModelsByBrandId(selectedBrand?.id);
+
+  // Reset model when brand changes
+  useEffect(() => { setSelectedModelId(""); }, [selectedBrandId]);
+
+  // Resolve model IDs for fitment lookup
+  const fitmentModelIds = useMemo(() => {
+    if (selectedModelId) return [selectedModelId];
+    return undefined; // will be populated below for brand-level filtering
+  }, [selectedModelId]);
+
+  // When only brand is selected (no model), get all model IDs for that brand
+  const { data: brandModelIds } = useQuery({
+    queryKey: ["search_fitment_brand_models", selectedBrandId],
+    queryFn: () => getCarModelIdsByBrandIds([selectedBrandId]),
+    enabled: !!selectedBrandId && !selectedModelId,
+  });
+
+  const effectiveModelIds = fitmentModelIds ?? brandModelIds;
+  const { data: fitmentProductIds } = useProductIdsByModelIds(
+    effectiveModelIds && effectiveModelIds.length > 0 ? effectiveModelIds : undefined,
+  );
+
+  const useFitment = !!selectedBrandId;
 
   const { data, isLoading } = useQuery({
     queryKey: ["search_results", q],
     enabled: q.length > 0,
     queryFn: async () => {
       const like = `%${q}%`;
-      const [cats, brands, carBrands, models, prods] = await Promise.all([
+      const [cats, brands, carBrandsResult, models, prods] = await Promise.all([
         supabase.from("categories").select("id,name,slug,icon").ilike("name", like).limit(8),
         supabase.from("battery_brands").select("id,name,slug,logo_url").ilike("name", like).limit(8),
         supabase.from("car_brands").select("id,name,slug,logo_url").ilike("name", like).limit(8),
@@ -29,15 +66,24 @@ const SearchResults = () => {
       return {
         categories: cats.data ?? [],
         brands: brands.data ?? [],
-        carBrands: carBrands.data ?? [],
+        carBrands: carBrandsResult.data ?? [],
         models: models.data ?? [],
         products: (prods.data ?? []) as any[],
       };
     },
   });
 
+  // Filter products by fitment when a car brand/model is selected
+  const filteredProducts = useMemo(() => {
+    if (!data?.products) return [];
+    if (!useFitment) return data.products;
+    if (!fitmentProductIds) return []; // still loading fitment
+    const idSet = new Set(fitmentProductIds);
+    return data.products.filter((p: any) => idSet.has(p.id));
+  }, [data?.products, useFitment, fitmentProductIds]);
+
   const totalCount = data
-    ? data.categories.length + data.brands.length + data.carBrands.length + data.models.length + data.products.length
+    ? data.categories.length + data.brands.length + data.carBrands.length + data.models.length + filteredProducts.length
     : 0;
 
   return (
@@ -54,6 +100,64 @@ const SearchResults = () => {
           <p className="text-sm text-muted-foreground mt-1">{totalCount} match{totalCount === 1 ? "" : "es"} found</p>
         )}
       </header>
+
+      {/* ── Fitment filter bar ── */}
+      {q && (
+        <div className="bg-white border border-line rounded-lg p-3 sm:p-4 mb-5">
+          <div className="flex items-center gap-2 mb-2.5">
+            <CarFront className="h-4 w-4 text-primary" />
+            <h3 className="font-display font-bold text-xs uppercase tracking-wider text-ink">
+              Filter by Vehicle
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            <Select value={selectedBrandId || ALL} onValueChange={(v) => setSelectedBrandId(v === ALL ? "" : v)}>
+              <SelectTrigger className="h-10 border-line">
+                <SelectValue placeholder="All car brands" />
+              </SelectTrigger>
+              <SelectContent className="bg-white z-50 max-h-72">
+                <SelectItem value={ALL}>All car brands</SelectItem>
+                {carBrands.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={selectedModelId || ALL}
+              onValueChange={(v) => setSelectedModelId(v === ALL ? "" : v)}
+              disabled={!selectedBrandId}
+            >
+              <SelectTrigger className="h-10 border-line">
+                <SelectValue placeholder={selectedBrandId ? "All models" : "Select brand first"} />
+              </SelectTrigger>
+              <SelectContent className="bg-white z-50 max-h-72">
+                <SelectItem value={ALL}>All models</SelectItem>
+                {carModels.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {useFitment && (
+              <button
+                type="button"
+                onClick={() => { setSelectedBrandId(""); setSelectedModelId(""); }}
+                className="h-10 px-4 text-xs font-semibold uppercase tracking-wider text-primary hover:text-primary/80 border border-primary/20 rounded-md hover:bg-primary/5 transition-colors flex items-center justify-center gap-1.5"
+              >
+                Clear Vehicle Filter
+              </button>
+            )}
+          </div>
+          {useFitment && (
+            <p className="text-[11px] text-muted-foreground mt-2">
+              Showing {filteredProducts.length} product{filteredProducts.length !== 1 ? "s" : ""} compatible with{" "}
+              <span className="font-semibold text-ink">
+                {selectedBrand?.name}
+                {selectedModelId ? ` · ${carModels.find((m) => m.id === selectedModelId)?.name}` : ""}
+              </span>
+            </p>
+          )}
+        </div>
+      )}
 
       {!q && (
         <div className="bg-white border border-line p-8 text-center">
@@ -78,7 +182,7 @@ const SearchResults = () => {
 
       {q && !isLoading && data && (
         <div className="space-y-8">
-          {data.carBrands.length > 0 && (
+          {!useFitment && data.carBrands.length > 0 && (
             <Section icon={<CarFront className="h-4 w-4" />} title="Car Brands" tone="bg-blue-500/10 text-blue-600">
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                 {data.carBrands.map((b) => (
@@ -101,7 +205,7 @@ const SearchResults = () => {
             </Section>
           )}
 
-          {data.models.length > 0 && (
+          {!useFitment && data.models.length > 0 && (
             <Section icon={<Car className="h-4 w-4" />} title="Car Models" tone="bg-amber-500/10 text-amber-600">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {data.models.map((m) => (
@@ -126,7 +230,7 @@ const SearchResults = () => {
             </Section>
           )}
 
-          {data.categories.length > 0 && (
+          {!useFitment && data.categories.length > 0 && (
             <Section icon={<LayoutGrid className="h-4 w-4" />} title="Battery Categories" tone="bg-primary/10 text-primary">
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                 {data.categories.map((c) => (
@@ -146,7 +250,7 @@ const SearchResults = () => {
             </Section>
           )}
 
-          {data.brands.length > 0 && (
+          {!useFitment && data.brands.length > 0 && (
             <Section icon={<BatteryCharging className="h-4 w-4" />} title="Battery Brands" tone="bg-emerald-500/10 text-emerald-600">
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                 {data.brands.map((b) => (
@@ -168,10 +272,10 @@ const SearchResults = () => {
             </Section>
           )}
 
-          {data.products.length > 0 && (
+          {filteredProducts.length > 0 && (
             <Section icon={<Package className="h-4 w-4" />} title="Products" tone="bg-muted text-ink">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                {data.products.map((p) => <ProductCard key={p.id} product={p} />)}
+                {filteredProducts.map((p: any) => <ProductCard key={p.id} product={p} />)}
               </div>
             </Section>
           )}

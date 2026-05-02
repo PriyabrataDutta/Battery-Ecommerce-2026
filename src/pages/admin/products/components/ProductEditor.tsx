@@ -115,7 +115,8 @@ export function ProductEditor({
       });
       setTagInput("");
     } else {
-      setForm(EMPTY_PRODUCT);
+      const defaultRateId = gstRates?.find((r) => r.is_default)?.id ?? null;
+      setForm({ ...EMPTY_PRODUCT, gst_rate_id: defaultRateId });
       setFitmentModelIds([]);
       setGalleryImages([]);
       setTagInput("");

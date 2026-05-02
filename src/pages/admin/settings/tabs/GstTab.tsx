@@ -357,11 +357,14 @@ function GstRatesSection() {
               {newRate && isDuplicate(parseFloat(newRate) || 0) && (
                 <p className="text-xs text-destructive">A slab with {newRate}% already exists.</p>
               )}
+              {newRate && hsnRequired(parseFloat(newRate) || 0) && !newHsn.trim() && (
+                <p className="text-xs text-destructive">HSN code is required for rates ≥ 18%.</p>
+              )}
               <div className="flex gap-2">
                 <Button
                   size="sm"
                   onClick={() => addMut.mutate()}
-                  disabled={addMut.isPending || !newRate || isDuplicate(parseFloat(newRate) || 0)}
+                  disabled={addMut.isPending || !newRate || isDuplicate(parseFloat(newRate) || 0) || (hsnRequired(parseFloat(newRate) || 0) && !newHsn.trim())}
                 >
                   {addMut.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
                   Add Rate

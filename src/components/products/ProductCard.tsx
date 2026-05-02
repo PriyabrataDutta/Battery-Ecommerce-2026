@@ -1,7 +1,8 @@
 import { forwardRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Zap } from "lucide-react";
+import { Heart, ShoppingCart, Zap } from "lucide-react";
+import { useWishlist } from "@/hooks/useWishlist";
 import type { Product } from "@/types/catalog";
 import { formatINR, discountPct } from "@/lib/format";
 import { getProductImage } from "@/lib/productImage";

@@ -4,8 +4,9 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { RequireStaff } from "@/components/auth/RequireStaff";
 import { useAuth } from "@/hooks/useAuth";
+import { useMyPermissions } from "@/hooks/usePermissions";
 import { Button } from "@/components/ui/button";
-import { Bell, ExternalLink, LogOut, MessageSquare, Settings as SettingsIcon, ShieldOff } from "lucide-react";
+import { Bell, ExternalLink, LogOut, MessageSquare, Settings as SettingsIcon, ShieldOff, ShieldAlert } from "lucide-react";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,10 +30,23 @@ const PanelLoader = () => (
   <div className="flex items-center justify-center py-20 text-muted-foreground">Loading panel…</div>
 );
 
+const AccessDenied = () => (
+  <div className="flex flex-col items-center justify-center py-20 text-center">
+    <ShieldAlert className="h-12 w-12 text-muted-foreground mb-4" />
+    <h2 className="font-display font-bold text-xl text-ink mb-2">Access Denied</h2>
+    <p className="text-sm text-muted-foreground max-w-md">
+      You don't have permission to access this section. Contact an admin to request access.
+    </p>
+    <Link to="/admin/dashboard" className="mt-4 text-primary font-semibold text-sm hover:underline">
+      Go to Dashboard
+    </Link>
+  </div>
+);
+
 const AdminLayout = () => {
   const { user } = useAuth();
+  const { permissions, loading: permsLoading } = useMyPermissions();
 
-  // Single cached role query — replaces the old raw supabase fetch
   const { data: role = "" } = useQuery({
     queryKey: ["admin-role-label", user?.id],
     queryFn: async () => {
@@ -68,6 +82,9 @@ const AdminLayout = () => {
 
   const tabDef = TAB_MAP[tab] ?? TAB_MAP["dashboard"];
   const ActivePanel = tabDef.component;
+
+  // Check permission for the active tab
+  const hasAccess = permsLoading || permissions.has(tabDef.requiredPermission);
 
   return (
     <RequireStaff>
@@ -170,7 +187,7 @@ const AdminLayout = () => {
 
             <main className="flex-1 p-4 md:p-6 overflow-x-auto">
               <Suspense fallback={<PanelLoader />}>
-                <ActivePanel />
+                {hasAccess ? <ActivePanel /> : <AccessDenied />}
               </Suspense>
             </main>
 

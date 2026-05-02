@@ -71,7 +71,8 @@ const App = () => (
               <Route path="/about" element={<About />} />
               <Route path="/jump-start" element={<JumpStart />} />
               <Route path="/catalog" element={<Catalog />} />
-              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog" element={<BlogListing />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/verify-phone" element={<VerifyPhone />} />

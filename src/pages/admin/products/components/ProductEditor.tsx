@@ -27,6 +27,7 @@ import { FitmentEditor } from "./FitmentEditor";
 import { ProductMediaSection } from "./ProductMediaSection";
 import { getProductFitmentModelIds, saveProductFitment } from "@/api/admin/productFitment";
 import { supabase } from "@/integrations/supabase/client";
+import { useGstRates } from "@/hooks/useGstSettings";
 import type { AdminProductRow } from "@/api/admin/products";
 import type { BatteryBrand, Category } from "@/types/catalog";
 import type { ProductEditableFields } from "@/api/admin/products";

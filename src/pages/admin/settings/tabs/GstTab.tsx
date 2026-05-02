@@ -339,11 +339,16 @@ function GstRatesSection() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs">HSN Code</Label>
+                  <Label className="text-xs">
+                    HSN Code
+                    {newRate && hsnRequired(parseFloat(newRate) || 0) && (
+                      <span className="text-destructive ml-0.5">*</span>
+                    )}
+                  </Label>
                   <Input
                     value={newHsn}
                     onChange={(e) => setNewHsn(e.target.value)}
-                    placeholder="Optional"
+                    placeholder={newRate && hsnRequired(parseFloat(newRate) || 0) ? "Required for ≥18%" : "Optional"}
                     className="h-8 text-sm"
                   />
                 </div>

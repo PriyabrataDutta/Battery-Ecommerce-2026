@@ -20,19 +20,48 @@ export interface AdminTabDef {
   title: string;
   sidebarLabel: string;
   icon: ComponentType<{ className?: string }>;
-  section: "catalog" | "management" | "super-admin";
+  section: "overview" | "ecommerce" | "catalog" | "content" | "admin";
   component: ReturnType<typeof lazy>;
 }
 
 export const ADMIN_TAB_DEFS: AdminTabDef[] = [
+  // ─── Overview ───
   {
     id: "dashboard",
     title: "Sales Dashboard",
     sidebarLabel: "Dashboard",
     icon: LayoutDashboard,
-    section: "catalog",
+    section: "overview",
     component: lazy(() => import("@/pages/admin/Dashboard")),
   },
+
+  // ─── E-Commerce ───
+  {
+    id: "orders",
+    title: "Orders",
+    sidebarLabel: "Orders",
+    icon: ShoppingBag,
+    section: "ecommerce",
+    component: lazy(() => import("@/pages/admin/orders")),
+  },
+  {
+    id: "quotes",
+    title: "Quote Requests",
+    sidebarLabel: "Quotes",
+    icon: FileText,
+    section: "ecommerce",
+    component: lazy(() => import("@/pages/admin/quotes")),
+  },
+  {
+    id: "messages",
+    title: "Contact Messages",
+    sidebarLabel: "Messages",
+    icon: Mail,
+    section: "ecommerce",
+    component: lazy(() => import("@/pages/admin/messages")),
+  },
+
+  // ─── Product Catalog ───
   {
     id: "products",
     title: "Products",
@@ -65,60 +94,40 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
     section: "catalog",
     component: lazy(() => import("@/pages/admin/fitment")),
   },
+
+  // ─── Content & Media ───
   {
     id: "media",
     title: "Media Gallery",
     sidebarLabel: "Media",
     icon: ImageIcon,
-    section: "catalog",
+    section: "content",
     component: lazy(() => import("@/pages/admin/media")),
+  },
+
+  // ─── Administration ───
+  {
+    id: "users",
+    title: "Users",
+    sidebarLabel: "Users",
+    icon: Users,
+    section: "admin",
+    component: lazy(() => import("@/pages/admin/users")),
   },
   {
     id: "settings",
     title: "Settings",
     sidebarLabel: "Settings",
     icon: Settings,
-    section: "catalog",
+    section: "admin",
     component: lazy(() => import("@/pages/admin/settings")),
-  },
-  {
-    id: "users",
-    title: "Users",
-    sidebarLabel: "Users",
-    icon: Users,
-    section: "management",
-    component: lazy(() => import("@/pages/admin/users")),
-  },
-  {
-    id: "orders",
-    title: "Orders",
-    sidebarLabel: "Orders",
-    icon: ShoppingBag,
-    section: "management",
-    component: lazy(() => import("@/pages/admin/orders")),
-  },
-  {
-    id: "quotes",
-    title: "Quote Requests",
-    sidebarLabel: "Quotes",
-    icon: FileText,
-    section: "management",
-    component: lazy(() => import("@/pages/admin/quotes")),
-  },
-  {
-    id: "messages",
-    title: "Contact Messages",
-    sidebarLabel: "Messages",
-    icon: Mail,
-    section: "management",
-    component: lazy(() => import("@/pages/admin/messages")),
   },
   {
     id: "audit-log",
     title: "Admin Audit Log",
     sidebarLabel: "Audit Log",
     icon: Activity,
-    section: "super-admin",
+    section: "admin",
     component: lazy(() => import("@/pages/admin/AuditLog")),
   },
 ];
@@ -130,7 +139,9 @@ export const TAB_MAP = Object.fromEntries(
 
 /** Sections for sidebar rendering */
 export const SIDEBAR_SECTIONS = [
-  { label: "Catalog", key: "catalog" as const },
-  { label: "Management", key: "management" as const },
-  { label: "Super Admin", key: "super-admin" as const },
+  { label: "Overview", key: "overview" as const },
+  { label: "E-Commerce", key: "ecommerce" as const },
+  { label: "Product Catalog", key: "catalog" as const },
+  { label: "Content & Media", key: "content" as const },
+  { label: "Administration", key: "admin" as const },
 ] as const;

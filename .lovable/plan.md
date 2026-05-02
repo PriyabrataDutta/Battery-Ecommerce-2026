@@ -1,37 +1,53 @@
 
-## Overview
+## Rearrange Admin Dashboard Menu
 
-Update the car brand count badges so they count only **in-stock products** (stock > 0) by default, giving users an accurate picture of what's actually available.
+Reorganize the admin sidebar from the current 3 sections into 5 sections that reflect how a battery e-commerce business actually operates day-to-day.
 
-No new DB tables or migrations. Two files edited.
+### Current layout
+- **Catalog**: Dashboard, Products, Brands, Categories, Car Fitment, Media, Settings
+- **Management**: Users, Orders, Quotes, Messages
+- **Super Admin**: Audit Log
 
----
+### Proposed layout
 
-## Changes
+```text
+─── Overview ───────────────
+  Dashboard
 
-### 1. Edit `src/api/productFitment.ts` — `getCarBrandProductCounts()`
+─── E-Commerce ─────────────
+  Orders
+  Quotes
+  Messages
 
-Add an `inStockOnly` parameter (default `true`):
+─── Product Catalog ────────
+  Products
+  Brands
+  Categories
+  Car Fitment
 
-- After collecting all fitment `product_id`s per brand, make one additional query: `SELECT id FROM products WHERE id IN (...) AND stock > 0`
-- Intersect the result with each brand's product set before counting
-- When `inStockOnly` is false, behaviour is unchanged (counts all products)
+─── Content & Media ────────
+  Media
 
-This adds **1 extra SELECT** (only the `id` column, filtered by stock) — lightweight and only runs once per cache window.
+─── Administration ─────────
+  Users
+  Settings
+  Audit Log
+```
 
-### 2. Edit `src/hooks/queries/useFitment.ts` — `useCarBrandProductCounts()`
+**Rationale:**
+- **Overview** — the dashboard is the landing page, stands alone at the top for quick glance.
+- **E-Commerce** — orders, quotes, and messages are the daily operational items a battery shop owner checks first. Grouped together for fast access.
+- **Product Catalog** — products, brands, categories, and fitment are inventory/catalog management tasks done less frequently.
+- **Content & Media** — media gallery for managing images/files.
+- **Administration** — users, settings, and audit log are admin-level tasks, grouped at the bottom.
 
-- Pass `true` to `getCarBrandProductCounts(true)` so counts reflect in-stock products
-- Update the query key to include the flag so React Query caches correctly: `qk.fitment.carBrandCounts(true)`
+### Technical changes
 
-### 3. Edit `src/hooks/queries/keys.ts`
+**File: `src/pages/admin/_lib/tabs.ts`**
+- Add two new section keys: `"overview"` and `"content"`
+- Update `section` field on each tab definition to match the new grouping
+- Reorder `ADMIN_TAB_DEFS` array so items appear in the correct visual order
+- Update `SIDEBAR_SECTIONS` array with new labels and keys
+- Update the `AdminTabDef` type to include the new section keys
 
-- Update `carBrandCounts` key factory to accept `inStockOnly` boolean: `carBrandCounts: (inStock?: boolean) => ["fitment", "carBrandCounts", inStock] as const`
-
----
-
-## Result
-
-- Car brand badges show count of in-stock products only
-- Brands with zero in-stock products show "0" (still visible, not hidden — so admins know the brand exists)
-- No UI changes needed — the existing count badge renders the new number automatically
+No database changes needed. No new components.

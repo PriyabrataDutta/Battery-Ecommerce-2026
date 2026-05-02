@@ -15,6 +15,7 @@ export const ALL_PERMISSIONS = [
   "fitment.manage",
   "media.manage",
   "reviews.manage",
+  "returns.manage",
   "users.manage",
   "settings.manage",
   "audit_log.view",

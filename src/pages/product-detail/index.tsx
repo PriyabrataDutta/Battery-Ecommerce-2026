@@ -118,6 +118,13 @@ const ProductDetail = () => {
     `Buy ${product.name} at ${formatINR(withoutExchange)}. ${product.warranty_months ?? 0} month warranty. Free shipping & installation across India.`;
   const canonicalUrl = `https://power-drive-finder.lovable.app/product/${product.slug}`;
 
+  // Memoised JSON-LD string — rendered directly in DOM (not via Helmet)
+  // so crawlers see it the instant React paints, with zero Helmet batching delay.
+  const jsonLdString = useMemo(
+    () => JSON.stringify(buildProductJsonLd(product, allImages, canonicalUrl)),
+    [product, allImages, canonicalUrl],
+  );
+
   return (
     <>
       <Helmet>
@@ -137,12 +144,15 @@ const ProductDetail = () => {
         )}
         <meta property="product:price:amount" content={String(withoutExchange)} />
         <meta property="product:price:currency" content="INR" />
-        {/* JSON-LD Product structured data */}
-        {/* JSON-LD Product structured data — built from admin fields with validation */}
-        <script type="application/ld+json">
-          {JSON.stringify(buildProductJsonLd(product, allImages, canonicalUrl))}
-        </script>
       </Helmet>
+
+      {/* JSON-LD rendered outside Helmet for immediate DOM injection (no async batching delay) */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLdString,
+        }}
+      />
 
       <div className="container-x py-5 sm:py-8 pb-24 lg:pb-8">
         <nav

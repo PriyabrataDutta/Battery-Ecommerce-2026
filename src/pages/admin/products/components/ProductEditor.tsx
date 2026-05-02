@@ -45,6 +45,7 @@ export function ProductEditor({
   brands: BatteryBrand[];
   categories: Category[];
 }) {
+  const { data: gstRates } = useGstRates();
   const isEdit = !!product;
   const [form, setForm] = useState<ProductEditableFields>(EMPTY_PRODUCT);
   const [fitmentModelIds, setFitmentModelIds] = useState<string[]>([]);

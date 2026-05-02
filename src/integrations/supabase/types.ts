@@ -420,6 +420,36 @@ export type Database = {
         }
         Relationships: []
       }
+      gst_rates: {
+        Row: {
+          created_at: string
+          hsn_code: string | null
+          id: string
+          is_default: boolean
+          label: string
+          rate: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          hsn_code?: string | null
+          id?: string
+          is_default?: boolean
+          label: string
+          rate?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          hsn_code?: string | null
+          id?: string
+          is_default?: boolean
+          label?: string
+          rate?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       media_files: {
         Row: {
           alt_text: string | null
@@ -773,6 +803,7 @@ export type Database = {
           created_at: string
           description: string | null
           exchange_rebate: number
+          gst_rate_id: string | null
           has_exchange: boolean
           id: string
           is_bestseller: boolean
@@ -806,6 +837,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           exchange_rebate?: number
+          gst_rate_id?: string | null
           has_exchange?: boolean
           id?: string
           is_bestseller?: boolean
@@ -839,6 +871,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           exchange_rebate?: number
+          gst_rate_id?: string | null
           has_exchange?: boolean
           id?: string
           is_bestseller?: boolean
@@ -877,6 +910,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_gst_rate_id_fkey"
+            columns: ["gst_rate_id"]
+            isOneToOne: false
+            referencedRelation: "gst_rates"
             referencedColumns: ["id"]
           },
         ]

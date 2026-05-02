@@ -134,6 +134,7 @@ function GstRatesSection() {
   const updateMut = useMutation({
     mutationFn: async ({ id, label, rate, hsn_code }: { id: string; label: string; rate: number; hsn_code: string | null }) => {
       if (isDuplicate(rate, id)) throw new Error(`A slab with ${rate}% already exists.`);
+      if (hsnRequired(rate) && !hsn_code?.trim()) throw new Error(`HSN code is required for rates ≥ 18%.`);
       const { error } = await supabase.from("gst_rates").update({ label, rate, hsn_code }).eq("id", id);
       if (error) throw error;
     },

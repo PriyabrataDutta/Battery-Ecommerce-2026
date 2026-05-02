@@ -60,11 +60,19 @@ export const ProductCard = forwardRef<HTMLAnchorElement, { product: Product }>(f
           loading="lazy"
           className="w-full h-full object-contain p-3 sm:p-4 group-hover:scale-105 transition-transform duration-500"
         />
-        <div className="absolute top-2 left-2 right-2 flex flex-wrap gap-1 pointer-events-none">
+        <div className="absolute top-2 left-2 right-8 flex flex-wrap gap-1 pointer-events-none">
           {product.is_bestseller && <span className="badge-pill bg-ink text-white text-[10px]">Bestseller</span>}
           {product.is_new && <span className="badge-pill bg-success text-white text-[10px]">New</span>}
           {dpct && <span className="badge-pill bg-primary text-white text-[10px]">{dpct}% Off</span>}
         </div>
+        <button
+          type="button"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleWishlist(product.id); }}
+          className="absolute top-2 right-2 h-8 w-8 grid place-items-center rounded-full bg-white/80 hover:bg-white border border-line shadow-sm z-10 transition-colors"
+          aria-label={wishlistIds.has(product.id) ? "Remove from wishlist" : "Add to wishlist"}
+        >
+          <Heart className={`h-4 w-4 transition-colors ${wishlistIds.has(product.id) ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+        </button>
       </div>
 
       <div className="p-3 sm:p-4 flex-1 flex flex-col">

@@ -1,29 +1,37 @@
+
 ## Overview
 
-Add pagination to the Shop product listing — 20 products per page, page number in URL (`?page=2`), with Previous/Next/numbered controls using the existing shadcn Pagination component.
+Update the car brand count badges so they count only **in-stock products** (stock > 0) by default, giving users an accurate picture of what's actually available.
 
-**Why client-side pagination?** The current architecture fetches all products to compute filter counts (battery brand counts, price bounds). Moving to true server-side pagination would break these counts or require a separate count query per filter value. Client-side pagination gives the same UX benefit (smaller DOM, faster render) without adding DB calls.
+No new DB tables or migrations. Two files edited.
 
 ---
 
 ## Changes
 
-### Edit `src/pages/Shop.tsx`
+### 1. Edit `src/api/productFitment.ts` — `getCarBrandProductCounts()`
 
-1. **Read page from URL**: `const page = Math.max(1, Number(params.get("page")) || 1)`
-2. **Compute pagination**: After `sorted` is computed:
-  - `PAGE_SIZE = 20`
-  - `totalPages = Math.ceil(sorted.length / PAGE_SIZE)`
-  - `paged = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)`
-3. **Auto-reset**: When filters change the result count, reset to page 1
-4. **Scroll to grid top** on page change for smooth UX
-5. **Render `paged` instead of `sorted**` in the product grid
-6. **Add pagination controls** below the grid using the existing `Pagination`, `PaginationContent`, `PaginationItem`, `PaginationLink`, `PaginationPrevious`, `PaginationNext`, `PaginationEllipsis` components from `src/components/ui/pagination.tsx`
-7. **Page info** in the product count line: "48 products · Page 2 of 3"
-8. **Smart page numbers**: Show pages 1...3 4 5...10 with ellipsis for large catalogs
+Add an `inStockOnly` parameter (default `true`):
 
-No new files, no new dependencies, no database changes.  
-  
-Fix UI/UX where neeed every cm you should check on all device. check alingment of the shop page.
+- After collecting all fitment `product_id`s per brand, make one additional query: `SELECT id FROM products WHERE id IN (...) AND stock > 0`
+- Intersect the result with each brand's product set before counting
+- When `inStockOnly` is false, behaviour is unchanged (counts all products)
 
-&nbsp;
+This adds **1 extra SELECT** (only the `id` column, filtered by stock) — lightweight and only runs once per cache window.
+
+### 2. Edit `src/hooks/queries/useFitment.ts` — `useCarBrandProductCounts()`
+
+- Pass `true` to `getCarBrandProductCounts(true)` so counts reflect in-stock products
+- Update the query key to include the flag so React Query caches correctly: `qk.fitment.carBrandCounts(true)`
+
+### 3. Edit `src/hooks/queries/keys.ts`
+
+- Update `carBrandCounts` key factory to accept `inStockOnly` boolean: `carBrandCounts: (inStock?: boolean) => ["fitment", "carBrandCounts", inStock] as const`
+
+---
+
+## Result
+
+- Car brand badges show count of in-stock products only
+- Brands with zero in-stock products show "0" (still visible, not hidden — so admins know the brand exists)
+- No UI changes needed — the existing count badge renders the new number automatically

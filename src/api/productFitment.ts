@@ -18,9 +18,12 @@ export async function getProductIdsByModelIds(modelIds: string[]): Promise<strin
 /**
  * Returns a map of car_brand slug → number of distinct products that fit
  * any model belonging to that brand. Used for showing counts in the shop filter.
+ *
+ * When `inStockOnly` is true, only products with stock > 0 are counted.
  */
-export async function getCarBrandProductCounts(): Promise<Record<string, number>> {
-  // Join fitment → car_models → car_brands to get brand slug per fitment row
+export async function getCarBrandProductCounts(
+  inStockOnly = false,
+): Promise<Record<string, number>> {
   const { data, error } = await supabase
     .from("product_fitment")
     .select("product_id, car_models!inner(car_brand_id, car_brands:car_brand_id(slug))");
@@ -32,6 +35,30 @@ export async function getCarBrandProductCounts(): Promise<Record<string, number>
     if (!slug) continue;
     if (!byBrand[slug]) byBrand[slug] = new Set();
     byBrand[slug].add(row.product_id);
+  }
+
+  // Filter to in-stock products only when requested
+  if (inStockOnly) {
+    const allProductIds = new Set<string>();
+    for (const ids of Object.values(byBrand)) {
+      ids.forEach((id) => allProductIds.add(id));
+    }
+    if (allProductIds.size > 0) {
+      const { data: stockData, error: stockErr } = await supabase
+        .from("products")
+        .select("id")
+        .in("id", Array.from(allProductIds))
+        .gt("stock", 0);
+      if (stockErr) throw stockErr;
+      const inStockIds = new Set((stockData ?? []).map((r) => r.id));
+      for (const [slug, ids] of Object.entries(byBrand)) {
+        const filtered = new Set<string>();
+        ids.forEach((id) => {
+          if (inStockIds.has(id)) filtered.add(id);
+        });
+        byBrand[slug] = filtered;
+      }
+    }
   }
 
   const counts: Record<string, number> = {};

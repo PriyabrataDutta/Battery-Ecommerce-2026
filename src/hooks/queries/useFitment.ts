@@ -9,10 +9,11 @@ export const useProductIdsByModelIds = (modelIds: string[] | undefined) =>
     enabled: !!modelIds && modelIds.length > 0,
   });
 
-/** Product count per car brand slug — used for filter badges. */
-export const useCarBrandProductCounts = () =>
+/** Product count per car brand slug — used for filter badges.
+ *  When `inStockOnly` is true (default), only products with stock > 0 are counted. */
+export const useCarBrandProductCounts = (inStockOnly = true) =>
   useQuery({
-    queryKey: qk.fitment.carBrandCounts(),
-    queryFn: getCarBrandProductCounts,
+    queryKey: qk.fitment.carBrandCounts(inStockOnly),
+    queryFn: () => getCarBrandProductCounts(inStockOnly),
     staleTime: 5 * 60_000,
   });

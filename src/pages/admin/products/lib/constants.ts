@@ -32,6 +32,7 @@ export const EMPTY_PRODUCT: ProductEditableFields = {
   meta_description: null,
   meta_keywords: null,
   tags: [],
+  gst_rate_id: null,
 };
 
 export const PRODUCT_STATUSES = ["active", "draft", "archived"] as const;

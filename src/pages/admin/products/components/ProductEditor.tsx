@@ -143,8 +143,16 @@ export function ProductEditor({
     set("tags", form.tags.filter((t) => t !== tag));
   };
 
+  const selectedGstRate = gstRates?.find((r) => r.id === form.gst_rate_id) ?? null;
+  const hsnRequired = selectedGstRate && selectedGstRate.rate >= 18;
+  const hsnMissing = hsnRequired && !selectedGstRate.hsn_code;
+
   const handleSave = async () => {
     if (!form.name.trim() || !form.sku.trim() || form.price < 0) return;
+    if (hsnMissing) {
+      toast.error(`HSN code is required for ${selectedGstRate.label}. Please add it in Settings → GST.`);
+      return;
+    }
     const slug = form.slug.trim() || slugify(form.name);
     const payload = { ...form, slug };
     let productId: string;

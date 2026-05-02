@@ -175,6 +175,35 @@ export function PermissionsEditor({ userId, userName, open, onOpenChange }: Prop
           </div>
         ) : (
           <div className="space-y-5">
+            {/* Preset Templates */}
+            <div>
+              <h4 className="font-display font-bold text-xs uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                <Zap className="h-3.5 w-3.5" /> Quick Presets
+              </h4>
+              <div className="grid grid-cols-2 gap-2">
+                {PERMISSION_PRESETS.map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => applyPreset(preset)}
+                    className="text-left border border-line rounded-lg p-2.5 hover:border-primary/50 hover:bg-primary/5 transition-colors group"
+                  >
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                        {preset.keys.length}
+                      </Badge>
+                      <span className="text-sm font-semibold group-hover:text-primary transition-colors">
+                        {preset.label}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-tight">
+                      {preset.description}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={selectAll} className="text-xs">
                 Select All

@@ -7,6 +7,7 @@
 import { ShieldCheck, Truck, Wrench } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SpecRow } from "./SpecRow";
+import { ProductReviewsSection } from "@/components/reviews/ProductReviewsSection";
 import type { Product } from "@/types/catalog";
 
 type Props = {

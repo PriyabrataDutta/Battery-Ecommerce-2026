@@ -28,6 +28,7 @@ export const ProductCard = forwardRef<HTMLAnchorElement, { product: Product }>(f
     image: product.primary_image_url,
     withExchange: false as const,
     exchangeRebate: product.exchange_rebate,
+    gst_rate_id: (product as any).gst_rate_id ?? null,
   };
 
   const handleAdd = (e: React.MouseEvent) => {

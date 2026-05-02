@@ -21,6 +21,7 @@ export const DetailsTabs = ({ product }: Props) => {
         {[
           ["desc", "Details"],
           ["specs", "Specifications"],
+          ["reviews", "Reviews"],
           ["warranty", "Warranty"],
           ["delivery", "Delivery & Install"],
         ].map(([v, l]) => (

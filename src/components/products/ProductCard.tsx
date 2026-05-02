@@ -12,6 +12,7 @@ import { toast } from "sonner";
 export const ProductCard = forwardRef<HTMLAnchorElement, { product: Product }>(function ProductCard({ product }, ref) {
   const { addItem } = useCart();
   const navigate = useNavigate();
+  const { productIds: wishlistIds, toggle: toggleWishlist } = useWishlist();
 
   const withoutExchange = product.price_without_exchange || product.price;
   const withExchange = product.price_with_exchange || withoutExchange;

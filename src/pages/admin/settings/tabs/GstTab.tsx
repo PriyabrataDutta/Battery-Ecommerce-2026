@@ -105,6 +105,9 @@ function GstRatesSection() {
   const isDuplicate = (rateVal: number, excludeId?: string) =>
     (rates ?? []).some((r) => r.rate === rateVal && r.id !== excludeId);
 
+  /** Whether HSN is required for a given rate */
+  const hsnRequired = (rateVal: number) => rateVal >= 18;
+
   const addMut = useMutation({
     mutationFn: async () => {
       const rateNum = parseFloat(newRate) || 0;

@@ -86,6 +86,21 @@ export function PermissionsEditor({ userId, userName, open, onOpenChange }: Prop
     }
   };
 
+  const applyPreset = (preset: PermissionPreset) => {
+    const changes: Record<string, boolean> = {};
+    // Clear everything first
+    (currentPerms ?? new Set()).forEach((k) => {
+      changes[k] = false;
+    });
+    // Then enable only the preset keys
+    preset.keys.forEach((k) => {
+      if (currentPerms?.has(k)) delete changes[k]; // already has it, no change needed
+      else changes[k] = true;
+    });
+    setPendingChanges(changes);
+    toast.info(`Applied "${preset.label}" preset`);
+  };
+
   const selectAll = () => {
     const changes: Record<string, boolean> = {};
     ALL_PERMISSIONS.forEach((k) => {

@@ -63,8 +63,13 @@ export function CategoryEditor({
 
   const handleSave = async () => {
     if (!form.name.trim()) return;
-    if (!form.hsn_code?.trim()) {
+    const hsnTrimmed = form.hsn_code?.trim() ?? "";
+    if (!hsnTrimmed) {
       toast.error("HSN code is required for every category.");
+      return;
+    }
+    if (!/^\d{4,8}$/.test(hsnTrimmed)) {
+      toast.error("HSN code must be 4–8 digits (e.g. 8507 or 85071000).");
       return;
     }
     const slug = form.slug.trim() || slugify(form.name);

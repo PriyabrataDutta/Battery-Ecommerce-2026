@@ -331,6 +331,11 @@ export function ProductEditor({
                 }))}
               />
             )}
+            {hsnMissing && (
+              <p className="text-xs text-destructive">
+                HSN code is required for {selectedGstRate.label}. Add it in Settings → GST.
+              </p>
+            )}
           </div>
         </Field>
       </CollapsibleSection>

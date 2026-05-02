@@ -11,7 +11,6 @@ import { formatINR } from "@/lib/format";
 import { PromoInput } from "./PromoInput";
 import type { DeliveryOption, Promo } from "../lib/types";
 import type { Totals } from "../lib/totals";
-import type { Totals } from "../lib/totals";
 
 export const OrderSummary = ({
   items,

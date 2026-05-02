@@ -2,7 +2,7 @@ import { supabase } from "./client";
 import type { CarBrand } from "@/types/catalog";
 
 export async function listCarBrands(): Promise<CarBrand[]> {
-  const { data, error } = await supabase.from("car_brands").select("*").order("sort_order");
+  const { data, error } = await supabase.from("car_brands").select("id,name,slug,logo_url").order("sort_order");
   if (error) throw error;
   return (data ?? []) as CarBrand[];
 }

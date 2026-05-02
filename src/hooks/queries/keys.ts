@@ -55,6 +55,7 @@ export const qk = {
   fitment: {
     productIdsByModelIds: (modelIds: string[] | undefined) =>
       ["fitment", "productIdsByModelIds", modelIds] as const,
+    carBrandCounts: () => ["fitment", "carBrandCounts"] as const,
   },
   orders: {
     all: ["orders"] as const,

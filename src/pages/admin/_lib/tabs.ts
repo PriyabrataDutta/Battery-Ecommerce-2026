@@ -9,11 +9,13 @@ import {
   Mail,
   Settings,
   Users,
+  UserCheck,
   Activity,
   Car,
   ImageIcon,
 } from "lucide-react";
 import type { AdminTab } from "@/stores/dashboardTabs";
+import type { PermissionKey } from "@/hooks/usePermissions";
 
 export interface AdminTabDef {
   id: AdminTab;
@@ -21,6 +23,7 @@ export interface AdminTabDef {
   sidebarLabel: string;
   icon: ComponentType<{ className?: string }>;
   section: "overview" | "ecommerce" | "catalog" | "content" | "admin";
+  requiredPermission: PermissionKey;
   component: ReturnType<typeof lazy>;
 }
 
@@ -32,6 +35,7 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
     sidebarLabel: "Dashboard",
     icon: LayoutDashboard,
     section: "overview",
+    requiredPermission: "dashboard.view",
     component: lazy(() => import("@/pages/admin/Dashboard")),
   },
 
@@ -42,6 +46,7 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
     sidebarLabel: "Orders",
     icon: ShoppingBag,
     section: "ecommerce",
+    requiredPermission: "orders.manage",
     component: lazy(() => import("@/pages/admin/orders")),
   },
   {
@@ -50,6 +55,7 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
     sidebarLabel: "Quotes",
     icon: FileText,
     section: "ecommerce",
+    requiredPermission: "quotes.manage",
     component: lazy(() => import("@/pages/admin/quotes")),
   },
   {
@@ -58,7 +64,17 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
     sidebarLabel: "Messages",
     icon: Mail,
     section: "ecommerce",
+    requiredPermission: "messages.manage",
     component: lazy(() => import("@/pages/admin/messages")),
+  },
+  {
+    id: "customers",
+    title: "Customers",
+    sidebarLabel: "Customers",
+    icon: UserCheck,
+    section: "ecommerce",
+    requiredPermission: "customers.view",
+    component: lazy(() => import("@/pages/admin/customers")),
   },
 
   // ─── Product Catalog ───
@@ -68,6 +84,7 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
     sidebarLabel: "Products",
     icon: Package,
     section: "catalog",
+    requiredPermission: "products.manage",
     component: lazy(() => import("@/pages/admin/products")),
   },
   {
@@ -76,6 +93,7 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
     sidebarLabel: "Brands",
     icon: Tags,
     section: "catalog",
+    requiredPermission: "brands.manage",
     component: lazy(() => import("@/pages/admin/brands")),
   },
   {
@@ -84,6 +102,7 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
     sidebarLabel: "Categories",
     icon: FolderTree,
     section: "catalog",
+    requiredPermission: "categories.manage",
     component: lazy(() => import("@/pages/admin/categories")),
   },
   {
@@ -92,6 +111,7 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
     sidebarLabel: "Car Fitment",
     icon: Car,
     section: "catalog",
+    requiredPermission: "fitment.manage",
     component: lazy(() => import("@/pages/admin/fitment")),
   },
 
@@ -102,16 +122,18 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
     sidebarLabel: "Media",
     icon: ImageIcon,
     section: "content",
+    requiredPermission: "media.manage",
     component: lazy(() => import("@/pages/admin/media")),
   },
 
   // ─── Administration ───
   {
-    id: "users",
-    title: "Users",
-    sidebarLabel: "Users",
+    id: "team",
+    title: "Team Management",
+    sidebarLabel: "Team",
     icon: Users,
     section: "admin",
+    requiredPermission: "users.manage",
     component: lazy(() => import("@/pages/admin/users")),
   },
   {
@@ -120,6 +142,7 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
     sidebarLabel: "Settings",
     icon: Settings,
     section: "admin",
+    requiredPermission: "settings.manage",
     component: lazy(() => import("@/pages/admin/settings")),
   },
   {
@@ -128,6 +151,7 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
     sidebarLabel: "Audit Log",
     icon: Activity,
     section: "admin",
+    requiredPermission: "audit_log.view",
     component: lazy(() => import("@/pages/admin/AuditLog")),
   },
 ];

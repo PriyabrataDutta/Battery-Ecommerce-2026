@@ -105,10 +105,14 @@ function GstRatesSection() {
   const isDuplicate = (rateVal: number, excludeId?: string) =>
     (rates ?? []).some((r) => r.rate === rateVal && r.id !== excludeId);
 
+  /** Whether HSN is required for a given rate */
+  const hsnRequired = (rateVal: number) => rateVal >= 18;
+
   const addMut = useMutation({
     mutationFn: async () => {
       const rateNum = parseFloat(newRate) || 0;
       if (isDuplicate(rateNum)) throw new Error(`A slab with ${rateNum}% already exists.`);
+      if (hsnRequired(rateNum) && !newHsn.trim()) throw new Error(`HSN code is required for rates ≥ 18%.`);
       const { error } = await supabase.from("gst_rates").insert({
         label: newLabel.trim() || `GST ${rateNum}%`,
         rate: rateNum,
@@ -130,6 +134,7 @@ function GstRatesSection() {
   const updateMut = useMutation({
     mutationFn: async ({ id, label, rate, hsn_code }: { id: string; label: string; rate: number; hsn_code: string | null }) => {
       if (isDuplicate(rate, id)) throw new Error(`A slab with ${rate}% already exists.`);
+      if (hsnRequired(rate) && !hsn_code?.trim()) throw new Error(`HSN code is required for rates ≥ 18%.`);
       const { error } = await supabase.from("gst_rates").update({ label, rate, hsn_code }).eq("id", id);
       if (error) throw error;
     },
@@ -334,11 +339,16 @@ function GstRatesSection() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs">HSN Code</Label>
+                  <Label className="text-xs">
+                    HSN Code
+                    {newRate && hsnRequired(parseFloat(newRate) || 0) && (
+                      <span className="text-destructive ml-0.5">*</span>
+                    )}
+                  </Label>
                   <Input
                     value={newHsn}
                     onChange={(e) => setNewHsn(e.target.value)}
-                    placeholder="Optional"
+                    placeholder={newRate && hsnRequired(parseFloat(newRate) || 0) ? "Required for ≥18%" : "Optional"}
                     className="h-8 text-sm"
                   />
                 </div>
@@ -347,11 +357,14 @@ function GstRatesSection() {
               {newRate && isDuplicate(parseFloat(newRate) || 0) && (
                 <p className="text-xs text-destructive">A slab with {newRate}% already exists.</p>
               )}
+              {newRate && hsnRequired(parseFloat(newRate) || 0) && !newHsn.trim() && (
+                <p className="text-xs text-destructive">HSN code is required for rates ≥ 18%.</p>
+              )}
               <div className="flex gap-2">
                 <Button
                   size="sm"
                   onClick={() => addMut.mutate()}
-                  disabled={addMut.isPending || !newRate || isDuplicate(parseFloat(newRate) || 0)}
+                  disabled={addMut.isPending || !newRate || isDuplicate(parseFloat(newRate) || 0) || (hsnRequired(parseFloat(newRate) || 0) && !newHsn.trim())}
                 >
                   {addMut.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
                   Add Rate

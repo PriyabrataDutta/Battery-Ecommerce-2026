@@ -112,6 +112,7 @@ function GstRatesSection() {
     mutationFn: async () => {
       const rateNum = parseFloat(newRate) || 0;
       if (isDuplicate(rateNum)) throw new Error(`A slab with ${rateNum}% already exists.`);
+      if (hsnRequired(rateNum) && !newHsn.trim()) throw new Error(`HSN code is required for rates ≥ 18%.`);
       const { error } = await supabase.from("gst_rates").insert({
         label: newLabel.trim() || `GST ${rateNum}%`,
         rate: rateNum,

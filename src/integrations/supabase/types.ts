@@ -645,6 +645,36 @@ export type Database = {
         }
         Relationships: []
       }
+      permission_presets: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          keys: string[]
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          keys?: string[]
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          keys?: string[]
+          label?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       phone_verification_codes: {
         Row: {
           attempts: number

@@ -78,7 +78,7 @@ export async function updateReturnStatus(
   status: ReturnRequest["status"],
   extras?: { staff_verified_by?: string; admin_decided_by?: string; admin_notes?: string },
 ) {
-  const update: Record<string, unknown> = { status };
+  const update: any = { status };
   if (status === "staff_verified") {
     update.staff_verified_by = extras?.staff_verified_by;
     update.staff_verified_at = new Date().toISOString();

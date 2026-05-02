@@ -944,6 +944,30 @@ export type Database = {
         }
         Relationships: []
       }
+      staff_permissions: {
+        Row: {
+          created_at: string
+          granted_by: string | null
+          id: string
+          permission: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          permission: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          permission?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1009,6 +1033,18 @@ export type Database = {
         Returns: string
       }
       admin_dashboard_summary: { Args: never; Returns: Json }
+      admin_list_customers: {
+        Args: never
+        Returns: {
+          company: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          phone: string
+          phone_verified: boolean
+        }[]
+      }
       admin_list_users: {
         Args: never
         Returns: {
@@ -1051,6 +1087,10 @@ export type Database = {
           file_count: number
           total_bytes: number
         }[]
+      }
+      has_permission: {
+        Args: { _perm: string; _user_id: string }
+        Returns: boolean
       }
       has_role: {
         Args: {

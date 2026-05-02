@@ -51,7 +51,6 @@ export function UsersToolbar({
           <SelectItem value="__all" className="text-xs">All roles</SelectItem>
           <SelectItem value="admin" className="text-xs">Admin</SelectItem>
           <SelectItem value="staff" className="text-xs">Staff</SelectItem>
-          <SelectItem value="customer" className="text-xs">Customer</SelectItem>
         </SelectContent>
       </Select>
       {has && (
@@ -59,9 +58,9 @@ export function UsersToolbar({
           <X className="h-3.5 w-3.5 mr-1" /> Clear
         </Button>
       )}
-      <span className="text-xs text-muted-foreground ml-auto">{count} users</span>
+      <span className="text-xs text-muted-foreground ml-auto">{count} team member{count !== 1 ? "s" : ""}</span>
       <Button size="sm" onClick={onInvite}>
-        Invite admin
+        Invite Team Member
       </Button>
     </div>
   );

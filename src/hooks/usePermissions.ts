@@ -34,6 +34,7 @@ export const PERMISSION_LABELS: Record<PermissionKey, string> = {
   "fitment.manage": "Manage Car Fitment",
   "media.manage": "Manage Media",
   "reviews.manage": "Manage Reviews",
+  "returns.manage": "Manage Returns",
   "users.manage": "Manage Team",
   "settings.manage": "Manage Settings",
   "audit_log.view": "View Audit Log",

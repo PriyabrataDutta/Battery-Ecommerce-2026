@@ -13,6 +13,7 @@ import {
   Activity,
   Car,
   ImageIcon,
+  Star,
 } from "lucide-react";
 import type { AdminTab } from "@/stores/dashboardTabs";
 import type { PermissionKey } from "@/hooks/usePermissions";

@@ -1,119 +1,68 @@
 
 ## Overview
 
-The current Settings page is a raw key-value editor. We will replace it with a structured, tabbed settings panel with 5 sub-tabs. Each tab saves its config as a typed JSON value in the existing `site_settings` table (one row per setting group). The checkout and order flows will read these settings at runtime so changes take effect immediately.
+Replace the single-GST-rate system with a multi-rate GST catalog. Admins create GST entries (e.g. "GST 5%", "GST 12%", "GST 18%", "GST 28%") in the Settings > GST tab, then select the applicable GST rate when adding/editing a product.
+
+Checkout calculates tax per line item based on each product's assigned GST rate.
 
 ---
 
-## Sub-Tabs
+## Database Changes
 
-### 1. Payment Gateway Setup
+### New table: `gst_rates`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | uuid | PK |
+| label | text | e.g. "GST 18%" |
+| rate | numeric | Percentage, e.g. 18 |
+| hsn_code | text | Optional HSN/SAC code |
+| is_default | boolean | One default for products without explicit assignment |
+| created_at | timestamptz | |
 
-Lets the admin choose **one active gateway** from Razorpay, PayU, or Cashfree and enter that gateway's credentials.
+- RLS: Public read (needed at checkout), staff write
+- Seed with standard Indian GST slabs: 0%, 5%, 12%, 18%, 28%
 
-**UI**: Radio card selector for gateway + credential fields (Key ID, Key Secret, Merchant ID where applicable) + Test/Live mode toggle + "Save" button.
-
-**Storage key**: `payment_gateway` in `site_settings`.
-
-**Impact on checkout**: The Payment step in checkout will read this setting. If no gateway is configured, only COD is shown. The actual payment integration (redirect/SDK) will be stubbed with a placeholder — real gateway SDKs can be wired later since each requires its own Edge Function for server-side verification. For now the admin can configure and save credentials, and the checkout UI will reflect the selected gateway's branding and name.
-
-### 2. Email / SMTP Configuration
-
-Lets the admin configure outbound SMTP so transactional emails (order confirmation, password reset) can be sent.
-
-**UI**: Form fields for SMTP Host, Port, Username, Password, From Name, From Email, Encryption (TLS/SSL/None) + a "Send Test Email" button.
-
-**Storage key**: `smtp_config` in `site_settings`.  
-SMTP password will be stored as a secret via the secrets tool (not in the DB). The DB row stores everything except the password, plus a flag `password_set: true/false`.
-
-**"Send Test Email"**: An Edge Function `send-test-email` will use the saved SMTP config + secret to send a test email to the admin's address and return success/failure.
-
-### 3. Notification Settings
-
-Comprehensive notification preferences split into two categories:
-
-**Staff Notifications** (Super Admin, Admin, Staff):
-- New order placed
-- Order status changes (confirmed, shipped, delivered, cancelled)
-- New customer registration
-- New quote request
-- New contact message / callback request
-- Low stock alert
-- Payment received / failed
-
-**Customer Notifications**:
-- Order confirmation
-- Order shipped
-- Order delivered
-- Order cancelled/refunded
-- Account creation welcome
-- Quote response ready
-
-**UI**: Two-column table with toggle switches. Rows = event types, columns = recipient roles. Each toggle enables/disables that notification for that role.
-
-**Storage key**: `notification_settings` in `site_settings` — a JSON object like `{ "new_order": { "super_admin": true, "admin": true, "staff": false, "customer": true }, ... }`.
-
-**Impact**: This is a configuration layer. Actual email sending will check these toggles before dispatching. The setting is read-only for now (no email dispatch yet), but the structure is ready for when SMTP or Lovable Emails are wired in.
-
-### 4. GST Settings
-
-Replaces the hardcoded `TAX_RATE = 0.18` in `src/pages/checkout/lib/constants.ts`.
-
-**UI**: 
-- GST Rate (%) — default 18
-- GSTIN (business's own GST number)
-- Business Legal Name
-- State (for determining CGST+SGST vs IGST)
-- Toggle: Show GST breakup on invoice (CGST/SGST split vs single GST line)
-
-**Storage key**: `gst_settings` in `site_settings`.
-
-**Impact on checkout**: `calcTax()` in `src/pages/checkout/lib/totals.ts` will be updated to read the GST rate from a React Query cache of this setting instead of the hardcoded constant. The Cart summary will also reflect the dynamic rate. A hook `useGstSettings()` will be created to fetch and cache this.
-
-### 5. Shipping Cost Settings
-
-Replaces the hardcoded delivery prices in `DELIVERY_OPTIONS` in `src/pages/checkout/lib/constants.ts`.
-
-**UI**: Editable table/cards for each delivery method:
-- Standard Delivery — price, ETA text
-- Express Delivery — price, ETA text  
-- Installation Delivery — price, ETA text
-- Free shipping threshold (orders above ₹X get free standard shipping)
-
-**Storage key**: `shipping_settings` in `site_settings`.
-
-**Impact on checkout**: `DELIVERY_OPTIONS` will be replaced by a hook `useShippingSettings()` that merges DB values with defaults. The Cart page's "FREE" shipping label will check the threshold setting.
+### Alter `products` table
+- Add column `gst_rate_id uuid REFERENCES gst_rates(id)` (nullable, falls back to default rate)
 
 ---
 
-## Technical Plan
+## Settings > GST Tab Changes
 
-### Database
-No schema changes needed — everything uses the existing `site_settings` key-value table. One new Edge Function for SMTP test email + one secret for SMTP password.
+Rework the tab into two sections:
+1. **GST Rates** — a CRUD table to add/edit/delete GST slabs (label, rate %, HSN code, default toggle)
+2. **Business Details** — GSTIN, legal name, state, breakup toggle (kept from current)
 
-### New Files
-| File | Purpose |
-|------|---------|
-| `src/pages/admin/settings/index.tsx` | Rewrite — tabbed layout with 5 sub-tabs + the existing raw settings as a 6th "Advanced" tab |
-| `src/pages/admin/settings/tabs/PaymentGatewayTab.tsx` | Payment gateway config UI |
-| `src/pages/admin/settings/tabs/EmailSmtpTab.tsx` | SMTP config UI |
-| `src/pages/admin/settings/tabs/NotificationsTab.tsx` | Notification toggles grid |
-| `src/pages/admin/settings/tabs/GstTab.tsx` | GST config UI |
-| `src/pages/admin/settings/tabs/ShippingTab.tsx` | Shipping cost config UI |
-| `src/hooks/useGstSettings.ts` | Fetches `gst_settings` for checkout |
-| `src/hooks/useShippingSettings.ts` | Fetches `shipping_settings` for checkout |
-| `supabase/functions/send-test-email/index.ts` | Edge Function for SMTP test |
+---
 
-### Modified Files
+## Product Editor Changes
+
+Add a "GST Rate" dropdown in the **Pricing & Stock** section of `ProductEditor.tsx` that lists all `gst_rates` entries. If none selected, the product uses the default rate.
+
+Update `ProductEditableFields` to include `gst_rate_id: string | null`.
+
+---
+
+## Checkout Changes
+
+- Fetch `gst_rates` table at checkout
+- For each cart item, look up its product's `gst_rate_id` → get the rate %
+- Calculate tax per line item and sum (instead of a flat rate on the whole subtotal)
+- Update `calcTotals` to accept a per-item tax map
+- `useGstSettings` hook updated to also expose the rates lookup
+
+---
+
+## Files
+
+**New / Modified**:
 | File | Change |
 |------|--------|
-| `src/pages/checkout/lib/totals.ts` | Use dynamic GST rate from settings |
-| `src/pages/checkout/lib/constants.ts` | Remove hardcoded `TAX_RATE`; make `DELIVERY_OPTIONS` a fallback default |
-| `src/pages/Cart.tsx` | Use dynamic shipping threshold |
-| `src/pages/checkout/index.tsx` | Wire dynamic delivery options + payment gateway |
-
-### Approach
-- Each tab auto-loads its setting key on mount and saves on "Save" click via the existing `upsertSetting()` API
-- All settings have sensible defaults so the app works even before anything is configured
-- The existing raw key-value editor moves to an "Advanced" sub-tab so power users can still access it
-- SMTP password is stored as a Supabase secret, never exposed in the frontend
+| Migration | Create `gst_rates` table + add `gst_rate_id` to products + seed data |
+| `src/pages/admin/settings/tabs/GstTab.tsx` | Rewrite with rates CRUD + business details |
+| `src/api/admin/products.ts` | Add `gst_rate_id` to `ProductEditableFields` |
+| `src/pages/admin/products/lib/constants.ts` | Add `gst_rate_id` to `EMPTY_PRODUCT` |
+| `src/pages/admin/products/components/ProductEditor.tsx` | Add GST rate dropdown |
+| `src/hooks/useGstSettings.ts` | Also export `useGstRates()` for fetching all rates |
+| `src/pages/checkout/lib/totals.ts` | Per-item tax calculation |
+| `src/pages/checkout/index.tsx` | Wire per-product GST rates |

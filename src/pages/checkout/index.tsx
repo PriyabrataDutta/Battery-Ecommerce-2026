@@ -39,7 +39,7 @@ import { lineUnitPrice, useCart } from "@/hooks/useCart";
 import { useDefaultAddress } from "@/hooks/queries/useAddresses";
 import { useCreateOrder } from "@/hooks/queries/useOrders";
 import { formatINR } from "@/lib/format";
-import { useGstSettings } from "@/hooks/useGstSettings";
+import { useDefaultGstRate } from "@/hooks/useGstSettings";
 
 import { AddressStep } from "./components/AddressStep";
 import { DeliveryStep } from "./components/DeliveryStep";
@@ -75,7 +75,7 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { items, subtotal, clear } = useCart();
-  const { taxRate } = useGstSettings();
+  const taxRate = useDefaultGstRate();
 
   // Hydrate from any non-expired draft synchronously so a page refresh keeps
   // exactly what the user typed. Drafts older than 5 minutes self-destruct.

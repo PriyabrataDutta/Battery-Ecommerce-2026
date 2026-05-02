@@ -88,6 +88,7 @@ export interface ProductEditableFields {
   meta_description: string | null;
   meta_keywords: string | null;
   tags: string[];
+  gst_rate_id: string | null;
 }
 
 export async function createProduct(input: ProductEditableFields): Promise<{ id: string }> {

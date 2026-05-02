@@ -27,6 +27,7 @@ import { FitmentEditor } from "./FitmentEditor";
 import { ProductMediaSection } from "./ProductMediaSection";
 import { getProductFitmentModelIds, saveProductFitment } from "@/api/admin/productFitment";
 import { supabase } from "@/integrations/supabase/client";
+import { useGstRates } from "@/hooks/useGstSettings";
 import type { AdminProductRow } from "@/api/admin/products";
 import type { BatteryBrand, Category } from "@/types/catalog";
 import type { ProductEditableFields } from "@/api/admin/products";
@@ -44,6 +45,7 @@ export function ProductEditor({
   brands: BatteryBrand[];
   categories: Category[];
 }) {
+  const { data: gstRates } = useGstRates();
   const isEdit = !!product;
   const [form, setForm] = useState<ProductEditableFields>(EMPTY_PRODUCT);
   const [fitmentModelIds, setFitmentModelIds] = useState<string[]>([]);
@@ -109,6 +111,7 @@ export function ProductEditor({
         meta_description: p.meta_description ?? null,
         meta_keywords: p.meta_keywords ?? null,
         tags: Array.isArray(p.tags) ? p.tags : [],
+        gst_rate_id: p.gst_rate_id ?? null,
       });
       setTagInput("");
     } else {
@@ -294,6 +297,17 @@ export function ProductEditor({
             />
           </Field>
         </div>
+        <Field label="GST Rate">
+          <SelectField
+            value={form.gst_rate_id}
+            onChange={(v) => set("gst_rate_id", v)}
+            placeholder="Use default rate"
+            options={(gstRates ?? []).map((r) => ({
+              value: r.id,
+              label: `${r.label} (${r.rate}%)${r.is_default ? " ★" : ""}`,
+            }))}
+          />
+        </Field>
       </CollapsibleSection>
 
       {/* ── Specifications ── */}

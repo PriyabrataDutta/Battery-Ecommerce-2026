@@ -39,7 +39,8 @@ import { lineUnitPrice, useCart } from "@/hooks/useCart";
 import { useDefaultAddress } from "@/hooks/queries/useAddresses";
 import { useCreateOrder } from "@/hooks/queries/useOrders";
 import { formatINR } from "@/lib/format";
-import { useDefaultGstRate } from "@/hooks/useGstSettings";
+import { useDefaultGstRate, useGstRates } from "@/hooks/useGstSettings";
+import type { LineGst } from "./lib/totals";
 
 import { AddressStep } from "./components/AddressStep";
 import { DeliveryStep } from "./components/DeliveryStep";

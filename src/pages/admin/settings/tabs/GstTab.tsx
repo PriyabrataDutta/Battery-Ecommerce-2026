@@ -8,8 +8,18 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Loader2, Save, Receipt, Plus, Trash2, Star } from "lucide-react";
+import { Loader2, Save, Receipt, Plus, Trash2, Star, Pencil, Check, X, ShieldCheck } from "lucide-react";
 import type { GstRate } from "@/hooks/useGstSettings";
 
 /* ── Business details (stored in site_settings) ── */
@@ -80,13 +90,28 @@ function GstRatesSection() {
   const [newRate, setNewRate] = useState("");
   const [newHsn, setNewHsn] = useState("");
 
+  // Inline edit state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editLabel, setEditLabel] = useState("");
+  const [editRate, setEditRate] = useState("");
+  const [editHsn, setEditHsn] = useState("");
+
+  // Delete confirmation
+  const [deleteTarget, setDeleteTarget] = useState<GstRate | null>(null);
+
   const invalidate = () => qc.invalidateQueries({ queryKey: ["gst-rates"] });
+
+  /** Check if a rate % already exists (excluding a given id for edits) */
+  const isDuplicate = (rateVal: number, excludeId?: string) =>
+    (rates ?? []).some((r) => r.rate === rateVal && r.id !== excludeId);
 
   const addMut = useMutation({
     mutationFn: async () => {
+      const rateNum = parseFloat(newRate) || 0;
+      if (isDuplicate(rateNum)) throw new Error(`A slab with ${rateNum}% already exists.`);
       const { error } = await supabase.from("gst_rates").insert({
-        label: newLabel.trim() || `GST ${newRate}%`,
-        rate: parseFloat(newRate) || 0,
+        label: newLabel.trim() || `GST ${rateNum}%`,
+        rate: rateNum,
         hsn_code: newHsn.trim() || null,
       });
       if (error) throw error;
@@ -102,6 +127,20 @@ function GstRatesSection() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const updateMut = useMutation({
+    mutationFn: async ({ id, label, rate, hsn_code }: { id: string; label: string; rate: number; hsn_code: string | null }) => {
+      if (isDuplicate(rate, id)) throw new Error(`A slab with ${rate}% already exists.`);
+      const { error } = await supabase.from("gst_rates").update({ label, rate, hsn_code }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("GST rate updated");
+      setEditingId(null);
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const deleteMut = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("gst_rates").delete().eq("id", id);
@@ -109,6 +148,7 @@ function GstRatesSection() {
     },
     onSuccess: () => {
       toast.success("GST rate deleted");
+      setDeleteTarget(null);
       invalidate();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -129,6 +169,25 @@ function GstRatesSection() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const startEdit = (r: GstRate) => {
+    setEditingId(r.id);
+    setEditLabel(r.label);
+    setEditRate(String(r.rate));
+    setEditHsn(r.hsn_code ?? "");
+  };
+
+  const cancelEdit = () => setEditingId(null);
+
+  const saveEdit = (id: string) => {
+    const rateNum = parseFloat(editRate) || 0;
+    updateMut.mutate({
+      id,
+      label: editLabel.trim() || `GST ${rateNum}%`,
+      rate: rateNum,
+      hsn_code: editHsn.trim() || null,
+    });
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -139,113 +198,201 @@ function GstRatesSection() {
     );
   }
 
+  const defaultRate = (rates ?? []).find((r) => r.is_default);
+
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm">GST Rate Slabs</CardTitle>
-        <CardDescription className="text-xs">
-          Create multiple GST rates and assign them to products. The default rate is used when a product has no specific rate assigned.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {/* Existing rates */}
-        <div className="border rounded-md divide-y">
-          {(rates ?? []).map((r) => (
-            <div key={r.id} className="flex items-center gap-3 px-3 py-2 text-sm">
-              <span className="font-medium min-w-[100px]">{r.label}</span>
-              <span className="text-muted-foreground">{r.rate}%</span>
-              {r.hsn_code && (
-                <span className="text-xs text-muted-foreground font-mono">HSN: {r.hsn_code}</span>
-              )}
-              <div className="ml-auto flex items-center gap-1">
-                {r.is_default ? (
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
-                    <Star className="h-3 w-3" /> Default
-                  </span>
+    <>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm">GST Rate Slabs</CardTitle>
+          <CardDescription className="text-xs">
+            Create multiple GST rates and assign them to products. The default rate is used when a product has no specific rate assigned.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {/* Default rate callout */}
+          {defaultRate && (
+            <div className="flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-md px-3 py-2">
+              <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
+              <span className="text-sm">
+                Default rate: <strong className="text-primary">{defaultRate.label} ({defaultRate.rate}%)</strong>
+                <span className="text-muted-foreground"> — applied to products without a specific rate</span>
+              </span>
+            </div>
+          )}
+
+          {/* Existing rates */}
+          <div className="border rounded-md divide-y">
+            {(rates ?? []).map((r) => (
+              <div key={r.id}>
+                {editingId === r.id ? (
+                  /* ── Inline edit row ── */
+                  <div className="px-3 py-2 bg-muted/30 space-y-2">
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="space-y-0.5">
+                        <Label className="text-[10px] text-muted-foreground">Label</Label>
+                        <Input value={editLabel} onChange={(e) => setEditLabel(e.target.value)} className="h-7 text-sm" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <Label className="text-[10px] text-muted-foreground">Rate (%)</Label>
+                        <Input type="number" min={0} max={100} step={0.5} value={editRate} onChange={(e) => setEditRate(e.target.value)} className="h-7 text-sm" />
+                      </div>
+                      <div className="space-y-0.5">
+                        <Label className="text-[10px] text-muted-foreground">HSN Code</Label>
+                        <Input value={editHsn} onChange={(e) => setEditHsn(e.target.value)} placeholder="Optional" className="h-7 text-sm" />
+                      </div>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <Button size="sm" className="h-7 text-xs gap-1" onClick={() => saveEdit(r.id)} disabled={updateMut.isPending || !editRate}>
+                        {updateMut.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                        Save
+                      </Button>
+                      <Button size="sm" variant="ghost" className="h-7 text-xs gap-1" onClick={cancelEdit}>
+                        <X className="h-3 w-3" /> Cancel
+                      </Button>
+                    </div>
+                  </div>
                 ) : (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => setDefaultMut.mutate(r.id)}
-                    disabled={setDefaultMut.isPending}
-                  >
-                    Set default
-                  </Button>
+                  /* ── Display row ── */
+                  <div className={`flex items-center gap-3 px-3 py-2.5 text-sm ${r.is_default ? "bg-primary/[0.03]" : ""}`}>
+                    <span className="font-medium min-w-[100px]">{r.label}</span>
+                    <span className="text-muted-foreground">{r.rate}%</span>
+                    {r.hsn_code && (
+                      <span className="text-xs text-muted-foreground font-mono">HSN: {r.hsn_code}</span>
+                    )}
+                    <div className="ml-auto flex items-center gap-1">
+                      {r.is_default ? (
+                        <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 border border-primary/20">
+                          <Star className="h-3 w-3 fill-primary" /> Default
+                        </span>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={() => setDefaultMut.mutate(r.id)}
+                          disabled={setDefaultMut.isPending}
+                        >
+                          Set default
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => startEdit(r)}
+                        title="Edit"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive hover:text-destructive"
+                        onClick={() => setDeleteTarget(r)}
+                        disabled={r.is_default}
+                        title={r.is_default ? "Cannot delete the default rate" : "Delete"}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
                 )}
+              </div>
+            ))}
+            {(!rates || rates.length === 0) && (
+              <div className="px-3 py-4 text-sm text-muted-foreground text-center">
+                No GST rates configured yet.
+              </div>
+            )}
+          </div>
+
+          {/* Add new rate */}
+          {adding ? (
+            <div className="border rounded-md p-3 space-y-3 bg-muted/30">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">Label</Label>
+                  <Input
+                    value={newLabel}
+                    onChange={(e) => setNewLabel(e.target.value)}
+                    placeholder="e.g. GST 12%"
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Rate (%)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    step={0.5}
+                    value={newRate}
+                    onChange={(e) => setNewRate(e.target.value)}
+                    placeholder="18"
+                    className="h-8 text-sm"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">HSN Code</Label>
+                  <Input
+                    value={newHsn}
+                    onChange={(e) => setNewHsn(e.target.value)}
+                    placeholder="Optional"
+                    className="h-8 text-sm"
+                  />
+                </div>
+              </div>
+              {/* Duplicate warning */}
+              {newRate && isDuplicate(parseFloat(newRate) || 0) && (
+                <p className="text-xs text-destructive">A slab with {newRate}% already exists.</p>
+              )}
+              <div className="flex gap-2">
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-destructive hover:text-destructive"
-                  onClick={() => deleteMut.mutate(r.id)}
-                  disabled={deleteMut.isPending || r.is_default}
-                  title={r.is_default ? "Cannot delete the default rate" : "Delete"}
+                  size="sm"
+                  onClick={() => addMut.mutate()}
+                  disabled={addMut.isPending || !newRate || isDuplicate(parseFloat(newRate) || 0)}
                 >
-                  <Trash2 className="h-3.5 w-3.5" />
+                  {addMut.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                  Add Rate
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setAdding(false)}>
+                  Cancel
                 </Button>
               </div>
             </div>
-          ))}
-          {(!rates || rates.length === 0) && (
-            <div className="px-3 py-4 text-sm text-muted-foreground text-center">
-              No GST rates configured yet.
-            </div>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => setAdding(true)} className="gap-1">
+              <Plus className="h-3.5 w-3.5" /> Add GST Rate
+            </Button>
           )}
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* Add new rate */}
-        {adding ? (
-          <div className="border rounded-md p-3 space-y-3 bg-muted/30">
-            <div className="grid grid-cols-3 gap-3">
-              <div className="space-y-1">
-                <Label className="text-xs">Label</Label>
-                <Input
-                  value={newLabel}
-                  onChange={(e) => setNewLabel(e.target.value)}
-                  placeholder="e.g. GST 12%"
-                  className="h-8 text-sm"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Rate (%)</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  max={100}
-                  step={0.5}
-                  value={newRate}
-                  onChange={(e) => setNewRate(e.target.value)}
-                  placeholder="18"
-                  className="h-8 text-sm"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">HSN Code</Label>
-                <Input
-                  value={newHsn}
-                  onChange={(e) => setNewHsn(e.target.value)}
-                  placeholder="Optional"
-                  className="h-8 text-sm"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button size="sm" onClick={() => addMut.mutate()} disabled={addMut.isPending || !newRate}>
-                {addMut.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-                Add Rate
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => setAdding(false)}>
-                Cancel
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <Button variant="outline" size="sm" onClick={() => setAdding(true)} className="gap-1">
-            <Plus className="h-3.5 w-3.5" /> Add GST Rate
-          </Button>
-        )}
-      </CardContent>
-    </Card>
+      {/* Delete confirmation dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete GST rate?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>{deleteTarget?.label}</strong> ({deleteTarget?.rate}%)?
+              Products currently using this rate will fall back to the default rate.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMut.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteTarget && deleteMut.mutate(deleteTarget.id)}
+              disabled={deleteMut.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteMut.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 

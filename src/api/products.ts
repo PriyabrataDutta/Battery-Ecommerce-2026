@@ -24,6 +24,8 @@ export async function listProducts(opts: ListProductsOptions = {}): Promise<Prod
   if (opts.categorySlug) q = q.eq("categories.slug", opts.categorySlug);
   if (opts.brandId) q = q.eq("brand_id", opts.brandId);
   if (opts.isFeatured) q = q.eq("is_featured", true);
+  if (opts.isBestseller) q = q.eq("is_bestseller", true);
+  if (opts.isNew) q = q.eq("is_new", true);
   if (opts.limit) q = q.limit(opts.limit);
   const { data, error } = await q;
   if (error) throw error;

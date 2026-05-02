@@ -1,16 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
 import { getSetting } from "@/api/settings";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface GstSettings {
-  gst_rate: number;
   gstin: string;
   business_name: string;
   state: string;
   show_breakup: boolean;
 }
 
+export interface GstRate {
+  id: string;
+  label: string;
+  rate: number;
+  hsn_code: string | null;
+  is_default: boolean;
+}
+
 const DEFAULTS: GstSettings = {
-  gst_rate: 18,
   gstin: "",
   business_name: "",
   state: "",
@@ -24,9 +31,30 @@ export function useGstSettings() {
     staleTime: 5 * 60_000,
   });
 
-  return {
-    settings: data ? { ...DEFAULTS, ...data } : DEFAULTS,
-    taxRate: (data?.gst_rate ?? DEFAULTS.gst_rate) / 100,
-    loading: isLoading,
-  };
+  const settings = data ? { ...DEFAULTS, ...data } : DEFAULTS;
+
+  return { settings, loading: isLoading };
+}
+
+/** Fetch all GST rate slabs from the gst_rates table */
+export function useGstRates() {
+  return useQuery<GstRate[]>({
+    queryKey: ["gst-rates"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("gst_rates")
+        .select("id, label, rate, hsn_code, is_default")
+        .order("rate");
+      if (error) throw error;
+      return (data ?? []) as GstRate[];
+    },
+    staleTime: 5 * 60_000,
+  });
+}
+
+/** Get the default GST rate (decimal) from the rates table, fallback 0.18 */
+export function useDefaultGstRate(): number {
+  const { data } = useGstRates();
+  const defaultRate = data?.find((r) => r.is_default);
+  return (defaultRate?.rate ?? 18) / 100;
 }

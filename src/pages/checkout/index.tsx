@@ -155,11 +155,27 @@ const Checkout = () => {
     [delivery],
   );
 
+  // Build per-line-item GST mapping from the cart items' gst_rate_id
+  const ratesMap = useMemo(() => {
+    const m = new Map<string, number>();
+    (gstRates ?? []).forEach((r) => m.set(r.id, r.rate / 100));
+    return m;
+  }, [gstRates]);
+
+  const lineGstItems: LineGst[] = useMemo(
+    () =>
+      items.map((it) => ({
+        lineTotal: lineUnitPrice(it) * it.qty,
+        rate: it.gst_rate_id ? (ratesMap.get(it.gst_rate_id) ?? defaultTaxRate) : defaultTaxRate,
+      })),
+    [items, ratesMap, defaultTaxRate],
+  );
+
   // Discount applies to subtotal. GST recomputes against the discounted
   // subtotal so the customer also saves the tax on the discounted amount.
   const totals = useMemo(
-    () => calcTotals(subtotal, appliedPromo, deliveryOption, taxRate),
-    [subtotal, appliedPromo, deliveryOption, taxRate],
+    () => calcTotals(subtotal, appliedPromo, deliveryOption, lineGstItems, defaultTaxRate),
+    [subtotal, appliedPromo, deliveryOption, lineGstItems, defaultTaxRate],
   );
   const { discount, tax, total } = totals;
 

@@ -12,6 +12,7 @@ export interface CarBrand {
   id: string;
   name: string;
   slug: string;
+  logo_url?: string | null;
 }
 
 export interface CarModel {

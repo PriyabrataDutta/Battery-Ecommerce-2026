@@ -1,12 +1,15 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Truck, Wrench, ShieldCheck, Award, IndianRupee, HeadphonesIcon, Package } from "lucide-react";
-import { ProductCard } from "@/components/products/ProductCard";
+import { ArrowRight, Truck, Wrench, ShieldCheck, IndianRupee, Award, HeadphonesIcon, Package } from "lucide-react";
 import { FitmentSearch } from "@/components/products/FitmentSearch";
-import { useProducts } from "@/hooks/queries/useProducts";
 import { useBatteryBrands } from "@/hooks/queries/useBrands";
 import { useCategories } from "@/hooks/queries/useCategories";
+import { CarBrandGrid } from "@/components/home/CarBrandGrid";
+import { ProductTabs } from "@/components/home/ProductTabs";
+import { TestimonialsSection } from "@/components/home/TestimonialsSection";
+import { DeliveryCoverage } from "@/components/home/DeliveryCoverage";
+import { MobileStickyBar } from "@/components/home/MobileStickyBar";
 import heroCar from "@/assets/hero-car.jpg";
 import batteryStack from "@/assets/battery-stack.png";
 import { gsap } from "gsap";
@@ -25,7 +28,6 @@ const Home = () => {
     return () => ctx.revert();
   }, []);
 
-  const { data: featured = [] } = useProducts({ isFeatured: true, limit: 8 });
   const { data: brands = [] } = useBatteryBrands();
   const { data: categories = [] } = useCategories();
 
@@ -96,7 +98,10 @@ const Home = () => {
         ))}
       </section>
 
-      {/* SHOP BY CATEGORY */}
+      {/* SHOP BY CAR BRAND — new logo grid */}
+      <CarBrandGrid />
+
+      {/* SHOP BY CATEGORY — visual cards with images */}
       <section className="container-x mt-12 sm:mt-20">
         <SectionHead eyebrow="Browse" title="Shop by Category" />
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
@@ -104,19 +109,30 @@ const Home = () => {
             <Link
               key={c.id}
               to={`/category/${c.slug}`}
-              className="group relative bg-white border border-line p-6 hover:border-ink hover-lift overflow-hidden"
+              className="group relative bg-ink border border-line overflow-hidden min-h-[140px] sm:min-h-[180px] hover-lift"
             >
-              <div className="font-display font-bold text-xl text-ink">{c.name}</div>
-              {c.description && <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{c.description}</p>}
-              <div className="mt-4 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-primary">
-                Explore <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+              {c.image_url ? (
+                <img
+                  src={c.image_url}
+                  alt={c.name}
+                  className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-500"
+                  loading="lazy"
+                />
+              ) : null}
+              <div className="absolute inset-0 bg-gradient-fade-bottom" />
+              <div className="relative h-full flex flex-col justify-end p-4 sm:p-6">
+                <div className="font-display font-bold text-lg sm:text-xl text-white">{c.name}</div>
+                {c.description && <p className="mt-1 text-xs sm:text-sm text-white/70 line-clamp-2">{c.description}</p>}
+                <div className="mt-2 sm:mt-3 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-primary">
+                  Explore <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                </div>
               </div>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* SHOP BY BRAND */}
+      {/* SHOP BY BRAND — marquee */}
       <section className="mt-12 sm:mt-20 bg-white border-y border-line py-8 sm:py-12 overflow-hidden">
         <div className="container-x">
           <SectionHead eyebrow="Trusted Brands" title="Shop by Brand" />
@@ -126,26 +142,28 @@ const Home = () => {
             <Link
               key={`${b.id}-${i}`}
               to={`/brand/${b.slug}`}
-              className="font-display font-bold text-3xl text-ink-soft hover:text-primary transition-colors px-8"
+              className="flex items-center gap-3 px-8"
             >
-              {b.name.toUpperCase()}
+              {b.logo_url ? (
+                <img src={b.logo_url} alt={b.name} className="h-8 sm:h-10 object-contain" loading="lazy" />
+              ) : (
+                <span className="font-display font-bold text-3xl text-ink-soft hover:text-primary transition-colors">
+                  {b.name.toUpperCase()}
+                </span>
+              )}
             </Link>
           ))}
         </div>
       </section>
 
-      {/* FEATURED PRODUCTS */}
-      <section className="container-x mt-12 sm:mt-20">
-        <SectionHead eyebrow="Top Picks" title="Featured Products" />
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
-          {featured.map((p) => <ProductCard key={p.id} product={p} />)}
-        </div>
-        <div className="text-center mt-10">
-          <Button asChild size="lg" variant="outline">
-            <Link to="/shop">View All Products <ArrowRight className="h-4 w-4 ml-2" /></Link>
-          </Button>
-        </div>
-      </section>
+      {/* PRODUCT TABS: Featured / Bestsellers / New */}
+      <ProductTabs />
+
+      {/* DELIVERY COVERAGE */}
+      <DeliveryCoverage />
+
+      {/* TESTIMONIALS */}
+      <TestimonialsSection />
 
       {/* B2B TRUST */}
       <section className="mt-12 sm:mt-20 bg-ink text-white py-10 sm:py-16">
@@ -171,7 +189,7 @@ const Home = () => {
       </section>
 
       {/* QUICK QUOTE CTA */}
-      <section className="container-x mt-12 sm:mt-20">
+      <section className="container-x mt-12 sm:mt-20 mb-20 lg:mb-0">
         <div className="bg-gradient-red text-white p-6 sm:p-10 lg:p-14 grid lg:grid-cols-[1fr_auto] items-center gap-5 sm:gap-6">
           <div>
             <div className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] sm:tracking-[0.25em] mb-2 sm:mb-3">B2B Pricing</div>
@@ -183,6 +201,9 @@ const Home = () => {
           </Button>
         </div>
       </section>
+
+      {/* MOBILE STICKY BAR */}
+      <MobileStickyBar />
     </>
   );
 };
@@ -191,7 +212,7 @@ function SectionHead({ eyebrow, title, dark }: { eyebrow: string; title: string;
   return (
     <div className="flex items-end justify-between gap-4 flex-wrap">
       <div>
-        <div className={`text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] sm:tracking-[0.25em] ${dark ? "text-primary" : "text-primary"}`}>{eyebrow}</div>
+        <div className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] sm:tracking-[0.25em] text-primary">{eyebrow}</div>
         <h2 className={`font-display-tight text-2xl sm:text-3xl lg:text-4xl font-bold mt-1 ${dark ? "text-white" : "text-ink"}`}>{title}</h2>
       </div>
     </div>

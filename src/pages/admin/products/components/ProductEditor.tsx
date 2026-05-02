@@ -115,7 +115,8 @@ export function ProductEditor({
       });
       setTagInput("");
     } else {
-      setForm(EMPTY_PRODUCT);
+      const defaultRateId = gstRates?.find((r) => r.is_default)?.id ?? null;
+      setForm({ ...EMPTY_PRODUCT, gst_rate_id: defaultRateId });
       setFitmentModelIds([]);
       setGalleryImages([]);
       setTagInput("");
@@ -298,15 +299,30 @@ export function ProductEditor({
           </Field>
         </div>
         <Field label="GST Rate">
-          <SelectField
-            value={form.gst_rate_id}
-            onChange={(v) => set("gst_rate_id", v)}
-            placeholder="Use default rate"
-            options={(gstRates ?? []).map((r) => ({
-              value: r.id,
-              label: `${r.label} (${r.rate}%)${r.is_default ? " ★" : ""}`,
-            }))}
-          />
+          <div className="space-y-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <Switch
+                checked={!!form.gst_rate_id && form.gst_rate_id === (gstRates?.find((r) => r.is_default)?.id ?? "__")}
+                onCheckedChange={(checked) => {
+                  set("gst_rate_id", checked ? (gstRates?.find((r) => r.is_default)?.id ?? null) : null);
+                }}
+              />
+              <span className="text-xs text-muted-foreground">
+                Use default GST ({gstRates?.find((r) => r.is_default)?.rate ?? 18}%)
+              </span>
+            </label>
+            {(!form.gst_rate_id || form.gst_rate_id !== (gstRates?.find((r) => r.is_default)?.id ?? "__")) && (
+              <SelectField
+                value={form.gst_rate_id}
+                onChange={(v) => set("gst_rate_id", v)}
+                placeholder="Select GST rate"
+                options={(gstRates ?? []).map((r) => ({
+                  value: r.id,
+                  label: `${r.label} (${r.rate}%)${r.is_default ? " ★" : ""}`,
+                }))}
+              />
+            )}
+          </div>
         </Field>
       </CollapsibleSection>
 

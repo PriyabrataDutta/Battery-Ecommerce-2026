@@ -6,6 +6,8 @@ export interface ListProductsOptions {
   brandId?: string;
   status?: string;
   isFeatured?: boolean;
+  isBestseller?: boolean;
+  isNew?: boolean;
   limit?: number;
 }
 

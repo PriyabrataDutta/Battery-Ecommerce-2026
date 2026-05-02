@@ -37,7 +37,8 @@ export function ShopFilters({ counts, priceBounds }: Props) {
     [carBrandsCsv]
   );
 
-  const { data: carBrands = [] } = useCarBrands();
+  const { data: carBrands = [], isLoading: carBrandsLoading } = useCarBrands();
+  const { data: carBrandCounts, isLoading: carBrandCountsLoading } = useCarBrandProductCounts();
 
   const currentCarBrand = useMemo(
     () => carBrands.find((b) => b.slug === carBrandSlug) ?? null,

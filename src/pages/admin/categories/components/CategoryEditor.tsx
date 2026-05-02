@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { EntityDrawer } from "@/components/admin/EntityDrawer";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -47,6 +48,7 @@ export function CategoryEditor({
         image_url: category.image_url ?? null,
         parent_id: category.parent_id ?? null,
         sort_order: category.sort_order ?? 0,
+        hsn_code: (category as any).hsn_code ?? null,
       });
     } else setForm(EMPTY_CATEGORY);
   }, [open, category]);
@@ -61,6 +63,10 @@ export function CategoryEditor({
 
   const handleSave = async () => {
     if (!form.name.trim()) return;
+    if (!form.hsn_code?.trim()) {
+      toast.error("HSN code is required for every category.");
+      return;
+    }
     const slug = form.slug.trim() || slugify(form.name);
     const payload = { ...form, slug };
     if (isEdit && category) await update.mutateAsync({ id: category.id, patch: payload });
@@ -90,6 +96,13 @@ export function CategoryEditor({
     >
       <Field label="Name" required>
         <Input value={form.name} onChange={(e) => set("name", e.target.value)} />
+      </Field>
+      <Field label="HSN Code" required hint="Harmonized System Nomenclature code for this category">
+        <Input
+          value={form.hsn_code ?? ""}
+          onChange={(e) => set("hsn_code", e.target.value || null)}
+          placeholder="e.g. 8507"
+        />
       </Field>
       <Field label="Slug" hint="Auto-generated from name if blank">
         <Input value={form.slug} onChange={(e) => set("slug", e.target.value)} />

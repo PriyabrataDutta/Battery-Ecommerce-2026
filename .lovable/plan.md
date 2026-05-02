@@ -1,68 +1,19 @@
+## Add HSN Code to Product Categories
 
-## Overview
+When creating or editing a category, users will be required to enter an HSN code. This code will be stored on the category and displayed in the categories table.
 
-Replace the single-GST-rate system with a multi-rate GST catalog. Admins create GST entries (e.g. "GST 5%", "GST 12%", "GST 18%", "GST 28%") in the Settings > GST tab, then select the applicable GST rate when adding/editing a product.
+### Changes
 
-Checkout calculates tax per line item based on each product's assigned GST rate.
+**1. Database migration** — Add `hsn_code text` column to `categories` table (nullable initially so existing categories aren't broken, but the UI will enforce it going forward).
 
----
+**2. `src/api/admin/categories.ts`** — Add `hsn_code` to `CategoryEditableFields` interface and `EMPTY_CATEGORY` default.
 
-## Database Changes
+**3. `src/pages/admin/categories/components/CategoryEditor.tsx`** — Add an HSN Code input field (required). Block save if HSN code is empty with a toast error.
 
-### New table: `gst_rates`
-| Column | Type | Notes |
-|--------|------|-------|
-| id | uuid | PK |
-| label | text | e.g. "GST 18%" |
-| rate | numeric | Percentage, e.g. 18 |
-| hsn_code | text | Optional HSN/SAC code |
-| is_default | boolean | One default for products without explicit assignment |
-| created_at | timestamptz | |
+**4. `src/pages/admin/categories/components/CategoriesTable.tsx`** — Add an "HSN Code" column to the table so it's visible at a glance.
 
-- RLS: Public read (needed at checkout), staff write
-- Seed with standard Indian GST slabs: 0%, 5%, 12%, 18%, 28%
+### Technical details
 
-### Alter `products` table
-- Add column `gst_rate_id uuid REFERENCES gst_rates(id)` (nullable, falls back to default rate)
-
----
-
-## Settings > GST Tab Changes
-
-Rework the tab into two sections:
-1. **GST Rates** — a CRUD table to add/edit/delete GST slabs (label, rate %, HSN code, default toggle)
-2. **Business Details** — GSTIN, legal name, state, breakup toggle (kept from current)
-
----
-
-## Product Editor Changes
-
-Add a "GST Rate" dropdown in the **Pricing & Stock** section of `ProductEditor.tsx` that lists all `gst_rates` entries. If none selected, the product uses the default rate.
-
-Update `ProductEditableFields` to include `gst_rate_id: string | null`.
-
----
-
-## Checkout Changes
-
-- Fetch `gst_rates` table at checkout
-- For each cart item, look up its product's `gst_rate_id` → get the rate %
-- Calculate tax per line item and sum (instead of a flat rate on the whole subtotal)
-- Update `calcTotals` to accept a per-item tax map
-- `useGstSettings` hook updated to also expose the rates lookup
-
----
-
-## Files
-
-**New / Modified**:
-| File | Change |
-|------|--------|
-| Migration | Create `gst_rates` table + add `gst_rate_id` to products + seed data |
-| `src/pages/admin/settings/tabs/GstTab.tsx` | Rewrite with rates CRUD + business details |
-| `src/api/admin/products.ts` | Add `gst_rate_id` to `ProductEditableFields` |
-| `src/pages/admin/products/lib/constants.ts` | Add `gst_rate_id` to `EMPTY_PRODUCT` |
-| `src/pages/admin/products/components/ProductEditor.tsx` | Add GST rate dropdown |
-| `src/hooks/useGstSettings.ts` | Also export `useGstRates()` for fetching all rates |
-| `src/pages/checkout/lib/totals.ts` | Per-item tax calculation |
-| `src/pages/checkout/index.tsx` | Wire per-product GST rates |
+- Migration: `ALTER TABLE public.categories ADD COLUMN hsn_code text;`
+- The UI will mark HSN code as required with a red asterisk and validate on save.
+- Existing categories without HSN codes will show "—" in the table and will need to be updated when edited.

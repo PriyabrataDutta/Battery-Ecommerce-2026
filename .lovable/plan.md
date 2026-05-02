@@ -1,47 +1,29 @@
+## Overview
 
-## What this changes
+Add pagination to the Shop product listing — 20 products per page, page number in URL (`?page=2`), with Previous/Next/numbered controls using the existing shadcn Pagination component.
 
-The inline JSON-LD block in the product detail page will be replaced with a dedicated builder function that validates every field against the admin-entered data, ensuring prices are never null/0, currency is always "INR", and availability always resolves to a valid schema.org URL.
+**Why client-side pagination?** The current architecture fetches all products to compute filter counts (battery brand counts, price bounds). Moving to true server-side pagination would break these counts or require a separate count query per filter value. Client-side pagination gives the same UX benefit (smaller DOM, faster render) without adding DB calls.
 
-## Files
+---
 
-### 1. Create `src/pages/product-detail/lib/buildProductJsonLd.ts`
+## Changes
 
-A pure function `buildProductJsonLd(product, images, canonicalUrl)` that:
+### Edit `src/pages/Shop.tsx`
 
-- Computes safe prices internally using the same logic already in `index.tsx` (price_without_exchange -> price fallback, price_with_exchange -> withoutExchange fallback)
-- Uses a `safePrice()` helper that coerces null, undefined, NaN, negative, and 0 to a minimum of `0.01`
-- Ensures `lowPrice <= highPrice` (swaps if inverted)
-- Maps every admin field with these fallbacks:
+1. **Read page from URL**: `const page = Math.max(1, Number(params.get("page")) || 1)`
+2. **Compute pagination**: After `sorted` is computed:
+  - `PAGE_SIZE = 20`
+  - `totalPages = Math.ceil(sorted.length / PAGE_SIZE)`
+  - `paged = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)`
+3. **Auto-reset**: When filters change the result count, reset to page 1
+4. **Scroll to grid top** on page change for smooth UX
+5. **Render `paged` instead of `sorted**` in the product grid
+6. **Add pagination controls** below the grid using the existing `Pagination`, `PaginationContent`, `PaginationItem`, `PaginationLink`, `PaginationPrevious`, `PaginationNext`, `PaginationEllipsis` components from `src/components/ui/pagination.tsx`
+7. **Page info** in the product count line: "48 products · Page 2 of 3"
+8. **Smart page numbers**: Show pages 1...3 4 5...10 with ellipsis for large catalogs
 
-| Field | Source (admin) | Fallback |
-|---|---|---|
-| name | `product.name` | Always required in DB |
-| sku | `product.sku` | Omitted if empty |
-| description | `meta_description` -> `short_description` | `"{name} battery"` |
-| image | `product_images` + `primary_image_url` | `["/placeholder.svg"]` |
-| brand | `battery_brands.name` | `"Kachi Batteries"` |
-| category | `categories.name` | Omitted if empty |
-| keywords | `tags[]` | Omitted if empty |
-| capacity_ah | `capacity_ah` | Omitted if null/0 |
-| warranty_months | `warranty_months` | Omitted if null/0 |
-| price (offers) | Computed safe prices | Min `0.01` |
-| priceCurrency | Hardcoded | `"INR"` |
-| availability | `stock` | `OutOfStock` if null/NaN/<=0 |
-| has_exchange | `has_exchange` | Only adds exchange offer when true AND exchange price < standard price |
-| mrp | `mrp` | Used for highPrice only when > withoutExchange |
+No new files, no new dependencies, no database changes.  
+  
+Fix UI/UX where neeed every cm you should check on all device. check alingment of the shop page.
 
-Returns the complete JSON-LD object ready for `JSON.stringify()`.
-
-### 2. Edit `src/pages/product-detail/index.tsx`
-
-- Import `buildProductJsonLd`
-- Replace the ~75-line inline JSON-LD object (lines 140-215) with:
-  ```tsx
-  const jsonLd = useMemo(
-    () => buildProductJsonLd(product, allImages, canonicalUrl),
-    [product, allImages, canonicalUrl]
-  );
-  ```
-- Render: `{jsonLd && <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>}`
-- Keep all existing OG meta tags and pricing logic unchanged (they're used by the UI too)
+&nbsp;

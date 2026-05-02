@@ -1,10 +1,19 @@
 import { useSearchParams, Link } from "react-router-dom";
-import { useMemo } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ShopFilters } from "@/components/products/ShopFilters";
 import { ActiveFilters } from "@/components/products/ActiveFilters";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LayoutGrid, List } from "lucide-react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 import type { Product } from "@/types/catalog";
 import { useProducts } from "@/hooks/queries/useProducts";
 import { useCategoryBySlug } from "@/hooks/queries/useCategories";
@@ -20,6 +29,8 @@ import { useProductIdsByModelIds } from "@/hooks/queries/useFitment";
 
 type SortKey = "relevance" | "popularity" | "price_asc" | "price_desc" | "newest";
 
+const PAGE_SIZE = 20;
+
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: "relevance", label: "Relevance" },
   { value: "popularity", label: "Popularity" },
@@ -28,16 +39,38 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: "newest", label: "Newest" },
 ];
 
+/** Build an array of page numbers to render, with ellipsis gaps. */
+function buildPageNumbers(current: number, total: number): (number | "ellipsis")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const pages: (number | "ellipsis")[] = [1];
+  if (current > 3) pages.push("ellipsis");
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+  for (let i = start; i <= end; i++) pages.push(i);
+  if (current < total - 2) pages.push("ellipsis");
+  if (total > 1) pages.push(total);
+  return pages;
+}
+
 const Shop = () => {
   const [params, setParams] = useSearchParams();
   const sort = (params.get("sort") as SortKey) || "relevance";
   const view: "grid" | "list" = params.get("view") === "list" ? "list" : "grid";
+  const page = Math.max(1, Number(params.get("page")) || 1);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   const setParam = (key: string, value: string | null) => {
     const p = new URLSearchParams(params);
     if (value === null || value === "") p.delete(key);
     else p.set(key, value);
     setParams(p, { replace: true });
+  };
+
+  const goToPage = (n: number) => {
+    const p = new URLSearchParams(params);
+    if (n <= 1) p.delete("page");
+    else p.set("page", String(n));
+    setParams(p, { replace: false });
   };
 
   const q = params.get("q")?.toLowerCase() ?? "";
@@ -56,32 +89,27 @@ const Shop = () => {
 
   const { data: typeCategory } = useCategoryBySlug(type ?? undefined);
 
-  // Resolve free-text q to a brand or car model so searches like "amaron" or "baleno" return useful results
   const { data: qBrandSlug } = useResolveBatteryBrandSlugByName(q);
   const { data: qCarModelId } = useResolveCarModelIdByName(q);
   const qResolved = { brandSlug: qBrandSlug ?? null, carModelId: qCarModelId ?? null };
 
   const effectiveBrand = brandSlug || qResolved.brandSlug || null;
 
-  // Resolve car_brand slug -> all model ids (for fitment filtering by car brand)
   const { data: carBrandId } = useCarBrandIdBySlug(carBrandSlug ?? undefined);
   const { data: carBrandModelIds } = useCarModelIdsByBrandIds(
     carBrandId ? [carBrandId] : undefined,
   );
 
-  // Resolve multi-select car_brands -> product ids via fitment
   const { data: carBrandsIds } = useCarBrandIdsBySlugs(carBrandSlugs);
   const { data: carBrandsModelIds } = useCarModelIdsByBrandIds(carBrandsIds);
   const { data: carBrandsProductIds } = useProductIdsByModelIds(carBrandsModelIds);
 
-  // Resolve a single car model slug -> id
   const { data: carModelIdFromSlug } = useCarModelIdBySlug(carModelSlug ?? undefined);
 
   const { data: products = [], isLoading } = useProducts({
     categorySlug: type ?? undefined,
   });
 
-  // Apply free-text filter client-side when q didn't resolve to brand/model
   const textFiltered = useMemo(() => {
     if (!q || qResolved.brandSlug || qResolved.carModelId) return products;
     return products.filter((p) =>
@@ -91,7 +119,6 @@ const Shop = () => {
     );
   }, [products, q, qResolved.brandSlug, qResolved.carModelId]);
 
-  // Compute fitment model ids (from URL car_model, q-resolved model, or car_brand)
   const fitmentModelIds = useMemo(() => {
     if (qResolved.carModelId) return [qResolved.carModelId];
     if (carModelIdFromSlug) return [carModelIdFromSlug];
@@ -103,7 +130,6 @@ const Shop = () => {
     fitmentModelIds.length > 0 ? fitmentModelIds : undefined,
   );
 
-  // Full price bounds across all products in current category/search (ignores price filter)
   const priceBounds = useMemo(() => {
     if (textFiltered.length === 0) return { min: 0, max: 0 };
     let min = Infinity, max = -Infinity;
@@ -118,7 +144,6 @@ const Shop = () => {
   const minPrice = minPriceParam !== null ? Number(minPriceParam) : priceBounds.min;
   const maxPrice = maxPriceParam !== null ? Number(maxPriceParam) : priceBounds.max;
 
-  // Products after car/category/price filters but BEFORE battery brand filter — used to count by battery brand
   const preBrandFiltered = useMemo(() => {
     let list = textFiltered;
     const useFitment = !!carModelSlug || !!qResolved.carModelId || !!carBrandSlug;
@@ -150,7 +175,6 @@ const Shop = () => {
     return preBrandFiltered.filter((p) => p.battery_brands?.slug === effectiveBrand);
   }, [preBrandFiltered, effectiveBrand]);
 
-  // Apply sort to the visible product list
   const sorted = useMemo(() => {
     const list = [...filtered];
     const popularity = (p: Product) =>
@@ -177,6 +201,32 @@ const Shop = () => {
     }
     return list;
   }, [filtered, sort]);
+
+  // ─── Pagination ───
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paged = useMemo(
+    () => sorted.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [sorted, safePage],
+  );
+  const pageNumbers = useMemo(() => buildPageNumbers(safePage, totalPages), [safePage, totalPages]);
+
+  // Reset to page 1 when filters change the result count
+  const prevFilteredLen = useRef(filtered.length);
+  useEffect(() => {
+    if (filtered.length !== prevFilteredLen.current && page > 1) {
+      goToPage(1);
+    }
+    prevFilteredLen.current = filtered.length;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtered.length]);
+
+  // Scroll to top of grid on page change
+  useEffect(() => {
+    if (page > 1) {
+      gridRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [page]);
 
   const counts = useMemo(() => {
     const byBatteryBrand: Record<string, number> = {};
@@ -207,7 +257,14 @@ const Shop = () => {
       {type && typeCategory?.description && (
         <p className="text-muted-foreground mt-2 max-w-2xl text-sm sm:text-base">{typeCategory.description}</p>
       )}
-      <p className="text-muted-foreground mt-1 text-sm">{filtered.length} products</p>
+      <p className="text-muted-foreground mt-1 text-sm">
+        {filtered.length} product{filtered.length !== 1 ? "s" : ""}
+        {totalPages > 1 && (
+          <span className="ml-1">
+            · Page {safePage} of {totalPages}
+          </span>
+        )}
+      </p>
 
       <div className="grid lg:grid-cols-[280px_1fr] gap-6 sm:gap-8 mt-6 sm:mt-8">
         <aside className="space-y-4 sm:space-y-6">
@@ -226,17 +283,17 @@ const Shop = () => {
             <ShopFilters counts={counts} priceBounds={priceBounds} />
           </div>
         </aside>
-        <div>
+        <div ref={gridRef}>
           <ActiveFilters priceBounds={priceBounds} />
 
           {/* Toolbar: sort + view toggle */}
-          <div className="flex items-center justify-between gap-3 mb-4 bg-white border border-line p-5">
-            <div className="flex items-center gap-3 min-w-0">
-              <h3 className="font-display font-bold text-sm uppercase tracking-wider text-muted-foreground">
+          <div className="flex items-center justify-between gap-3 mb-4 bg-white border border-line p-3 sm:p-5">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <h3 className="font-display font-bold text-xs sm:text-sm uppercase tracking-wider text-muted-foreground">
                 Sort
               </h3>
               <Select value={sort} onValueChange={(v) => setParam("sort", v === "relevance" ? null : v)}>
-                <SelectTrigger className="h-10 w-[180px] sm:w-[220px] border-line text-sm">
+                <SelectTrigger className="h-9 sm:h-10 w-[150px] sm:w-[220px] border-line text-xs sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-white z-50">
@@ -248,13 +305,13 @@ const Shop = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center border border-line">
+            <div className="flex items-center border border-line shrink-0">
               <button
                 type="button"
                 aria-label="Grid view"
                 aria-pressed={view === "grid"}
                 onClick={() => setParam("view", null)}
-                className={`p-2 transition-colors ${
+                className={`p-1.5 sm:p-2 transition-colors ${
                   view === "grid"
                     ? "bg-primary text-primary-foreground"
                     : "bg-white text-ink hover:text-primary"
@@ -267,7 +324,7 @@ const Shop = () => {
                 aria-label="List view"
                 aria-pressed={view === "list"}
                 onClick={() => setParam("view", "list")}
-                className={`p-2 border-l border-line transition-colors ${
+                className={`p-1.5 sm:p-2 border-l border-line transition-colors ${
                   view === "list"
                     ? "bg-primary text-primary-foreground"
                     : "bg-white text-ink hover:text-primary"
@@ -288,15 +345,56 @@ const Shop = () => {
               <Link to="/shop" className="text-primary font-bold underline mt-2 inline-block">Clear filters</Link>
             </div>
           ) : (
-            <div
-              className={
-                view === "list"
-                  ? "grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4"
-                  : "grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
-              }
-            >
-              {sorted.map((p) => <ProductCard key={p.id} product={p} />)}
-            </div>
+            <>
+              <div
+                className={
+                  view === "list"
+                    ? "grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4"
+                    : "grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
+                }
+              >
+                {paged.map((p) => <ProductCard key={p.id} product={p} />)}
+              </div>
+
+              {/* Pagination controls */}
+              {totalPages > 1 && (
+                <Pagination className="mt-6 sm:mt-8">
+                  <PaginationContent className="flex-wrap gap-1">
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => safePage > 1 && goToPage(safePage - 1)}
+                        className={safePage <= 1 ? "pointer-events-none opacity-40" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+
+                    {pageNumbers.map((n, i) =>
+                      n === "ellipsis" ? (
+                        <PaginationItem key={`e${i}`}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      ) : (
+                        <PaginationItem key={n}>
+                          <PaginationLink
+                            isActive={n === safePage}
+                            onClick={() => goToPage(n)}
+                            className="cursor-pointer"
+                          >
+                            {n}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ),
+                    )}
+
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => safePage < totalPages && goToPage(safePage + 1)}
+                        className={safePage >= totalPages ? "pointer-events-none opacity-40" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </>
           )}
         </div>
       </div>

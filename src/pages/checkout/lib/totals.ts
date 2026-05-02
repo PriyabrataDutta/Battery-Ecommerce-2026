@@ -20,8 +20,12 @@ export const calcDiscount = (subtotal: number, promo: Promo | null) => {
   return Math.min(raw, subtotal);
 };
 
-export const calcTax = (discountedSubtotal: number) =>
-  Math.round(discountedSubtotal * TAX_RATE);
+/**
+ * Calculate tax. Accepts an optional custom rate (decimal, e.g. 0.18).
+ * Falls back to the hardcoded TAX_RATE constant for backward compat.
+ */
+export const calcTax = (discountedSubtotal: number, rate?: number) =>
+  Math.round(discountedSubtotal * (rate ?? TAX_RATE));
 
 export type Totals = {
   subtotal: number;
@@ -36,10 +40,11 @@ export const calcTotals = (
   subtotal: number,
   promo: Promo | null,
   deliveryOption: DeliveryOption,
+  taxRate?: number,
 ): Totals => {
   const discount = calcDiscount(subtotal, promo);
   const discountedSubtotal = Math.max(0, subtotal - discount);
-  const tax = calcTax(discountedSubtotal);
+  const tax = calcTax(discountedSubtotal, taxRate);
   const shipping = deliveryOption.price;
   const total = discountedSubtotal + tax + shipping;
   return { subtotal, discount, discountedSubtotal, tax, shipping, total };

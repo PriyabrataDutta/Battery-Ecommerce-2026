@@ -39,6 +39,7 @@ import { lineUnitPrice, useCart } from "@/hooks/useCart";
 import { useDefaultAddress } from "@/hooks/queries/useAddresses";
 import { useCreateOrder } from "@/hooks/queries/useOrders";
 import { formatINR } from "@/lib/format";
+import { useGstSettings } from "@/hooks/useGstSettings";
 
 import { AddressStep } from "./components/AddressStep";
 import { DeliveryStep } from "./components/DeliveryStep";
@@ -74,6 +75,7 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { items, subtotal, clear } = useCart();
+  const { taxRate } = useGstSettings();
 
   // Hydrate from any non-expired draft synchronously so a page refresh keeps
   // exactly what the user typed. Drafts older than 5 minutes self-destruct.
@@ -155,8 +157,8 @@ const Checkout = () => {
   // Discount applies to subtotal. GST recomputes against the discounted
   // subtotal so the customer also saves the tax on the discounted amount.
   const totals = useMemo(
-    () => calcTotals(subtotal, appliedPromo, deliveryOption),
-    [subtotal, appliedPromo, deliveryOption],
+    () => calcTotals(subtotal, appliedPromo, deliveryOption, taxRate),
+    [subtotal, appliedPromo, deliveryOption, taxRate],
   );
   const { discount, tax, total } = totals;
 

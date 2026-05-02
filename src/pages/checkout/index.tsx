@@ -76,8 +76,8 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { items, subtotal, clear } = useCart();
-  const taxRate = useDefaultGstRate();
-
+  const defaultTaxRate = useDefaultGstRate();
+  const { data: gstRates } = useGstRates();
   // Hydrate from any non-expired draft synchronously so a page refresh keeps
   // exactly what the user typed. Drafts older than 5 minutes self-destruct.
   const initialDraft = typeof window !== "undefined" ? loadDraft() : null;

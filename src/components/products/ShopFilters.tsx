@@ -4,12 +4,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 import { X } from "lucide-react";
 import {
   useCarBrands,
   useCarModelsByBrandId,
   useBatteryBrands,
 } from "@/hooks/queries/useBrands";
+import { useCarBrandProductCounts } from "@/hooks/queries/useFitment";
 
 type Counts = {
   byBatteryBrand: Record<string, number>; // slug -> count

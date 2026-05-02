@@ -5,8 +5,39 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserPermissions, ALL_PERMISSIONS, PERMISSION_LABELS, PERMISSION_GROUPS, type PermissionKey } from "@/hooks/usePermissions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Shield, Loader2 } from "lucide-react";
+import { Shield, Loader2, Zap } from "lucide-react";
+
+/* ── Permission Preset Templates ── */
+interface PermissionPreset {
+  label: string;
+  description: string;
+  keys: PermissionKey[];
+}
+
+const PERMISSION_PRESETS: PermissionPreset[] = [
+  {
+    label: "Sales",
+    description: "Orders, quotes, customers & dashboard",
+    keys: ["dashboard.view", "orders.manage", "quotes.manage", "customers.view"],
+  },
+  {
+    label: "Catalog Admin",
+    description: "Products, brands, categories & fitment",
+    keys: ["dashboard.view", "products.manage", "brands.manage", "categories.manage", "fitment.manage", "media.manage"],
+  },
+  {
+    label: "Support",
+    description: "Messages, callbacks, orders & customers",
+    keys: ["dashboard.view", "orders.manage", "messages.manage", "customers.view", "quotes.manage"],
+  },
+  {
+    label: "Full Access",
+    description: "Everything except team management",
+    keys: ALL_PERMISSIONS.filter((k) => k !== "users.manage") as PermissionKey[],
+  },
+];
 import {
   Dialog,
   DialogContent,

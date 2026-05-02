@@ -5,8 +5,39 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserPermissions, ALL_PERMISSIONS, PERMISSION_LABELS, PERMISSION_GROUPS, type PermissionKey } from "@/hooks/usePermissions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Shield, Loader2 } from "lucide-react";
+import { Shield, Loader2, Zap } from "lucide-react";
+
+/* ── Permission Preset Templates ── */
+interface PermissionPreset {
+  label: string;
+  description: string;
+  keys: PermissionKey[];
+}
+
+const PERMISSION_PRESETS: PermissionPreset[] = [
+  {
+    label: "Sales",
+    description: "Orders, quotes, customers & dashboard",
+    keys: ["dashboard.view", "orders.manage", "quotes.manage", "customers.view"],
+  },
+  {
+    label: "Catalog Admin",
+    description: "Products, brands, categories & fitment",
+    keys: ["dashboard.view", "products.manage", "brands.manage", "categories.manage", "fitment.manage", "media.manage"],
+  },
+  {
+    label: "Support",
+    description: "Messages, callbacks, orders & customers",
+    keys: ["dashboard.view", "orders.manage", "messages.manage", "customers.view", "quotes.manage"],
+  },
+  {
+    label: "Full Access",
+    description: "Everything except team management",
+    keys: ALL_PERMISSIONS.filter((k) => k !== "users.manage") as PermissionKey[],
+  },
+];
 import {
   Dialog,
   DialogContent,
@@ -53,6 +84,21 @@ export function PermissionsEditor({ userId, userName, open, onOpenChange }: Prop
     } else {
       setPendingChanges({ ...pendingChanges, [key]: !effectiveVal });
     }
+  };
+
+  const applyPreset = (preset: PermissionPreset) => {
+    const changes: Record<string, boolean> = {};
+    // Clear everything first
+    (currentPerms ?? new Set()).forEach((k) => {
+      changes[k] = false;
+    });
+    // Then enable only the preset keys
+    preset.keys.forEach((k) => {
+      if (currentPerms?.has(k)) delete changes[k]; // already has it, no change needed
+      else changes[k] = true;
+    });
+    setPendingChanges(changes);
+    toast.info(`Applied "${preset.label}" preset`);
   };
 
   const selectAll = () => {
@@ -129,6 +175,35 @@ export function PermissionsEditor({ userId, userName, open, onOpenChange }: Prop
           </div>
         ) : (
           <div className="space-y-5">
+            {/* Preset Templates */}
+            <div>
+              <h4 className="font-display font-bold text-xs uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-1.5">
+                <Zap className="h-3.5 w-3.5" /> Quick Presets
+              </h4>
+              <div className="grid grid-cols-2 gap-2">
+                {PERMISSION_PRESETS.map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => applyPreset(preset)}
+                    className="text-left border border-line rounded-lg p-2.5 hover:border-primary/50 hover:bg-primary/5 transition-colors group"
+                  >
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                        {preset.keys.length}
+                      </Badge>
+                      <span className="text-sm font-semibold group-hover:text-primary transition-colors">
+                        {preset.label}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-tight">
+                      {preset.description}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={selectAll} className="text-xs">
                 Select All

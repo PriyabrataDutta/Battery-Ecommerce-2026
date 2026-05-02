@@ -133,8 +133,7 @@ export const OrderSummary = ({
       </div>
       {discount > 0 && (
         <div className="mt-1 text-xs text-success font-medium text-right">
-          You saved{" "}
-          {formatINR(discount + Math.round(subtotal * TAX_RATE - tax))} on this order
+          You saved {formatINR(discount)} on this order
         </div>
       )}
 

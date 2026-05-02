@@ -14,6 +14,7 @@ import {
   Car,
   ImageIcon,
   Star,
+  RotateCcw,
 } from "lucide-react";
 import type { AdminTab } from "@/stores/dashboardTabs";
 import type { PermissionKey } from "@/hooks/usePermissions";

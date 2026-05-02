@@ -299,15 +299,33 @@ export function ProductEditor({
           </Field>
         </div>
         <Field label="GST Rate">
-          <SelectField
-            value={form.gst_rate_id}
-            onChange={(v) => set("gst_rate_id", v)}
-            placeholder="Use default rate"
-            options={(gstRates ?? []).map((r) => ({
-              value: r.id,
-              label: `${r.label} (${r.rate}%)${r.is_default ? " ★" : ""}`,
-            }))}
-          />
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={!form.gst_rate_id || form.gst_rate_id === (gstRates?.find((r) => r.is_default)?.id ?? null)}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    set("gst_rate_id", gstRates?.find((r) => r.is_default)?.id ?? null);
+                  } else {
+                    set("gst_rate_id", null);
+                  }
+                }}
+              />
+              <span className="text-xs text-muted-foreground">
+                Use default GST ({gstRates?.find((r) => r.is_default)?.rate ?? 18}%)
+              </span>
+            </div>
+            {form.gst_rate_id && form.gst_rate_id !== (gstRates?.find((r) => r.is_default)?.id ?? null) ? null : null}
+            <SelectField
+              value={form.gst_rate_id}
+              onChange={(v) => set("gst_rate_id", v)}
+              placeholder="No GST rate"
+              options={(gstRates ?? []).map((r) => ({
+                value: r.id,
+                label: `${r.label} (${r.rate}%)${r.is_default ? " ★" : ""}`,
+              }))}
+            />
+          </div>
         </Field>
       </CollapsibleSection>
 

@@ -14,11 +14,13 @@ import {
 import logo from "@/assets/kachi-logo.png";
 import { useAdminTab } from "@/stores/dashboardTabs";
 import { ADMIN_TAB_DEFS, SIDEBAR_SECTIONS } from "@/pages/admin/_lib/tabs";
+import { useMyPermissions } from "@/hooks/usePermissions";
 
 export function AdminSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { tab, setTab } = useAdminTab();
+  const { permissions, loading: permsLoading } = useMyPermissions();
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -43,7 +45,12 @@ export function AdminSidebar() {
 
       <SidebarContent className="px-1.5 py-2">
         {SIDEBAR_SECTIONS.map((s) => {
-          const items = ADMIN_TAB_DEFS.filter((t) => t.section === s.key);
+          const items = ADMIN_TAB_DEFS.filter((t) => {
+            if (t.section !== s.key) return false;
+            // While permissions load, show all items to avoid flicker
+            if (permsLoading) return true;
+            return permissions.has(t.requiredPermission);
+          });
           if (items.length === 0) return null;
           return (
             <SidebarGroup key={s.key} className="mb-1">

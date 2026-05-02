@@ -97,6 +97,13 @@ export function CategoryEditor({
       <Field label="Name" required>
         <Input value={form.name} onChange={(e) => set("name", e.target.value)} />
       </Field>
+      <Field label="HSN Code" required hint="Harmonized System Nomenclature code for this category">
+        <Input
+          value={form.hsn_code ?? ""}
+          onChange={(e) => set("hsn_code", e.target.value || null)}
+          placeholder="e.g. 8507"
+        />
+      </Field>
       <Field label="Slug" hint="Auto-generated from name if blank">
         <Input value={form.slug} onChange={(e) => set("slug", e.target.value)} />
       </Field>

@@ -34,6 +34,16 @@ export function CategoriesTable({
           ),
         },
         {
+          key: "hsn_code",
+          header: "HSN Code",
+          className: "hidden md:table-cell",
+          cell: (c) => (
+            <span className="text-xs text-muted-foreground font-mono">
+              {(c as any).hsn_code ?? "—"}
+            </span>
+          ),
+        },
+        {
           key: "parent",
           header: "Parent",
           className: "hidden md:table-cell",

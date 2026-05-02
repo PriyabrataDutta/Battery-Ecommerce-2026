@@ -13,6 +13,8 @@ import {
   Activity,
   Car,
   ImageIcon,
+  Star,
+  RotateCcw,
 } from "lucide-react";
 import type { AdminTab } from "@/stores/dashboardTabs";
 import type { PermissionKey } from "@/hooks/usePermissions";
@@ -124,6 +126,24 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
     section: "content",
     requiredPermission: "media.manage",
     component: lazy(() => import("@/pages/admin/media")),
+  },
+  {
+    id: "reviews",
+    title: "Product Reviews",
+    sidebarLabel: "Reviews",
+    icon: Star,
+    section: "content",
+    requiredPermission: "reviews.manage",
+    component: lazy(() => import("@/pages/admin/reviews")),
+  },
+  {
+    id: "returns",
+    title: "Product Returns",
+    sidebarLabel: "Returns",
+    icon: RotateCcw,
+    section: "ecommerce",
+    requiredPermission: "returns.manage",
+    component: lazy(() => import("@/pages/admin/returns")),
   },
 
   // ─── Administration ───

@@ -495,6 +495,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          link: string | null
+          message: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message?: string | null
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       offers: {
         Row: {
           applies_to: Json
@@ -797,6 +830,42 @@ export type Database = {
           },
         ]
       }
+      product_reviews: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          product_id: string
+          rating: number
+          status: Database["public"]["Enums"]["review_status"]
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          product_id: string
+          rating: number
+          status?: Database["public"]["Enums"]["review_status"]
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          product_id?: string
+          rating?: number
+          status?: Database["public"]["Enums"]["review_status"]
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           badges: string[]
@@ -996,6 +1065,118 @@ export type Database = {
         }
         Relationships: []
       }
+      return_images: {
+        Row: {
+          created_at: string
+          id: string
+          return_id: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          return_id: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          return_id?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "return_images_return_id_fkey"
+            columns: ["return_id"]
+            isOneToOne: false
+            referencedRelation: "return_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      return_requests: {
+        Row: {
+          admin_decided_at: string | null
+          admin_decided_by: string | null
+          admin_notes: string | null
+          created_at: string
+          description: string | null
+          id: string
+          order_id: string
+          order_item_id: string | null
+          reason: string
+          staff_verified_at: string | null
+          staff_verified_by: string | null
+          status: Database["public"]["Enums"]["return_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_decided_at?: string | null
+          admin_decided_by?: string | null
+          admin_notes?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_id: string
+          order_item_id?: string | null
+          reason: string
+          staff_verified_at?: string | null
+          staff_verified_by?: string | null
+          status?: Database["public"]["Enums"]["return_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_decided_at?: string | null
+          admin_decided_by?: string | null
+          admin_notes?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_id?: string
+          order_item_id?: string | null
+          reason?: string
+          staff_verified_at?: string | null
+          staff_verified_by?: string | null
+          status?: Database["public"]["Enums"]["return_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      review_images: {
+        Row: {
+          created_at: string
+          id: string
+          review_id: string
+          sort_order: number
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          review_id: string
+          sort_order?: number
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          review_id?: string
+          sort_order?: number
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_images_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "product_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_settings: {
         Row: {
           key: string
@@ -1188,6 +1369,13 @@ export type Database = {
         | "cancelled"
         | "refunded"
       request_status: "new" | "reviewed" | "quoted" | "in_progress" | "closed"
+      return_status:
+        | "requested"
+        | "staff_verified"
+        | "admin_approved"
+        | "rejected"
+        | "completed"
+      review_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1326,6 +1514,14 @@ export const Constants = {
         "refunded",
       ],
       request_status: ["new", "reviewed", "quoted", "in_progress", "closed"],
+      return_status: [
+        "requested",
+        "staff_verified",
+        "admin_approved",
+        "rejected",
+        "completed",
+      ],
+      review_status: ["pending", "approved", "rejected"],
     },
   },
 } as const

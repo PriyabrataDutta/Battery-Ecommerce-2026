@@ -43,6 +43,8 @@ export const ADMIN_TABS = [
   "categories",
   "fitment",
   "media",
+  "reviews",
+  "returns",
   "settings",
   "team",
   "customers",

@@ -20,11 +20,9 @@ import AccountOverview from "@/pages/account/AccountOverview";
 import AccountOrders from "@/pages/account/AccountOrders";
 import AccountAddresses from "@/pages/account/AccountAddresses";
 import AccountProfile from "@/pages/account/AccountProfile";
-import {
-  AccountWishlist,
-  AccountQuotes,
-  AccountSupport,
-} from "@/pages/account/AccountPlaceholder";
+import AccountWishlist from "@/pages/account/AccountWishlist";
+import AccountQuotes from "@/pages/account/AccountQuotes";
+import AccountSupport from "@/pages/account/AccountSupport";
 
 /**
  * Single-route customer dashboard. Active section is driven by a persisted

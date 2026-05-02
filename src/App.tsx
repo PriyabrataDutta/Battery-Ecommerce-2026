@@ -23,10 +23,11 @@ const Checkout = lazy(() => import("./pages/checkout"));
 const OrderConfirmation = lazy(() => import("./pages/order-confirmation"));
 const Quote = lazy(() => import("./pages/Quote"));
 const Contact = lazy(() => import("./pages/Contact"));
-const About = lazy(() => import("./pages/SimplePages").then((m) => ({ default: m.About })));
+const About = lazy(() => import("./pages/AboutPage"));
 const JumpStart = lazy(() => import("./pages/SimplePages").then((m) => ({ default: m.JumpStart })));
-const Catalog = lazy(() => import("./pages/SimplePages").then((m) => ({ default: m.Catalog })));
-const Blog = lazy(() => import("./pages/SimplePages").then((m) => ({ default: m.Blog })));
+const Catalog = lazy(() => import("./pages/CatalogPage"));
+const BlogListing = lazy(() => import("./pages/BlogListing"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
 const Auth = lazy(() => import("./pages/Auth"));
 const AccountLayout = lazy(() => import("./pages/account/AccountLayout"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
@@ -70,7 +71,8 @@ const App = () => (
               <Route path="/about" element={<About />} />
               <Route path="/jump-start" element={<JumpStart />} />
               <Route path="/catalog" element={<Catalog />} />
-              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog" element={<BlogListing />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/verify-phone" element={<VerifyPhone />} />

@@ -7,6 +7,7 @@
 import { ShieldCheck, Truck, Wrench } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SpecRow } from "./SpecRow";
+import { ProductReviewsSection } from "@/components/reviews/ProductReviewsSection";
 import type { Product } from "@/types/catalog";
 
 type Props = {
@@ -20,6 +21,7 @@ export const DetailsTabs = ({ product }: Props) => {
         {[
           ["desc", "Details"],
           ["specs", "Specifications"],
+          ["reviews", "Reviews"],
           ["warranty", "Warranty"],
           ["delivery", "Delivery & Install"],
         ].map(([v, l]) => (
@@ -55,6 +57,10 @@ export const DetailsTabs = ({ product }: Props) => {
             ))}
           </tbody>
         </table>
+      </TabsContent>
+
+      <TabsContent value="reviews" className="py-6">
+        <ProductReviewsSection productId={product.id} />
       </TabsContent>
 
       <TabsContent value="warranty" className="py-6 text-sm text-ink-soft space-y-2">

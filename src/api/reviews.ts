@@ -87,7 +87,7 @@ export async function listAllReviews(status?: string): Promise<ProductReview[]> 
     .from("product_reviews")
     .select("*, review_images(*), profiles(full_name)")
     .order("created_at", { ascending: false });
-  if (status) q = q.eq("status", status);
+  if (status) q = q.eq("status", status as "pending" | "approved" | "rejected");
   const { data, error } = await q;
   if (error) throw error;
   return (data ?? []) as unknown as ProductReview[];

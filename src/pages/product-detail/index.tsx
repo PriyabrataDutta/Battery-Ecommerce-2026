@@ -64,13 +64,6 @@ const ProductDetail = () => {
     return Array.from(set);
   }, [product]);
 
-  // Skeleton loading state — reserves layout to prevent CLS
-  if (isLoading) return <ProductSkeleton />;
-  if (!product)
-    return (
-      <div className="container-x py-20 text-center">Product not found.</div>
-    );
-
   // ─── Pricing logic ───
   const withoutExchange =
     product.price_without_exchange && product.price_without_exchange > 0

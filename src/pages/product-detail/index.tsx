@@ -64,6 +64,24 @@ const ProductDetail = () => {
     return Array.from(set);
   }, [product]);
 
+  const canonicalUrl = product
+    ? `https://power-drive-finder.lovable.app/product/${product.slug}`
+    : "";
+
+  const jsonLdString = useMemo(
+    () =>
+      product
+        ? JSON.stringify(buildProductJsonLd(product, allImages, canonicalUrl))
+        : "",
+    [product, allImages, canonicalUrl],
+  );
+
+  if (isLoading) return <ProductSkeleton />;
+  if (!product)
+    return (
+      <div className="container-x py-20 text-center">Product not found.</div>
+    );
+
   // ─── Pricing logic ───
   const withoutExchange =
     product.price_without_exchange && product.price_without_exchange > 0

@@ -34,12 +34,32 @@ const BlogPost = () => {
     );
   }
 
+  const canonicalUrl = `https://power-drive-finder.lovable.app/blog/${post.slug}`;
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    ...(post.excerpt ? { description: post.excerpt } : {}),
+    ...(post.cover_url ? { image: [post.cover_url] } : {}),
+    datePublished: post.published_at ?? post.created_at,
+    mainEntityOfPage: { "@type": "WebPage", "@id": canonicalUrl },
+    publisher: { "@type": "Organization", name: "Kachi Batteries" },
+  };
+
   return (
     <>
       <Helmet>
         <title>{post.title} — Kachi Batteries Blog</title>
         {post.excerpt && <meta name="description" content={post.excerpt} />}
+        <link rel="canonical" href={canonicalUrl} />
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={post.title} />
+        <meta property="og:url" content={canonicalUrl} />
+        {post.excerpt && <meta property="og:description" content={post.excerpt} />}
+        {post.cover_url && <meta property="og:image" content={post.cover_url} />}
+        <script type="application/ld+json">{JSON.stringify(articleJsonLd)}</script>
       </Helmet>
+
 
       <article className="container-x py-12 max-w-3xl">
         <Link to="/blog" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary mb-6">

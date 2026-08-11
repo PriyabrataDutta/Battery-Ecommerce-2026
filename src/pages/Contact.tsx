@@ -50,11 +50,11 @@ const Contact = () => {
         </div>
       ) : (
         <form onSubmit={onSubmit} className="bg-white border border-line p-6 grid gap-4">
-          <Input name="name" placeholder="Name *" required />
-          <Input name="email" type="email" placeholder="Email *" required />
-          <Input name="phone" placeholder="Phone" />
-          <Input name="subject" placeholder="Subject" />
-          <Textarea name="message" rows={5} placeholder="Message *" required />
+          <Input name="name" aria-label="Name" placeholder="Name *" required />
+          <Input name="email" type="email" aria-label="Email" placeholder="Email *" required />
+          <Input name="phone" aria-label="Phone" placeholder="Phone" />
+          <Input name="subject" aria-label="Subject" placeholder="Subject" />
+          <Textarea name="message" rows={5} aria-label="Message" placeholder="Message *" required />
           <Button type="submit" size="lg" disabled={busy}>{busy ? "Sending..." : "Send Message"}</Button>
         </form>
       )}

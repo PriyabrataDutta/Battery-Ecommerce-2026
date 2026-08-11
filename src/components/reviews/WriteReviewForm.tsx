@@ -65,7 +65,7 @@ export function WriteReviewForm({ productId, onClose }: Props) {
 
       // Upload images
       for (let i = 0; i < images.length; i++) {
-        const url = await uploadReviewImage(images[i]);
+        const url = await uploadReviewImage(images[i], user.id);
         await addReviewImage(reviewId, url, i);
       }
 

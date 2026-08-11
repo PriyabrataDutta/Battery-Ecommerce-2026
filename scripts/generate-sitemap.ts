@@ -2,13 +2,27 @@
 // Pulls dynamic routes (products, categories, brands, blog posts) from the backend
 // using the same public filters the storefront pages use.
 
-import { writeFileSync } from "fs";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 import { resolve } from "path";
 
 const BASE_URL = "https://power-drive-finder.lovable.app";
 
-const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
-const SUPABASE_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+// Load .env values without extra deps (tsx does not read .env automatically).
+function envFromFile(): Record<string, string> {
+  const file = resolve(".env");
+  if (!existsSync(file)) return {};
+  const out: Record<string, string> = {};
+  for (const line of readFileSync(file, "utf8").split("\n")) {
+    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
+    if (m) out[m[1]] = m[2].replace(/^["']|["']$/g, "");
+  }
+  return out;
+}
+
+const fileEnv = envFromFile();
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL ?? fileEnv.VITE_SUPABASE_URL;
+const SUPABASE_KEY =
+  process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? fileEnv.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 interface SitemapEntry {
   path: string;

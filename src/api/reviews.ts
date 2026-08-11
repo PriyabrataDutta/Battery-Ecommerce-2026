@@ -63,9 +63,9 @@ export async function createReview(review: {
   return data.id;
 }
 
-export async function uploadReviewImage(file: File): Promise<string> {
+export async function uploadReviewImage(file: File, userId: string): Promise<string> {
   const ext = file.name.split(".").pop() || "jpg";
-  const path = `${crypto.randomUUID()}.${ext}`;
+  const path = `${userId}/${crypto.randomUUID()}.${ext}`;
   const { error } = await supabase.storage
     .from("review-images")
     .upload(path, file, { cacheControl: "3600", upsert: false });
@@ -73,6 +73,7 @@ export async function uploadReviewImage(file: File): Promise<string> {
   const { data } = supabase.storage.from("review-images").getPublicUrl(path);
   return data.publicUrl;
 }
+
 
 export async function addReviewImage(reviewId: string, url: string, sortOrder: number) {
   const { error } = await supabase

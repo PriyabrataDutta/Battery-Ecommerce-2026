@@ -44,16 +44,21 @@ export async function createReturnRequest(req: {
   return data.id;
 }
 
-export async function uploadReturnImage(file: File): Promise<string> {
+/** Uploads into the current user's own folder and returns a signed URL (private bucket). */
+export async function uploadReturnImage(file: File, userId: string): Promise<string> {
   const ext = file.name.split(".").pop() || "jpg";
-  const path = `${crypto.randomUUID()}.${ext}`;
+  const path = `${userId}/${crypto.randomUUID()}.${ext}`;
   const { error } = await supabase.storage
     .from("return-images")
     .upload(path, file, { cacheControl: "3600", upsert: false });
   if (error) throw error;
-  const { data } = supabase.storage.from("return-images").getPublicUrl(path);
-  return data.publicUrl;
+  const { data, error: signErr } = await supabase.storage
+    .from("return-images")
+    .createSignedUrl(path, 60 * 60 * 24 * 7);
+  if (signErr) throw signErr;
+  return data.signedUrl;
 }
+
 
 export async function addReturnImage(returnId: string, url: string) {
   const { error } = await supabase

@@ -44,14 +44,9 @@ const Auth = () => {
 
   if (!loading && user) return <Navigate to={next} replace />;
 
-  const checkNotAdmin = async (email: string): Promise<string | null> => {
-    const { data, error } = await supabase.rpc("is_admin_email", { _email: email });
-    if (error) return null;
-    if (data === true) {
-      return "This email belongs to an admin account. Please use the admin sign-in.";
-    }
-    return null;
-  };
+  // Admin-vs-customer routing is enforced server-side (admin emails are linked to
+  // the staff profile on sign-up), so we do not probe admin emails from the client.
+
 
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -62,16 +57,8 @@ const Auth = () => {
       return;
     }
     setBusy(true);
-    // Only run admin-check when an email was typed; for a phone we don't have it.
-    if (parsed.data.identifier.includes("@")) {
-      const adminMsg = await checkNotAdmin(parsed.data.identifier);
-      if (adminMsg) {
-        setBusy(false);
-        toast.error(adminMsg);
-        return;
-      }
-    }
     const { error } = await signInWithIdentifier(parsed.data.identifier, parsed.data.password);
+
     setBusy(false);
     if (error) toast.error(error);
     else toast.success("Welcome back");
@@ -86,13 +73,8 @@ const Auth = () => {
       return;
     }
     setBusy(true);
-    const adminMsg = await checkNotAdmin(parsed.data.email);
-    if (adminMsg) {
-      setBusy(false);
-      toast.error(adminMsg);
-      return;
-    }
     const { error } = await signUp(
+
       parsed.data.email,
       parsed.data.password,
       parsed.data.fullName,

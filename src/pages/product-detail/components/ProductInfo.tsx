@@ -215,11 +215,14 @@ export const ProductInfo = ({
 
       {/* Pincode check */}
       <div>
-        <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+        <label htmlFor="delivery-pincode" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
           Check Delivery
         </label>
         <div className="flex gap-2 mt-1">
           <Input
+            id="delivery-pincode"
+            name="pincode"
+            inputMode="numeric"
             value={pin}
             onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
             placeholder="Enter 6-digit pincode"

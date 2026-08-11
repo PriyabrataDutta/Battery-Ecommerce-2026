@@ -57,8 +57,8 @@ const Quote = () => {
             <Field label="Email *" name="email" type="email" required />
           </div>
           <div>
-            <label className="text-sm font-semibold">Requirement *</label>
-            <Textarea name="requirement" rows={5} required className="mt-1" placeholder="Tell us product, quantity, delivery location..." />
+            <label htmlFor="quote-requirement" className="text-sm font-semibold">Requirement *</label>
+            <Textarea id="quote-requirement" name="requirement" rows={5} required className="mt-1" placeholder="Tell us product, quantity, delivery location..." />
           </div>
           <Button type="submit" size="lg" disabled={busy}>{busy ? "Submitting..." : "Submit Request"}</Button>
         </form>
@@ -70,8 +70,8 @@ const Quote = () => {
 function Field({ label, name, type = "text", required }: { label: string; name: string; type?: string; required?: boolean }) {
   return (
     <div>
-      <label className="text-sm font-semibold">{label}</label>
-      <Input name={name} type={type} required={required} className="mt-1" />
+      <label htmlFor={`quote-${name}`} className="text-sm font-semibold">{label}</label>
+      <Input id={`quote-${name}`} name={name} type={type} required={required} className="mt-1" />
     </div>
   );
 }

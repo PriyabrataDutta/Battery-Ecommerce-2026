@@ -118,8 +118,8 @@ export function useAuth(): AuthState & {
   };
 
   /**
-   * Accepts either an email or a phone number. If it's a phone, look up the
-   * corresponding email via the public RPC, then sign in normally.
+   * Accepts either an email or a phone number. If it's a phone, resolve the
+   * corresponding email through a secure edge function, then sign in normally.
    */
   const signInWithIdentifier = async (identifier: string, password: string) => {
     const trimmed = identifier.trim();
@@ -129,16 +129,17 @@ export function useAuth(): AuthState & {
     if (!looksLikeEmail) {
       // Normalise: keep digits and leading +.
       const normalised = trimmed.replace(/[^\d+]/g, "");
-      const { data, error } = await supabase.rpc("lookup_email_by_phone", {
-        _phone: normalised,
+      const { data, error } = await supabase.functions.invoke("phone-login-lookup", {
+        body: { phone: normalised },
       });
-      if (error) return { error: error.message };
-      if (!data) return { error: "No account found for that mobile number." };
-      email = data as string;
+      if (error) return { error: "Could not sign in with that mobile number." };
+      if (!data?.email) return { error: "No account found for that mobile number." };
+      email = data.email as string;
     }
 
     return signIn(email, password);
   };
+
 
   const signUp = async (email: string, password: string, fullName?: string, phone?: string) => {
     const { error } = await supabase.auth.signUp({

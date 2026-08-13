@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CreditCard, Mail, Bell, Receipt, Truck, Settings } from "lucide-react";
+import { CreditCard, Mail, Bell, Receipt, Truck, Settings, ShieldCheck } from "lucide-react";
 import { PaymentGatewayTab } from "./tabs/PaymentGatewayTab";
 import { EmailSmtpTab } from "./tabs/EmailSmtpTab";
 import { NotificationsTab } from "./tabs/NotificationsTab";
 import { GstTab } from "./tabs/GstTab";
 import { ShippingTab } from "./tabs/ShippingTab";
+import { SecurityTab } from "./tabs/SecurityTab";
 
 // Lazy-load the old advanced settings
 import { SettingsTable } from "./components/SettingsTable";
@@ -60,6 +61,7 @@ const TABS = [
   { id: "notifications", label: "Notifications", icon: Bell },
   { id: "gst", label: "GST", icon: Receipt },
   { id: "shipping", label: "Shipping", icon: Truck },
+  { id: "security", label: "Security", icon: ShieldCheck },
   { id: "advanced", label: "Advanced", icon: Settings },
 ] as const;
 
@@ -87,6 +89,7 @@ const AdminSettings = () => {
       <TabsContent value="notifications"><NotificationsTab /></TabsContent>
       <TabsContent value="gst"><GstTab /></TabsContent>
       <TabsContent value="shipping"><ShippingTab /></TabsContent>
+      <TabsContent value="security"><SecurityTab /></TabsContent>
       <TabsContent value="advanced"><AdvancedSettingsTab /></TabsContent>
     </Tabs>
   );

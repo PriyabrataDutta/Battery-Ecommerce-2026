@@ -13,7 +13,7 @@ import { setRememberMe } from "@/lib/adminSession";
 import { AccessExpired, isAccessExpiredCause } from "@/components/auth/AccessExpired";
 
 const AdminLogin = () => {
-  const { user, isStaff, loading, signIn } = useAuth();
+  const { user, isStaff, loading, signIn, resetPassword } = useAuth();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const next = params.get("next") || "/admin";

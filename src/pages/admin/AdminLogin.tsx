@@ -210,7 +210,31 @@ const AdminLogin = () => {
             {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             Sign in to Admin
           </Button>
+
+          <button
+            type="button"
+            className="block w-full text-center text-xs text-muted-foreground hover:text-primary"
+            disabled={submitting}
+            onClick={async () => {
+              const target = email.trim().toLowerCase();
+              if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(target)) {
+                toast.error("Enter your admin email first, then click Forgot password.");
+                return;
+              }
+              setSubmitting(true);
+              const { error: resetError } = await resetPassword(target);
+              setSubmitting(false);
+              if (resetError) toast.error(resetError);
+              else
+                toast.success("Reset link sent", {
+                  description: "Check your inbox and follow the link to set a new password.",
+                });
+            }}
+          >
+            Forgot password?
+          </button>
         </form>
+
 
         <div className="mt-6 pt-4 border-t border-line text-center text-xs text-muted-foreground">
           Customer? <a href="/auth" className="text-primary hover:underline">Use the customer sign-in</a>

@@ -213,30 +213,144 @@ supabase secrets set \
 5. **Google sign-in** is not wired up. If you want it, add the Google provider in
    the dashboard and a `signInWithOAuth` call in `src/pages/Auth.tsx`.
 
-### C8. Create the superadmin
+### C8. Create the first super admin
 
-1. **Authentication → Users → Add user** → your email + a strong password, tick
-   **Auto confirm**. (Or sign up at `/admin/login` and confirm by email.)
-2. **SQL Editor** → register and promote:
-   ```sql
-   insert into public.admin_profiles (id, email, full_name, is_active)
-   select id, 'you@example.com', 'Priyabrata Dutta', true
-     from auth.users where lower(email) = 'you@example.com'
-   on conflict (id) do update set is_active = true;
+"Super admin" in this app is one row: a `user_roles` record with `role = 'admin'`.
+Admins see every tab in the admin panel and skip the per-tab permission checks, and
+the sidebar labels them **Super Admin**. There is no bootstrap shortcut — the in-app
+**Invite** button and the `admin_create_admin_profile` database function both insist
+the caller is *already* an admin — so the very first one has to be made from the
+Supabase dashboard or the SQL editor.
 
-   delete from public.user_roles
-    where user_id = (select id from auth.users where lower(email) = 'you@example.com');
-   insert into public.user_roles (user_id, role)
-   select id, 'admin' from auth.users where lower(email) = 'you@example.com';
-   ```
-3. Verify:
-   ```sql
-   select u.email, r.role from auth.users u
-     join public.user_roles r on r.user_id = u.id
-    where r.role = 'admin';
-   ```
-4. Sign in at `/admin/login`, then set your real password in
-   **Admin → Settings → Security**.
+Run the steps in order: create the login (C8.1), then register and promote it (C8.3).
+
+#### C8.1 Create the login
+
+**Path A — dashboard (recommended the first time, no email needed)**
+
+1. Supabase dashboard → **Authentication → Users → Add user**.
+2. Enter the email and a strong password.
+3. Tick **Auto confirm** — this skips the confirmation email, which matters if SMTP
+   (section C7) isn't configured yet.
+4. **Create user**.
+
+**Path B — sign up through the site**
+
+1. Open `/admin/login` (or `/auth`) and sign up with the email.
+2. Click the link in the confirmation email.
+
+Path B needs the Email provider switched on (C7) and a working mailer, and it gives
+you a *customer* profile plus the `customer` role — so if you take this path, run the
+cleanup step in C8.3 as well.
+
+**Optional — let the trigger do the role work.** If you insert the email into
+`admin_profiles` *before* the account exists, the `handle_new_user` trigger moves that
+row onto your real user id at sign-up and grants `staff`:
+
+```sql
+insert into public.admin_profiles (id, email, full_name, is_active)
+values (gen_random_uuid(), 'you@example.com', 'Priyabrata Dutta', true);
+```
+
+You still have to promote it to `admin` afterwards. This trick only works before the
+account exists — once the user is there, `admin_profiles.id` must be the real
+`auth.users.id` (it is a primary key and a foreign key), never a random uuid.
+
+#### C8.2 Where to run the SQL
+
+**Project Settings → API Keys** gives you a connection string, or just use
+**SQL Editor** in the dashboard. Both run as the database owner, so row-level security
+does not block these writes. The publishable/anon key in the browser cannot do any of
+this — don't try to run it from the site's console.
+
+#### C8.3 Register and promote (run once, after the login exists)
+
+Replace `you@example.com` and the name, then run it as one block:
+
+```sql
+begin;
+
+-- 1. admin profile row, keyed to the real auth.users id
+insert into public.admin_profiles (id, email, full_name, is_active)
+select u.id, u.email::text, 'Priyabrata Dutta', true
+  from auth.users u
+ where lower(u.email) = 'you@example.com'
+on conflict (id) do update
+   set email     = excluded.email,
+       full_name = coalesce(excluded.full_name, public.admin_profiles.full_name),
+       is_active = true;
+
+-- 2. exactly one role: admin
+delete from public.user_roles
+ where user_id = (select id from auth.users where lower(email) = 'you@example.com');
+
+insert into public.user_roles (user_id, role)
+select id, 'admin'::public.app_role
+  from auth.users
+ where lower(email) = 'you@example.com';
+
+-- 3. only if you signed up before being registered: drop the customer profile row
+delete from public.profiles
+ where id = (select id from auth.users where lower(email) = 'you@example.com');
+
+commit;
+```
+
+Why each part: `admin_profiles` is what the Team and permissions screens read, and
+`is_active = true` is what the staff checks look for; `user_roles` is the only thing
+that actually opens the admin panel; and step 3 stops you appearing in your own
+customer list. `user_roles` has a `unique (user_id, role)` constraint, so
+delete-then-insert is the safe way to change a role.
+
+#### C8.4 Verify
+
+```sql
+select u.email,
+       r.role,
+       ap.is_active,
+       public.is_staff(u.id)          as can_open_admin,
+       public.has_role(u.id, 'admin') as is_super_admin
+  from auth.users u
+  left join public.user_roles r     on r.user_id = u.id
+  left join public.admin_profiles ap on ap.id    = u.id
+ where lower(u.email) = 'you@example.com';
+```
+
+You want `role = admin`, `is_active = true`, and both checks `true`. Then sign in at
+`/admin/login` — every tab should be there. If the panel says *"This account does not
+have admin access"*, the `user_roles` row is missing or holds `customer`.
+
+#### C8.5 Lock it in
+
+- Set your own password: sign in → **Admin → Settings → Security** (asks for the
+  current password, so the temporary one from C8.1 gets replaced). Or
+  `/admin/login` → **Forgot password?** — that needs SMTP, or
+  **Authentication → Users → ⋯ → Send reset password** in the dashboard.
+- Don't reuse a password you've typed into a chat window anywhere.
+- Optional hardening: in **Authentication → Providers → Email**, turn on leaked
+  password protection and require the current password for password changes.
+- Add a second admin before you ever demote or delete the first — the app refuses to
+  remove the last admin, and with no admin left there is no in-app way back in.
+
+#### C8.6 More team members later
+
+Now that an admin exists, use **Admin → Team → Invite** (writes the `admin_profiles`
+row and grants `staff`), or repeat C8.3 with `'staff'` instead of `'admin'` and then
+tick the permissions you want in **Admin → Team → Permissions**, or apply a saved
+preset. Staff see only the tabs you grant; admins see everything.
+
+#### If something goes wrong
+
+| What you see | Why | Fix |
+| ------------ | --- | --- |
+| "This account does not have admin access" | no `user_roles` row for that id, or it says `customer` | run C8.3 step 2 |
+| "This admin email has not been confirmed yet" | Auto confirm was left off and the confirmation email never arrived | set up SMTP (C7), or re-add the user with Auto confirm ticked |
+| Sign-up fails with "Unsupported provider" | Email provider is off | Authentication → Providers → Email → enable |
+| `admin_profiles` insert fails on a foreign key | used `gen_random_uuid()` after the account existed | use `select id from auth.users where lower(email) = ...` |
+| Two rows for the same email in `admin_profiles` | pre-registered with a throwaway id, then signed up | `delete from public.admin_profiles where id not in (select id from auth.users);` |
+| You show up under Admin → Customers | signed up before being registered, so a `profiles` row was created | run C8.3 step 3 |
+| "cannot remove the last admin" | you are the only admin | create a second admin first |
+
 
 ### C9. Move existing data (optional)
 

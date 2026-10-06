@@ -28,9 +28,13 @@ The `handle_new_user` trigger links any sign-up whose email exists in `admin_pro
    ```
 5. Sign in at `/admin/login`. Admins automatically have every permission.
 
-### Option 2 — Self-hosted Supabase
-1. Supabase Dashboard → **Authentication → Users → Add user** → enter email + password, tick *Auto confirm*.
-2. **SQL Editor** → run steps 2 (optional) and 4 above.
+### Option 2 — Your own Supabase account
+Use this once you have a Supabase project you bought yourself. The full
+step-by-step (create project, push schema, buckets, functions, secrets, auth,
+superadmin, data move) is in **section C** below. Short version:
+
+1. Supabase Dashboard → **Authentication → Users → Add user** → email + password, tick *Auto confirm*.
+2. **SQL Editor** → run the `admin_profiles` insert and the `user_roles` promote from Option 1 above.
 3. Verify:
    ```sql
    select u.email, r.role from auth.users u join public.user_roles r on r.user_id=u.id

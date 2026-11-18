@@ -1,1 +1,3 @@
 Database changes go in `supabase/migrations/` as new timestamped SQL files and are applied with `supabase db push` to the linked project (kachi-prod). Never edit an already-applied migration; add a new one. After schema changes, regenerate `src/integrations/supabase/types.ts` with `supabase gen types typescript --linked`.
+
+`supabase/config.toml` references `env(SEND_EMAIL_HOOK_SECRET)` (Send Email hook), so every Supabase CLI command needs that variable set or the CLI refuses to load the config. Export it from the private secret file first (never commit or print it). `supabase config push` sends the whole config and applies immediately — only push after reviewing that every live auth value is pinned in config.toml.

@@ -5,7 +5,7 @@
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { resolve } from "path";
 
-const BASE_URL = "https://power-drive-finder.lovable.app";
+const BASE_URL = "https://www.kachibatteries.com";
 
 // Load .env values without extra deps (tsx does not read .env automatically).
 function envFromFile(): Record<string, string> {

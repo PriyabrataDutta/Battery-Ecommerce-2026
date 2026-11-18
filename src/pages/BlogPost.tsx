@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { useQuery } from "@tanstack/react-query";
 import { getPostBySlug } from "@/api/blog";
 import { ArrowLeft, Calendar } from "lucide-react";
+import { SITE_URL } from "@/lib/site";
 
 const BlogPost = () => {
   const { slug } = useParams();
@@ -34,7 +35,7 @@ const BlogPost = () => {
     );
   }
 
-  const canonicalUrl = `https://power-drive-finder.lovable.app/blog/${post.slug}`;
+  const canonicalUrl = `${SITE_URL}/blog/${post.slug}`;
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",

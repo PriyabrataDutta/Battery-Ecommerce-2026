@@ -27,6 +27,7 @@ import { ProductGallery } from "./components/ProductGallery";
 import { ProductInfo } from "./components/ProductInfo";
 import { ProductSkeleton } from "./components/ProductSkeleton";
 import { MobileBottomBar } from "./components/MobileBottomBar";
+import { SITE_URL } from "@/lib/site";
 
 // Lazy-load below-fold sections
 const DetailsTabs = lazy(() =>
@@ -65,7 +66,7 @@ const ProductDetail = () => {
   }, [product]);
 
   const canonicalUrl = product
-    ? `https://power-drive-finder.lovable.app/product/${product.slug}`
+    ? `${SITE_URL}/product/${product.slug}`
     : "";
 
   const jsonLdString = useMemo(

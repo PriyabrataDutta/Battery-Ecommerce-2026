@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://power-drive-finder.lovable.app/sitemap.xml
+Sitemap: https://www.kachibatteries.com/sitemap.xml

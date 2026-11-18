@@ -85,14 +85,14 @@ const Cart = () => {
           <aside className="bg-white border border-line p-6 h-fit sticky top-32">
             <h2 className="font-display font-bold text-lg uppercase tracking-wide">Order Summary</h2>
             <div className="mt-4 space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="font-semibold">{formatINR(subtotal)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal (excl. GST)</span><span className="font-semibold">{formatINR(subtotal)}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Delivery</span><span className="text-muted-foreground">Chosen at checkout</span></div>
             </div>
             <div className="border-t border-line mt-4 pt-4 flex justify-between font-display font-bold text-xl">
               <span>Subtotal</span><span>{formatINR(subtotal)}</span>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Prices include GST. Standard delivery is free; express ₹299, installation ₹499.
+              Prices exclude GST — 18% GST is added at checkout. Standard delivery is free; express ₹299, installation ₹499.
             </p>
             <Button asChild className="w-full mt-5" size="lg">
               <Link to="/checkout">Proceed to Checkout</Link>

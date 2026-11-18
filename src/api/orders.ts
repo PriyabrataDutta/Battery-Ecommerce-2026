@@ -29,6 +29,8 @@ export interface OrderQuote {
   tax: number;
   shipping: number;
   delivery: { id: string; label: string };
+  /** Total is rounded to the rupee; this is the difference (shown as "Round off"). */
+  round_off: number;
   total: number;
 }
 

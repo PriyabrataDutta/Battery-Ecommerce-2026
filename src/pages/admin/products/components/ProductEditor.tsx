@@ -272,7 +272,7 @@ export function ProductEditor({
               onChange={(e) => set("mrp", e.target.value ? Number(e.target.value) : null)}
             />
           </Field>
-          <Field label="With Exchange (₹)" required>
+          <Field label="With Exchange (₹, excl. GST)" required>
             <Input
               type="number"
               min={0}
@@ -280,7 +280,7 @@ export function ProductEditor({
               onChange={(e) => set("price_with_exchange", Number(e.target.value) || 0)}
             />
           </Field>
-          <Field label="Without Exchange (₹)" required>
+          <Field label="Without Exchange (₹, excl. GST)" required>
             <Input
               type="number"
               min={0}

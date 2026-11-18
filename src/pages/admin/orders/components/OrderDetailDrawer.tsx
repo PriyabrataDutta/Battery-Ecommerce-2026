@@ -188,7 +188,7 @@ export function OrderDetailDrawer({
             value={`−${formatINR(Number(order.discount))}`}
           />
         )}
-        <Row label="GST (included)" value={formatINR(Number(order.tax))} />
+        <Row label="GST" value={formatINR(Number(order.tax))} />
         <Row
           label="Shipping"
           value={Number(order.shipping) === 0 ? "FREE" : formatINR(Number(order.shipping))}

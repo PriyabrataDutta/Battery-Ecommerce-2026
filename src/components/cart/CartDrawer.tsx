@@ -158,7 +158,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
         {items.length > 0 && (
           <div className="border-t border-line bg-white px-4 py-3 space-y-3">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
+              <span className="text-muted-foreground">Subtotal (excl. GST)</span>
               <span className="text-base font-bold text-ink">
                 {formatINR(subtotal)}
               </span>

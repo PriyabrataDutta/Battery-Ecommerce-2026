@@ -95,3 +95,14 @@ describe("sign-up form validation", () => {
     [{ password: "priya12345", confirmPassword: "priya12345" }, "Password must not contain your email name"],
   ])("rejects %o", (v, msg) => expect(firstError(v)).toBe(msg));
 });
+
+import { withGst, formatINRExact } from "@/lib/format";
+
+describe("prices exclude GST", () => {
+  it.each([
+    [7627.12, 9000], // Amaron 105D31L without exchange
+    [5635.59, 6650], // with exchange
+    [2711.86, 3200], // 1-paisa case, rounds to the Excel price
+  ])("%s + 18%% GST → ₹%s", (excl, incl) => expect(withGst(excl)).toBe(incl));
+  it("shows paise in bill breakdowns", () => expect(formatINRExact(1372.88)).toBe("₹1,372.88"));
+});

@@ -50,6 +50,7 @@ export interface SavedOrder {
     promo?: { code: string; label: string } | null;
     tax: number;
     shipping: number;
+    roundOff?: number;
     total: number;
   };
 }

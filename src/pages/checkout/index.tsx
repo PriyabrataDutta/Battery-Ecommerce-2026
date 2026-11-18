@@ -178,7 +178,8 @@ const Checkout = () => {
     discount: quote?.discount ?? 0,
     tax: quote?.tax ?? 0,
     shipping: quote?.shipping ?? deliveryOption.price,
-    total: quote?.total ?? subtotal + deliveryOption.price,
+    roundOff: quote?.round_off ?? 0,
+    total: quote?.total ?? 0,
   };
   const { total } = totals;
   const appliedPromo: Promo | null = quote?.promo ?? null;
@@ -340,6 +341,7 @@ const Checkout = () => {
         promo: placed.promo,
         tax: placed.tax,
         shipping: placed.shipping,
+        roundOff: placed.round_off,
         total: placed.total,
       },
     };

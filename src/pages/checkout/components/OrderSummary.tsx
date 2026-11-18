@@ -7,7 +7,7 @@
 import { ArrowLeftRight, Lock } from "lucide-react";
 import { lineKey, lineUnitPrice, hasExchangeOption, useCart } from "@/hooks/useCart";
 import { Switch } from "@/components/ui/switch";
-import { formatINR } from "@/lib/format";
+import { formatINR, formatINRExact } from "@/lib/format";
 import { PromoInput } from "./PromoInput";
 import type { DeliveryOption, Promo } from "../lib/types";
 
@@ -25,7 +25,7 @@ export const OrderSummary = ({
   onRemovePromo,
 }: {
   items: ReturnType<typeof useCart>["items"];
-  totals: { subtotal: number; discount: number; tax: number; shipping: number; total: number };
+  totals: { subtotal: number; discount: number; tax: number; shipping: number; roundOff: number; total: number };
   deliveryOption: DeliveryOption;
   appliedPromo: Promo | null;
   quoteError: string | null;
@@ -36,7 +36,7 @@ export const OrderSummary = ({
   onApplyPromo: () => void;
   onRemovePromo: () => void;
 }) => {
-  const { subtotal, discount, tax, shipping, total } = totals;
+  const { subtotal, discount, tax, shipping, roundOff, total } = totals;
   const { setExchange } = useCart();
 
   return (
@@ -104,30 +104,37 @@ export const OrderSummary = ({
 
       <div className="border-t border-line mt-4 pt-4 space-y-2 text-sm">
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Subtotal</span>
-          <span className="font-semibold">{formatINR(subtotal)}</span>
+          <span className="text-muted-foreground">Subtotal (excl. GST)</span>
+          <span className="font-semibold">{formatINRExact(subtotal)}</span>
         </div>
         {discount > 0 && (
           <div className="flex justify-between">
             <span className="text-success">
               Discount{appliedPromo ? ` (${appliedPromo.code})` : ""}
             </span>
-            <span className="font-semibold text-success">−{formatINR(discount)}</span>
+            <span className="font-semibold text-success">−{formatINRExact(discount)}</span>
           </div>
         )}
         <div className="flex justify-between">
+          <span className="text-muted-foreground">GST (18%)</span>
+          <span className="font-semibold">{formatINRExact(tax)}</span>
+        </div>
+        <div className="flex justify-between">
           <span className="text-muted-foreground">Shipping</span>
           <span className={shipping === 0 ? "text-success font-semibold" : "font-semibold"}>
-            {shipping === 0 ? "FREE" : formatINR(shipping)}
+            {shipping === 0 ? "FREE" : formatINRExact(shipping)}
           </span>
         </div>
+        {roundOff !== 0 && (
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Round off</span>
+            <span className="font-semibold">{roundOff > 0 ? "+" : "−"}{formatINRExact(Math.abs(roundOff))}</span>
+          </div>
+        )}
       </div>
       <div className="border-t border-line mt-4 pt-4 flex justify-between font-display font-bold text-xl">
         <span>Total</span>
         <span>{formatINR(total)}</span>
-      </div>
-      <div className="mt-1 text-xs text-muted-foreground text-right">
-        Includes GST of {formatINR(tax)}
       </div>
       {quoteError && (
         <div className="mt-2 text-xs text-destructive font-medium">{quoteError}</div>

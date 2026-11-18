@@ -16,7 +16,7 @@ import { Link, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { toast } from "sonner";
 import { getProductImage } from "@/lib/productImage";
-import { formatINR } from "@/lib/format";
+import { formatINR, withGst } from "@/lib/format";
 import { useCart } from "@/hooks/useCart";
 import {
   useProductBySlug,
@@ -131,7 +131,7 @@ const ProductDetail = () => {
   const seoDesc =
     product.meta_description ||
     product.short_description ||
-    `Buy ${product.name} at ${formatINR(withoutExchange)}. ${product.warranty_months ?? 0} month warranty. Free standard delivery, doorstep installation available.`;
+    `Buy ${product.name} at ${formatINR(withGst(withoutExchange))} incl. GST. ${product.warranty_months ?? 0} month warranty. Free standard delivery, doorstep installation available.`;
   return (
     <>
       <Helmet>
@@ -149,7 +149,7 @@ const ProductDetail = () => {
         {product.primary_image_url && (
           <meta property="og:image" content={product.primary_image_url} />
         )}
-        <meta property="product:price:amount" content={String(withoutExchange)} />
+        <meta property="product:price:amount" content={String(withGst(withoutExchange))} />
         <meta property="product:price:currency" content="INR" />
       </Helmet>
 

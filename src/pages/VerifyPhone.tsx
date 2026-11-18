@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { functionErrorMessage } from "@/lib/functionError";
 
 const RESEND_COOLDOWN = 60;
 
@@ -52,7 +53,7 @@ const VerifyPhone = () => {
     });
     setSending(false);
     if (error) {
-      toast.error(error.message ?? "Could not send code. Try again.");
+      toast.error(await functionErrorMessage(error, "Could not send code. Try again."));
       return;
     }
     setCooldown(RESEND_COOLDOWN);

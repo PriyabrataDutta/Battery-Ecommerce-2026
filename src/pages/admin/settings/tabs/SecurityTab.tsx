@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Loader2, KeyRound } from "lucide-react";
 import { toast } from "sonner";
+import { useCaptcha } from "@/components/auth/Captcha";
 
 const schema = z
   .object({
@@ -20,6 +21,7 @@ const schema = z
 
 export function SecurityTab() {
   const { user } = useAuth();
+  const captcha = useCaptcha();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -36,12 +38,18 @@ export function SecurityTab() {
       toast.error("No signed-in account found");
       return;
     }
+    if (!captcha.ready) {
+      toast.error("Please complete the security check.");
+      return;
+    }
     setBusy(true);
     // Re-authenticate before allowing a password change.
     const { error: reauthError } = await supabase.auth.signInWithPassword({
       email: user.email,
       password: current,
+      options: { captchaToken: captcha.token },
     });
+    captcha.reset();
     if (reauthError) {
       setBusy(false);
       toast.error("Current password is incorrect");
@@ -107,6 +115,7 @@ export function SecurityTab() {
             required
           />
         </div>
+        {captcha.widget}
         <Button type="submit" disabled={busy}>
           {busy && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
           Update password

@@ -1,7 +1,20 @@
 import { useEffect, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
+import { functionErrorMessage } from "@/lib/functionError";
+
+/** Supabase Auth messages → wording a customer can act on. */
+function friendlyAuthError(msg: string): string {
+  const m = msg.toLowerCase();
+  if (m.includes("already registered") || m.includes("already been registered"))
+    return "An account with this email already exists. Sign in, or use “Forgot password”.";
+  if (m.includes("rate limit") || m.includes("too many")) return "Too many attempts. Please wait a few minutes and try again.";
+  if (m.includes("captcha")) return "Security check failed. Please complete it again.";
+  if (m.includes("invalid login credentials")) return "Wrong email/mobile or password.";
+  if (m.includes("email not confirmed")) return "Please confirm your email first — check your inbox for the link.";
+  if (m.includes("database error saving new user")) return "We couldn't create your account right now. Please try again in a few minutes.";
+  return msg;
+}
 
 interface AuthState {
   user: User | null;
@@ -39,11 +52,11 @@ async function loadProfilePhoneState(userId: string) {
 }
 
 export function useAuth(): AuthState & {
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signInWithIdentifier: (identifier: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string, fullName?: string, phone?: string) => Promise<{ error: string | null }>;
+  signIn: (email: string, password: string, captchaToken?: string) => Promise<{ error: string | null }>;
+  signInWithIdentifier: (identifier: string, password: string, captchaToken?: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string, fullName?: string, phone?: string, captchaToken?: string) => Promise<{ error: string | null }>;
   signInWithGoogle: (redirectTo?: string) => Promise<{ error: string | null }>;
-  resetPassword: (email: string) => Promise<{ error: string | null }>;
+  resetPassword: (email: string, captchaToken?: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshPhoneState: () => Promise<void>;
 } {
@@ -112,16 +125,16 @@ export function useAuth(): AuthState & {
     };
   }, []);
 
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error?.message ?? null };
+  const signIn = async (email: string, password: string, captchaToken?: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password, options: { captchaToken } });
+    return { error: error ? friendlyAuthError(error.message) : null };
   };
 
   /**
    * Accepts either an email or a phone number. If it's a phone, resolve the
    * corresponding email through a secure edge function, then sign in normally.
    */
-  const signInWithIdentifier = async (identifier: string, password: string) => {
+  const signInWithIdentifier = async (identifier: string, password: string, captchaToken?: string) => {
     const trimmed = identifier.trim();
     const looksLikeEmail = trimmed.includes("@");
     let email = trimmed;
@@ -132,20 +145,20 @@ export function useAuth(): AuthState & {
       const { data, error } = await supabase.functions.invoke("phone-login-lookup", {
         body: { phone: normalised },
       });
-      if (error) return { error: "Could not sign in with that mobile number." };
+      if (error) return { error: await functionErrorMessage(error, "Could not sign in with that mobile number.") };
       if (!data?.email) return { error: "No account found for that mobile number." };
       email = data.email as string;
     }
 
-    return signIn(email, password);
+    return signIn(email, password, captchaToken);
   };
 
-
-  const signUp = async (email: string, password: string, fullName?: string, phone?: string) => {
+  const signUp = async (email: string, password: string, fullName?: string, phone?: string, captchaToken?: string) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        captchaToken,
         emailRedirectTo: `${window.location.origin}/account`,
         data: {
           ...(fullName ? { full_name: fullName } : {}),
@@ -153,29 +166,23 @@ export function useAuth(): AuthState & {
         },
       },
     });
-    return { error: error?.message ?? null };
+    return { error: error ? friendlyAuthError(error.message) : null };
   };
 
   const signInWithGoogle = async (redirectTo?: string) => {
-    try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: redirectTo ?? `${window.location.origin}/account`,
-      });
-      if (result.error) {
-        const msg = result.error instanceof Error ? result.error.message : String(result.error);
-        return { error: msg };
-      }
-      return { error: null };
-    } catch (e) {
-      return { error: e instanceof Error ? e.message : "Google sign-in failed" };
-    }
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: redirectTo ?? `${window.location.origin}/account` },
+    });
+    return { error: error ? friendlyAuthError(error.message) : null };
   };
 
-  const resetPassword = async (email: string) => {
+  const resetPassword = async (email: string, captchaToken?: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
+      captchaToken,
     });
-    return { error: error?.message ?? null };
+    return { error: error ? friendlyAuthError(error.message) : null };
   };
 
   const signOut = async () => {

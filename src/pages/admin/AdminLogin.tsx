@@ -11,9 +11,11 @@ import { ShieldCheck, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { setRememberMe } from "@/lib/adminSession";
 import { AccessExpired, isAccessExpiredCause } from "@/components/auth/AccessExpired";
+import { useCaptcha } from "@/components/auth/Captcha";
 
 const AdminLogin = () => {
   const { user, isStaff, loading, signIn, resetPassword } = useAuth();
+  const captcha = useCaptcha();
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const next = params.get("next") || "/admin";
@@ -70,7 +72,9 @@ const AdminLogin = () => {
     }
     // Stage 2: Sign in (no pre-check — is_admin_email is locked down to prevent enumeration)
     console.info("[AdminLogin] stage: sign-in");
-    const { error: signInError } = await signIn(normalizedEmail, password);
+    if (!captcha.ready) return fail("email-validation", "Please complete the security check.");
+    const { error: signInError } = await signIn(normalizedEmail, password, captcha.token);
+    captcha.reset();
     if (signInError) {
       const lower = signInError.toLowerCase();
       const friendly = lower.includes("invalid")
@@ -206,6 +210,7 @@ const AdminLogin = () => {
             </div>
           )}
 
+          {captcha.widget}
           <Button type="submit" className="w-full" disabled={submitting || loading}>
             {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             Sign in to Admin
@@ -221,8 +226,13 @@ const AdminLogin = () => {
                 toast.error("Enter your admin email first, then click Forgot password.");
                 return;
               }
+              if (!captcha.ready) {
+                toast.error("Complete the security check first, then click Forgot password.");
+                return;
+              }
               setSubmitting(true);
-              const { error: resetError } = await resetPassword(target);
+              const { error: resetError } = await resetPassword(target, captcha.token);
+              captcha.reset();
               setSubmitting(false);
               if (resetError) toast.error(resetError);
               else

@@ -71,3 +71,27 @@ describe("normalizeIndianMobile (mirrors public.normalize_in_phone)", () => {
     expect(normalizeIndianMobile(input)).toBeNull(),
   );
 });
+
+import { signUpSchema } from "@/components/auth/signUpSchema";
+
+describe("sign-up form validation", () => {
+  const ok = { fullName: "Priya Dutta", phone: "98765 43210", email: "Priya@Example.com ", password: "battery2026", confirmPassword: "battery2026" };
+  const firstError = (v: object) => {
+    const r = signUpSchema.safeParse({ ...ok, ...v });
+    return r.success ? null : r.error.issues[0].message;
+  };
+  it("accepts a valid form and normalises phone + email", () => {
+    const r = signUpSchema.safeParse(ok);
+    expect(r.success && [r.data.phone, r.data.email]).toEqual(["+919876543210", "priya@example.com"]);
+  });
+  it.each([
+    [{ fullName: "A" }, "Enter your full name"],
+    [{ fullName: "R2D2" }, "Use letters only"],
+    [{ phone: "12345" }, "Enter a valid 10-digit Indian mobile number"],
+    [{ email: "nope" }, "Enter a valid email"],
+    [{ password: "short1", confirmPassword: "short1" }, "At least 8 characters"],
+    [{ password: "onlyletters", confirmPassword: "onlyletters" }, "Include at least one number"],
+    [{ confirmPassword: "different1" }, "Passwords don't match"],
+    [{ password: "priya12345", confirmPassword: "priya12345" }, "Password must not contain your email name"],
+  ])("rejects %o", (v, msg) => expect(firstError(v)).toBe(msg));
+});

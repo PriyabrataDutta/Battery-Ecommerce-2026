@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
-import { INVALID_MOBILE, normalizeIndianMobile } from "@/lib/phone";
+import { SignUpForm } from "@/components/auth/SignUpForm";
+import { useCaptcha } from "@/components/auth/Captcha";
+import { useGoogleEnabled } from "@/hooks/useGoogleEnabled";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,19 +22,6 @@ const signInSchema = z.object({
   password: z.string().min(6, "Min 6 characters").max(72),
 });
 
-const signUpSchema = z.object({
-  fullName: z.string().trim().min(1, "Full name required").max(100),
-  phone: z
-    .string()
-    .transform((v, ctx) => {
-      const n = normalizeIndianMobile(v);
-      if (!n) ctx.addIssue({ code: z.ZodIssueCode.custom, message: INVALID_MOBILE });
-      return n ?? v;
-    }),
-  email: z.string().trim().email("Invalid email").max(255),
-  password: z.string().min(6, "Min 6 characters").max(72),
-});
-
 const emailOnlySchema = z.object({
   email: z.string().trim().email("Invalid email").max(255),
 });
@@ -40,9 +29,11 @@ const emailOnlySchema = z.object({
 const Auth = () => {
   const [params] = useSearchParams();
   const next = params.get("next") || "/account";
-  const { user, signInWithIdentifier, signUp, signInWithGoogle, resetPassword, loading } = useAuth();
+  const { user, signInWithIdentifier, signInWithGoogle, resetPassword, loading } = useAuth();
   const [busy, setBusy] = useState(false);
   const [forgot, setForgot] = useState(false);
+  const captcha = useCaptcha();
+  const googleEnabled = useGoogleEnabled();
 
   if (!loading && user) return <Navigate to={next} replace />;
 
@@ -58,33 +49,14 @@ const Auth = () => {
       toast.error(Object.values(parsed.error.flatten().fieldErrors).flat()[0] ?? "Invalid input");
       return;
     }
+    if (!captcha.ready) return toast.error("Please complete the security check.");
     setBusy(true);
-    const { error } = await signInWithIdentifier(parsed.data.identifier, parsed.data.password);
+    const { error } = await signInWithIdentifier(parsed.data.identifier, parsed.data.password, captcha.token);
+    captcha.reset();
 
     setBusy(false);
     if (error) toast.error(error);
     else toast.success("Welcome back");
-  };
-
-  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    const parsed = signUpSchema.safeParse(Object.fromEntries(fd));
-    if (!parsed.success) {
-      toast.error(Object.values(parsed.error.flatten().fieldErrors).flat()[0] ?? "Invalid input");
-      return;
-    }
-    setBusy(true);
-    const { error } = await signUp(
-
-      parsed.data.email,
-      parsed.data.password,
-      parsed.data.fullName,
-      parsed.data.phone,
-    );
-    setBusy(false);
-    if (error) toast.error(error);
-    else toast.success("Account created. Check your email to confirm, then verify your mobile.");
   };
 
   const handleGoogle = async () => {
@@ -105,8 +77,10 @@ const Auth = () => {
       toast.error("Enter a valid email");
       return;
     }
+    if (!captcha.ready) return toast.error("Please complete the security check.");
     setBusy(true);
-    const { error } = await resetPassword(parsed.data.email);
+    const { error } = await resetPassword(parsed.data.email, captcha.token);
+    captcha.reset();
     setBusy(false);
     if (error) toast.error(error);
     else {
@@ -128,6 +102,7 @@ const Auth = () => {
               Enter your email and we'll send you a reset link.
             </p>
             <Input name="email" type="email" placeholder="Email" required autoComplete="email" />
+            {captcha.widget}
             <Button type="submit" className="w-full" disabled={busy}>
               {busy && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Send reset link
@@ -144,8 +119,22 @@ const Auth = () => {
           </form>
         ) : (
           <>
-            {/* "Continue with Google" is hidden until Google is enabled in
-                Supabase → Authentication → Providers (handleGoogle is kept). */}
+            {googleEnabled && (
+              <>
+                <Button type="button" variant="outline" className="w-full" onClick={handleGoogle} disabled={busy}>
+                  {busy ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <GoogleIcon className="h-4 w-4 mr-2" />}
+                  Continue with Google
+                </Button>
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-line" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white px-2 text-muted-foreground tracking-wider">or</span>
+                  </div>
+                </div>
+              </>
+            )}
             <Tabs defaultValue="signin">
               <TabsList className="grid grid-cols-2 w-full">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
@@ -162,6 +151,7 @@ const Auth = () => {
                     autoComplete="username"
                   />
                   <Input name="password" type="password" placeholder="Password" required autoComplete="current-password" />
+                  {captcha.widget}
                   <Button type="submit" className="w-full" disabled={busy}>
                     {busy && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                     Sign In
@@ -177,23 +167,7 @@ const Auth = () => {
               </TabsContent>
 
               <TabsContent value="signup">
-                <form onSubmit={handleSignUp} className="space-y-3 mt-4">
-                  <Input name="fullName" placeholder="Full name" required maxLength={100} autoComplete="name" />
-                  <Input
-                    name="phone"
-                    type="tel"
-                    inputMode="tel"
-                    placeholder="Mobile number (e.g. 98765 43210)"
-                    required
-                    autoComplete="tel"
-                  />
-                  <Input name="email" type="email" placeholder="Email" required autoComplete="email" />
-                  <Input name="password" type="password" placeholder="Password (min 6)" required autoComplete="new-password" />
-                  <Button type="submit" className="w-full" disabled={busy}>
-                    {busy && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Create Account
-                  </Button>
-                </form>
+                <SignUpForm />
               </TabsContent>
             </Tabs>
           </>

@@ -1135,6 +1135,24 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          hits: number
+          key: string
+          window_start: string
+        }
+        Insert: {
+          hits?: number
+          key: string
+          window_start: string
+        }
+        Update: {
+          hits?: number
+          key?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       return_images: {
         Row: {
           created_at: string
@@ -1452,6 +1470,7 @@ export type Database = {
         }
         Returns: string
       }
+      normalize_in_phone: { Args: { p: string }; Returns: string }
       place_order: {
         Args: {
           p_address: Json
@@ -1470,6 +1489,10 @@ export type Database = {
       quote_order: {
         Args: { p_delivery?: string; p_items: Json; p_promo?: string }
         Returns: Json
+      }
+      rate_limit_hit: {
+        Args: { p_key: string; p_max: number; p_window_seconds: number }
+        Returns: boolean
       }
       verify_phone_code: { Args: { _code: string }; Returns: boolean }
     }

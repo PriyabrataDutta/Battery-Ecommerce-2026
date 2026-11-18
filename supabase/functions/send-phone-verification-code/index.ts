@@ -5,6 +5,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { sendEmail } from "../_shared/email.ts";
+import { allow, clientIp } from "../_shared/ratelimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -50,6 +51,16 @@ Deno.serve(async (req) => {
 
   // Service-role client for trusted writes / template invoke
   const admin = createClient(SUPABASE_URL, SERVICE);
+
+  // 1 code per minute, 5 per hour per user; 20 per hour per IP.
+  const ip = clientIp(req);
+  if (
+    !(await allow(admin, `pvc:user:${user.id}:1m`, 1, 60)) ||
+    !(await allow(admin, `pvc:user:${user.id}:1h`, 5, 3600)) ||
+    !(await allow(admin, `pvc:ip:${ip}`, 20, 3600))
+  ) {
+    return json({ error: "rate_limited", message: "Too many codes requested. Please wait a few minutes." }, 429);
+  }
 
   // Read the user's profile to get phone + email
   const { data: profile, error: pErr } = await admin

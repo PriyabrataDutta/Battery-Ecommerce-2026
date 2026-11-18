@@ -40,6 +40,9 @@ import { useDefaultAddress } from "@/hooks/queries/useAddresses";
 import { useOrderQuote, usePlaceOrder } from "@/hooks/queries/useOrders";
 import { useShippingSettings } from "@/hooks/useShippingSettings";
 import { quoteOrder } from "@/api/orders";
+import { getPaymentMethods } from "@/api/payments";
+import { payOnline } from "@/lib/cashfree";
+import { useQuery } from "@tanstack/react-query";
 import { formatINR } from "@/lib/format";
 
 import { AddressStep } from "./components/AddressStep";
@@ -86,6 +89,15 @@ const Checkout = () => {
   const [errors, setErrors] = useState<AddressErrors>({});
   const [delivery, setDelivery] = useState<DeliveryId>(initialDraft?.delivery ?? "standard");
   const [payment, setPayment] = useState<PaymentId>("cod");
+  const { data: methods } = useQuery({ queryKey: ["payment-methods"], queryFn: getPaymentMethods, staleTime: 60_000 });
+  const availablePayments = useMemo(
+    () => (methods ? (["online", "cod"] as PaymentId[]).filter((m) => methods[m]) : undefined),
+    [methods],
+  );
+  // Default to the first method that's switched on (online first).
+  useEffect(() => {
+    if (availablePayments?.length && !availablePayments.includes(payment)) setPayment(availablePayments[0]);
+  }, [availablePayments, payment]);
   const [submitting, setSubmitting] = useState(false);
   const [promoInput, setPromoInput] = useState(initialDraft?.promoInput ?? "");
   const [promoCode, setPromoCode] = useState<string | null>(null);
@@ -333,8 +345,22 @@ const Checkout = () => {
     sessionStorage.setItem("kachi_last_order", JSON.stringify(order));
     clear();
     clearDraft();
+    const confirmationUrl = `/order-confirmation?order=${encodeURIComponent(placed.order_number)}`;
+
+    if (payment === "online") {
+      // The order exists and holds stock; hand over to Cashfree. It returns the
+      // shopper to the confirmation page, which confirms payment server-side.
+      try {
+        await payOnline(placed.order_number);
+        return;
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Could not open the payment page.", {
+          description: "Your order is saved — you can retry payment from the next page.",
+        });
+      }
+    }
     setSubmitting(false);
-    navigate("/order-confirmation", { replace: true });
+    navigate(confirmationUrl, { replace: true });
   };
 
   return (
@@ -423,7 +449,7 @@ const Checkout = () => {
               scheduleError={scheduleError}
             />
           )}
-          {step === 2 && <PaymentStep payment={payment} setPayment={setPayment} />}
+          {step === 2 && <PaymentStep payment={payment} setPayment={setPayment} available={availablePayments} />}
           {step === 3 && (
             <ReviewStep
               items={items}
@@ -459,10 +485,12 @@ const Checkout = () => {
               <Button
                 onClick={placeOrder}
                 size="lg"
-                disabled={submitting || !quote || !!quoteError}
+                disabled={submitting || !quote || !!quoteError || !availablePayments?.includes(payment)}
                 className="min-w-[180px]"
               >
-                {submitting ? "Placing order…" : `Place order · ${formatINR(total)}`}
+                {submitting
+                  ? payment === "online" ? "Opening payment…" : "Placing order…"
+                  : payment === "online" ? `Pay securely · ${formatINR(total)}` : `Place order · ${formatINR(total)}`}
               </Button>
             )}
           </div>

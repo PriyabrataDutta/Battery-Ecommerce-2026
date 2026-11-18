@@ -104,6 +104,19 @@ export function OrderDetailDrawer({
           <Row label="Email" value={order.customer_email ?? "—"} />
           <Row label="Phone" value={order.customer_phone ?? "—"} />
           <Row label="Payment" value={order.payment_method ?? "—"} />
+          <Row
+            label="Payment status"
+            value={
+              order.payment_status === "paid"
+                ? `Paid${order.paid_at ? ` · ${new Date(order.paid_at).toLocaleString("en-IN")}` : ""}`
+                : order.payment_status === "failed"
+                  ? "Failed / not completed"
+                  : order.payment_method === "Cash on Delivery"
+                    ? "Collect cash on delivery"
+                    : "Unpaid — do not dispatch"
+            }
+          />
+          {order.payment_ref && <Row label="Cashfree payment ID" value={order.payment_ref} />}
         </Card>
         <Card title="Shipping">
           <Row label="Method" value={order.delivery_label ?? "—"} />

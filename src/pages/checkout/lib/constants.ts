@@ -16,6 +16,7 @@ import {
   Truck,
   ShieldCheck,
   Banknote,
+  CreditCard,
 } from "lucide-react";
 import { addDays } from "date-fns";
 import type {
@@ -53,8 +54,9 @@ export const DELIVERY_OPTIONS: DeliveryOption[] = [
   },
 ];
 
-/** Cash on Delivery only until Cashfree is wired (place_order rejects anything else). */
+/** Which of these checkout shows is decided by Admin → Settings → Payment (available_payment_methods). */
 export const PAYMENT_OPTIONS: PaymentOption[] = [
+  { id: "online", label: "Pay online", hint: "UPI, cards, net banking and wallets — secured by Cashfree", icon: CreditCard },
   { id: "cod", label: "Cash on Delivery", hint: "Pay in cash or UPI to the delivery partner when your battery arrives", icon: Banknote },
 ];
 

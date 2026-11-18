@@ -72,7 +72,18 @@ export function OrdersTable({
         {
           key: "total",
           header: "Total",
-          cell: (o) => <span className="font-semibold">{formatINR(Number(o.total))}</span>,
+          cell: (o) => (
+            <div>
+              <div className="font-semibold">{formatINR(Number(o.total))}</div>
+              <div
+                className={`text-[11px] font-medium ${
+                  o.payment_status === "paid" ? "text-success" : o.payment_status === "failed" ? "text-destructive" : "text-muted-foreground"
+                }`}
+              >
+                {o.payment_status === "paid" ? "Paid" : o.payment_status === "failed" ? "Payment failed" : o.payment_method === "Cash on Delivery" ? "COD · collect" : "Unpaid"}
+              </div>
+            </div>
+          ),
         },
         {
           key: "status",

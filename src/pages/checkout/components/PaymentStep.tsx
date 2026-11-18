@@ -1,9 +1,9 @@
 /**
  * PaymentStep — Step 3 of checkout.
  *
- * Cash on Delivery only for now. When Cashfree is wired, add it to
- * PAYMENT_OPTIONS and to place_order, and open its checkout from
- * `placeOrder` in ../index.tsx.
+ * Shows the methods switched on in Admin → Settings → Payment. "Pay online"
+ * redirects to Cashfree's hosted checkout after the order is created
+ * (see `placeOrder` in ../index.tsx).
  */
 import { CreditCard } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -13,10 +13,13 @@ import type { PaymentId } from "../lib/types";
 export const PaymentStep = ({
   payment,
   setPayment,
+  available,
 }: {
   payment: PaymentId;
   setPayment: (p: PaymentId) => void;
+  available: PaymentId[] | undefined;
 }) => {
+  const options = PAYMENT_OPTIONS.filter((p) => available?.includes(p.id));
   return (
     <div>
       <div className="flex items-center gap-2">
@@ -24,7 +27,11 @@ export const PaymentStep = ({
         <h2 className="font-display-tight text-xl font-bold">Payment method</h2>
       </div>
       <p className="text-sm text-muted-foreground mt-1">
-        Pay when your battery is delivered. Online payment is coming soon.
+        {available === undefined
+          ? "Loading payment options…"
+          : options.length === 0
+            ? "Ordering is paused right now. Please call us to place your order."
+            : "Choose how you'd like to pay."}
       </p>
 
       <RadioGroup
@@ -32,7 +39,7 @@ export const PaymentStep = ({
         onValueChange={(v) => setPayment(v as PaymentId)}
         className="mt-6 space-y-3"
       >
-        {PAYMENT_OPTIONS.map((p) => {
+        {options.map((p) => {
           const Icon = p.icon;
           const active = payment === p.id;
           return (

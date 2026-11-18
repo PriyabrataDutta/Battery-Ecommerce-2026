@@ -51,3 +51,17 @@ clicks "Place order".
 | Add a new step to the wizard              | `lib/constants.ts` (STEPS) + new component + render branch in `index.tsx` |
 | Change how totals are calculated          | `_price_order` SQL function           |
 | Tweak draft expiry                        | `lib/constants.ts` (DRAFT_TTL_MS)     |
+
+## Online payment (Cashfree)
+
+1. `place_order` (payment `online`) creates the order and reserves stock.
+2. `payOnline()` (`src/lib/cashfree.ts`) calls the `cashfree-order` edge function
+   (`create`) and opens Cashfree's hosted checkout (SDK loaded from Cashfree's CDN).
+3. Cashfree returns to `/order-confirmation?order=KCH-…`; `PaymentStatusBanner`
+   calls `cashfree-order` (`verify`), which re-reads the order from Cashfree.
+4. `cashfree-webhook` (signature-checked) does the same in the background.
+   Only `mark_order_paid` (service role) sets `payment_status = 'paid'`.
+5. Unpaid online orders are cancelled and restocked after 30 minutes
+   (`expire_unpaid_online_orders`, pg_cron every 5 min).
+
+Methods, mode and keys: Admin → Settings → Payment.

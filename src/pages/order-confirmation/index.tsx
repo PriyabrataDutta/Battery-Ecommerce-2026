@@ -5,6 +5,7 @@ import { OrderTracker } from "./components/OrderTracker";
 import { OrderItems } from "./components/OrderItems";
 import { AddressBlocks } from "./components/AddressBlocks";
 import { PaymentSummary } from "./components/PaymentSummary";
+import { PaymentStatusBanner } from "./components/PaymentStatusBanner";
 
 /**
  * OrderConfirmation (orchestrator)
@@ -51,6 +52,7 @@ const OrderConfirmation = () => {
 
   return (
     <div className="container-x py-10">
+      {order.payment.id === "online" && <PaymentStatusBanner orderNumber={order.orderNumber} />}
       <SuccessHeader order={order} />
       <OrderTracker order={order} />
 

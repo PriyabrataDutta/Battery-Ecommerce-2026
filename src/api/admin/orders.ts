@@ -32,6 +32,9 @@ export interface AdminOrderRow {
   customer_email: string | null;
   customer_phone: string | null;
   payment_method: string | null;
+  payment_status: "unpaid" | "paid" | "failed" | "refunded";
+  payment_ref: string | null;
+  paid_at: string | null;
   delivery_label: string | null;
   scheduled_date: string | null;
   scheduled_slot_label: string | null;
@@ -55,7 +58,7 @@ export async function listAdminOrders(
   let q = supabase
     .from("orders")
     .select(
-      "id, order_number, status, total, subtotal, discount, tax, shipping, customer_name, customer_email, customer_phone, payment_method, delivery_label, scheduled_date, scheduled_slot_label, scheduled_slot_window, promo_code, notes, address, created_at, updated_at",
+      "id, order_number, status, total, subtotal, discount, tax, shipping, customer_name, customer_email, customer_phone, payment_method, payment_status, payment_ref, paid_at, delivery_label, scheduled_date, scheduled_slot_label, scheduled_slot_window, promo_code, notes, address, created_at, updated_at",
     )
     .order("created_at", { ascending: false })
     .limit(opts.limit ?? 200);

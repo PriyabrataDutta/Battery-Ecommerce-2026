@@ -661,6 +661,7 @@ export type Database = {
       orders: {
         Row: {
           address: Json | null
+          cashfree_order_id: string | null
           created_at: string
           customer_email: string | null
           customer_name: string | null
@@ -671,7 +672,10 @@ export type Database = {
           id: string
           notes: string | null
           order_number: string | null
+          paid_at: string | null
           payment_method: string | null
+          payment_ref: string | null
+          payment_status: string
           promo_code: string | null
           promo_label: string | null
           scheduled_date: string | null
@@ -689,6 +693,7 @@ export type Database = {
         }
         Insert: {
           address?: Json | null
+          cashfree_order_id?: string | null
           created_at?: string
           customer_email?: string | null
           customer_name?: string | null
@@ -699,7 +704,10 @@ export type Database = {
           id?: string
           notes?: string | null
           order_number?: string | null
+          paid_at?: string | null
           payment_method?: string | null
+          payment_ref?: string | null
+          payment_status?: string
           promo_code?: string | null
           promo_label?: string | null
           scheduled_date?: string | null
@@ -717,6 +725,7 @@ export type Database = {
         }
         Update: {
           address?: Json | null
+          cashfree_order_id?: string | null
           created_at?: string
           customer_email?: string | null
           customer_name?: string | null
@@ -727,7 +736,10 @@ export type Database = {
           id?: string
           notes?: string | null
           order_number?: string | null
+          paid_at?: string | null
           payment_method?: string | null
+          payment_ref?: string | null
+          payment_status?: string
           promo_code?: string | null
           promo_label?: string | null
           scheduled_date?: string | null
@@ -1405,6 +1417,7 @@ export type Database = {
           total_bytes: number
         }[]
       }
+      available_payment_methods: { Args: never; Returns: Json }
       car_brand_product_counts: {
         Args: { in_stock_only?: boolean }
         Returns: {
@@ -1412,6 +1425,7 @@ export type Database = {
           slug: string
         }[]
       }
+      expire_unpaid_online_orders: { Args: never; Returns: number }
       has_permission: {
         Args: { _perm: string; _user_id: string }
         Returns: boolean
@@ -1426,6 +1440,14 @@ export type Database = {
       is_admin_email: { Args: { _email: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       lookup_email_by_phone: { Args: { _phone: string }; Returns: string }
+      mark_order_paid: {
+        Args: {
+          p_amount: number
+          p_order_number: string
+          p_payment_ref: string
+        }
+        Returns: string
+      }
       place_order: {
         Args: {
           p_address: Json

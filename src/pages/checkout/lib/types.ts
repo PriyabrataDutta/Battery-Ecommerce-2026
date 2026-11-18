@@ -25,7 +25,7 @@ export interface Address {
 export type AddressErrors = Partial<Record<keyof Address, string>>;
 
 export type DeliveryId = "standard" | "express" | "installation";
-export type PaymentId = "upi" | "card" | "netbanking" | "cod";
+export type PaymentId = "online" | "cod";
 
 export type SlotId =
   | "morning"

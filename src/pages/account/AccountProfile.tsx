@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { INVALID_MOBILE, normalizeIndianMobile } from "@/lib/phone";
 import { useMyProfile, useUpdateMyProfile } from "@/hooks/queries/useProfile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +10,8 @@ import { toast } from "sonner";
 import { User as UserIcon } from "lucide-react";
 
 const AccountProfile = () => {
-  const { user } = useAuth();
+  const { user, refreshPhoneState } = useAuth();
+  const navigate = useNavigate();
   const { data: profile, isLoading } = useMyProfile(user?.id);
   const update = useUpdateMyProfile(user?.id);
   const [fullName, setFullName] = useState("");
@@ -24,11 +27,23 @@ const AccountProfile = () => {
 
   const save = () => {
     if (!user) return;
+    const normalised = phone.trim() ? normalizeIndianMobile(phone) : null;
+    if (phone.trim() && !normalised) return toast.error(INVALID_MOBILE);
+    const phoneChanged = normalised !== (profile?.phone ?? null);
     update.mutate(
-      { full_name: fullName, phone, company },
+      { full_name: fullName, phone: normalised, company },
       {
-        onSuccess: () => toast.success("Profile updated"),
-        onError: (e) => toast.error(e instanceof Error ? e.message : "Could not save"),
+        onSuccess: async () => {
+          if (!phoneChanged) return toast.success("Profile updated");
+          // A new number must be verified again (the database clears phone_verified).
+          await refreshPhoneState();
+          toast.success("Profile updated — please verify your new number");
+          navigate(normalised ? "/verify-phone?next=/account/profile" : "/add-phone?next=/account/profile");
+        },
+        onError: (e) => {
+          const code = (e as { code?: string })?.code;
+          toast.error(code === "23505" ? "This mobile number is already linked to another account." : e instanceof Error ? e.message : "Could not save");
+        },
       },
     );
   };

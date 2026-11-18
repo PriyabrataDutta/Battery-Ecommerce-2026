@@ -6,12 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { z } from "zod";
+import { INVALID_MOBILE, normalizeIndianMobile } from "@/lib/phone";
 
-const phoneSchema = z
-  .string()
-  .trim()
-  .regex(/^\+?\d{10,15}$/, "Enter a valid mobile number (10-15 digits)");
 
 const AddPhone = () => {
   const { user, hasPhone, loading, refreshPhoneState } = useAuth();
@@ -26,18 +22,16 @@ const AddPhone = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Default to +91 if no country code typed
-    const normalised = phone.trim().startsWith("+") ? phone.trim() : `+91${phone.trim().replace(/\D/g, "")}`;
-    const parsed = phoneSchema.safeParse(normalised);
-    if (!parsed.success) {
-      toast.error(parsed.error.errors[0].message);
+    const normalised = normalizeIndianMobile(phone);
+    if (!normalised) {
+      toast.error(INVALID_MOBILE);
       return;
     }
 
     setBusy(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ phone: parsed.data })
+      .update({ phone: normalised })
       .eq("id", user!.id);
     setBusy(false);
     if (error) {
@@ -65,7 +59,7 @@ const AddPhone = () => {
           type="tel"
           inputMode="tel"
           autoFocus
-          placeholder="+91 98xxx xxxxx"
+          placeholder="98765 43210"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           required

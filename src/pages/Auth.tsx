@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
+import { INVALID_MOBILE, normalizeIndianMobile } from "@/lib/phone";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +10,6 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 
-const phoneRegex = /^\+?\d{10,15}$/;
 
 const signInSchema = z.object({
   identifier: z
@@ -24,9 +24,11 @@ const signUpSchema = z.object({
   fullName: z.string().trim().min(1, "Full name required").max(100),
   phone: z
     .string()
-    .trim()
-    .transform((v) => (v.startsWith("+") ? v : `+91${v.replace(/\D/g, "")}`))
-    .pipe(z.string().regex(phoneRegex, "Enter a valid mobile (10-15 digits)")),
+    .transform((v, ctx) => {
+      const n = normalizeIndianMobile(v);
+      if (!n) ctx.addIssue({ code: z.ZodIssueCode.custom, message: INVALID_MOBILE });
+      return n ?? v;
+    }),
   email: z.string().trim().email("Invalid email").max(255),
   password: z.string().min(6, "Min 6 characters").max(72),
 });
@@ -142,30 +144,8 @@ const Auth = () => {
           </form>
         ) : (
           <>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={handleGoogle}
-              disabled={busy}
-            >
-              {busy ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <GoogleIcon className="h-4 w-4 mr-2" />
-              )}
-              Continue with Google
-            </Button>
-
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t border-line" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-muted-foreground tracking-wider">or</span>
-              </div>
-            </div>
-
+            {/* "Continue with Google" is hidden until Google is enabled in
+                Supabase → Authentication → Providers (handleGoogle is kept). */}
             <Tabs defaultValue="signin">
               <TabsList className="grid grid-cols-2 w-full">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
@@ -203,7 +183,7 @@ const Auth = () => {
                     name="phone"
                     type="tel"
                     inputMode="tel"
-                    placeholder="Mobile number (e.g. +91 98xxx xxxxx)"
+                    placeholder="Mobile number (e.g. 98765 43210)"
                     required
                     autoComplete="tel"
                   />

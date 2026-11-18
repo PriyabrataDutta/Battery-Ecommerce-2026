@@ -56,3 +56,18 @@ describe("order attempt key (idempotency)", () => {
     expect(orderAttemptKey(attempt)).not.toBe(k);
   });
 });
+
+import { normalizeIndianMobile } from "@/lib/phone";
+
+describe("normalizeIndianMobile (mirrors public.normalize_in_phone)", () => {
+  it.each([
+    ["9876543210", "+919876543210"],
+    ["+91 98765 43210", "+919876543210"],
+    ["91-98765-43210", "+919876543210"],
+    ["09876543210", "+919876543210"],
+    ["\t+919832465858", "+919832465858"],
+  ])("%s → %s", (input, out) => expect(normalizeIndianMobile(input)).toBe(out));
+  it.each(["12345", "+91999999999912", "5876543210", "abc", ""])("rejects %s", (input) =>
+    expect(normalizeIndianMobile(input)).toBeNull(),
+  );
+});

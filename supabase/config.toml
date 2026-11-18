@@ -17,8 +17,8 @@ verify_jwt = false
 # because `supabase config push` sends the WHOLE config and would otherwise
 # reset them to local defaults. Change these deliberately, never by omission.
 [auth]
-site_url = "http://localhost:3000"
-additional_redirect_urls = []
+site_url = "https://www.kachibatteries.com"
+additional_redirect_urls = ["https://www.kachibatteries.com/**", "https://kachibatteries.com/**", "https://battery-ecommerce-2026.vercel.app/**"]
 
 [auth.mfa.totp]
 enroll_enabled = true
@@ -31,3 +31,10 @@ otp_length = 8
 
 [storage.vector]
 enabled = false
+
+# Branded auth emails (supabase/functions/auth-email). The secret is read from
+# the environment at push time and never committed.
+[auth.hook.send_email]
+enabled = true
+uri = "https://uzpzqkzkdkeboplmgowy.supabase.co/functions/v1/auth-email"
+secrets = "env(SEND_EMAIL_HOOK_SECRET)"

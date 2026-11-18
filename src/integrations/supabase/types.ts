@@ -1405,6 +1405,13 @@ export type Database = {
           total_bytes: number
         }[]
       }
+      car_brand_product_counts: {
+        Args: { in_stock_only?: boolean }
+        Returns: {
+          product_count: number
+          slug: string
+        }[]
+      }
       has_permission: {
         Args: { _perm: string; _user_id: string }
         Returns: boolean

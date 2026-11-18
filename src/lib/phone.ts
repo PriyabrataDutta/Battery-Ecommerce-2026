@@ -11,3 +11,10 @@ export function normalizeIndianMobile(input: string): string | null {
 }
 
 export const INVALID_MOBILE = "Enter a valid 10-digit Indian mobile number";
+
+/**
+ * Customer mobile OTP verification (/add-phone → /verify-phone before account
+ * and checkout). Off for now — set to true to require it again. The pages, the
+ * send-phone-verification-code function and verify_phone_code stay in place.
+ */
+export const PHONE_VERIFICATION_REQUIRED = false;

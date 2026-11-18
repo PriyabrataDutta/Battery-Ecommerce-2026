@@ -77,7 +77,7 @@ export const SignUpForm = () => {
         <p className="font-semibold">Check your email</p>
         <p className="text-muted-foreground">
           We sent a confirmation link to <span className="font-medium text-ink">{values.email.trim().toLowerCase()}</span>.
-          Open it to activate your account, then sign in and verify your mobile number.
+          Open it to activate your account, then sign in.
         </p>
       </div>
     );

@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
+import { PHONE_VERIFICATION_REQUIRED } from "@/lib/phone";
 
 /**
  * Wraps customer-only routes (account, checkout). If the user is logged in
@@ -24,8 +25,8 @@ export const RequirePhoneVerified = () => {
   // Not signed in → let the page itself decide (Checkout/Account already redirect).
   if (!user) return <Outlet />;
 
-  // Staff bypass.
-  if (isStaff) return <Outlet />;
+  // Staff bypass; and everyone while mobile OTP verification is switched off.
+  if (isStaff || !PHONE_VERIFICATION_REQUIRED) return <Outlet />;
 
   const next = encodeURIComponent(location.pathname + location.search);
 

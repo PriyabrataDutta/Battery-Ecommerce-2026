@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { INVALID_MOBILE, normalizeIndianMobile } from "@/lib/phone";
+import { INVALID_MOBILE, PHONE_VERIFICATION_REQUIRED, normalizeIndianMobile } from "@/lib/phone";
 import { useMyProfile, useUpdateMyProfile } from "@/hooks/queries/useProfile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +34,7 @@ const AccountProfile = () => {
       { full_name: fullName, phone: normalised, company },
       {
         onSuccess: async () => {
-          if (!phoneChanged) return toast.success("Profile updated");
+          if (!phoneChanged || !PHONE_VERIFICATION_REQUIRED) return toast.success("Profile updated");
           // A new number must be verified again (the database clears phone_verified).
           await refreshPhoneState();
           toast.success("Profile updated — please verify your new number");

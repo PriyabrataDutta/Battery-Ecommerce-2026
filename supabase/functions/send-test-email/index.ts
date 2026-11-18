@@ -4,6 +4,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { sendEmail } from "../_shared/email.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -53,86 +54,24 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Get SMTP config from site_settings
-    const { data: smtpRow } = await supabase
-      .from("site_settings")
-      .select("value")
-      .eq("key", "smtp_config")
-      .maybeSingle();
-
-    const { data: pwRow } = await supabase
-      .from("private_settings")
-      .select("value")
-      .eq("key", "smtp_password")
-      .maybeSingle();
-
-    if (!smtpRow?.value) {
-      return new Response(JSON.stringify({ error: "SMTP not configured. Save settings first." }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const smtp = smtpRow.value as Record<string, unknown>;
-    const password = (pwRow?.value as string) ?? "";
-    const host = smtp.host as string;
-    const port = smtp.port as number;
-    const username = smtp.username as string;
-    const fromName = (smtp.from_name as string) || "Test";
-    const fromEmail = (smtp.from_email as string) || username;
-    const encryption = (smtp.encryption as string) || "tls";
-
-    if (!host || !username) {
-      return new Response(JSON.stringify({ error: "SMTP host and username are required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Use Deno's built-in SMTP via denopkg
-    // For simplicity, we use a raw SMTP connection approach
-    // In production, you'd use a proper SMTP library
-    const { SMTPClient } = await import("https://deno.land/x/denomailer@1.6.0/mod.ts");
-
-    const client = new SMTPClient({
-      connection: {
-        hostname: host,
-        port,
-        tls: encryption === "ssl",
-        auth: {
-          username,
-          password,
-        },
-      },
-    });
-
-    await client.send({
-      from: `${fromName} <${fromEmail}>`,
+    await sendEmail(supabase, {
       to,
-      subject: "✅ SMTP Test Email - Configuration Working",
-      content: "auto",
+      subject: "✅ Kachi Batteries — test email",
       html: `
         <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #16a34a;">✅ SMTP Configuration Working</h2>
-          <p>This is a test email from your admin settings.</p>
-          <p><strong>SMTP Host:</strong> ${host}</p>
-          <p><strong>Port:</strong> ${port}</p>
-          <p><strong>Encryption:</strong> ${encryption.toUpperCase()}</p>
-          <p style="color: #6b7280; font-size: 12px; margin-top: 20px;">
-            Sent at ${new Date().toISOString()}
-          </p>
+          <h2 style="color: #16a34a;">✅ Email is working</h2>
+          <p>This is a test email from your Kachi Batteries admin settings, sent via Resend.</p>
+          <p style="color: #6b7280; font-size: 12px; margin-top: 20px;">Sent at ${new Date().toISOString()}</p>
         </div>
       `,
     });
-
-    await client.close();
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("SMTP test error:", err);
-    return new Response(JSON.stringify({ error: err.message || "SMTP test failed" }), {
+    console.error("Test email error:", err);
+    return new Response(JSON.stringify({ error: err.message || "Test email failed" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

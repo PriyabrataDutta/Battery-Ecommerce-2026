@@ -4,6 +4,7 @@
 // without changing any callers, the database, or the frontend.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { sendEmail } from "../_shared/email.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -79,31 +80,22 @@ Deno.serve(async (req) => {
   const recipient = user.email;
   if (!recipient) return json({ error: "no_email_on_account" }, 400);
 
-  // Try to deliver via Lovable transactional email. If the function isn't
-  // deployed yet (i.e. email infra hasn't been set up), fall back gracefully.
   let delivery: "email" | "dev_log" = "email";
   let deliveryError: string | null = null;
 
   try {
-    const { error: invokeErr } = await admin.functions.invoke(
-      "send-transactional-email",
-      {
-        body: {
-          templateName: "phone-verification-code",
-          recipientEmail: recipient,
-          idempotencyKey: `pvc-${user.id}-${codeHash.slice(0, 12)}`,
-          templateData: {
-            name: profile.full_name ?? null,
-            code,
-            phone: profile.phone,
-          },
-        },
-      },
-    );
-    if (invokeErr) {
-      delivery = "dev_log";
-      deliveryError = invokeErr.message ?? "invoke_failed";
-    }
+    await sendEmail(admin, {
+      to: recipient,
+      subject: `Your Kachi Batteries verification code: ${code}`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 20px;">
+          <p>Hi${profile.full_name ? ` ${profile.full_name}` : ""},</p>
+          <p>Your code to verify ${profile.phone} is:</p>
+          <p style="font-size: 28px; font-weight: bold; letter-spacing: 6px;">${code}</p>
+          <p style="color: #6b7280; font-size: 12px;">It expires in 10 minutes. If you didn't ask for this, ignore this email.</p>
+        </div>
+      `,
+    });
   } catch (e) {
     delivery = "dev_log";
     deliveryError = e instanceof Error ? e.message : String(e);

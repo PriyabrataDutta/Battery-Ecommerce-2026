@@ -5,64 +5,37 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2, Save, Send, Mail } from "lucide-react";
 
-interface SmtpConfig {
-  host: string;
-  port: number;
-  username: string;
-  encryption: "tls" | "ssl" | "none";
+/** Sender identity for Resend. The API key is a Supabase function secret (RESEND_API_KEY). */
+interface EmailSettings {
   from_name: string;
   from_email: string;
-  password_set: boolean;
 }
 
-const DEFAULTS: SmtpConfig = {
-  host: "",
-  port: 587,
-  username: "",
-  encryption: "tls",
-  from_name: "",
-  from_email: "",
-  password_set: false,
-};
-
-const SETTING_KEY = "smtp_config";
+const DEFAULTS: EmailSettings = { from_name: "Kachi Batteries", from_email: "" };
+const SETTING_KEY = "email_settings";
 
 export function EmailSmtpTab() {
   const qc = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ["site-setting", SETTING_KEY],
-    queryFn: () => getSetting<SmtpConfig>(SETTING_KEY),
+    queryFn: () => getSetting<EmailSettings>(SETTING_KEY),
   });
 
-  const [form, setForm] = useState<SmtpConfig>(DEFAULTS);
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState<EmailSettings>(DEFAULTS);
   const [testEmail, setTestEmail] = useState("");
 
   useEffect(() => {
     if (data) setForm({ ...DEFAULTS, ...data });
   }, [data]);
 
-  const update = <K extends keyof SmtpConfig>(key: K, val: SmtpConfig[K]) =>
-    setForm((prev) => ({ ...prev, [key]: val }));
-
   const saveMut = useMutation({
-    mutationFn: async () => {
-      const toSave: SmtpConfig = { ...form, password_set: form.password_set || password.length > 0 };
-      // Password goes to private_settings (write-only, admin-only); never back to the browser.
-      if (password) {
-        const { error } = await supabase.rpc("admin_set_private_setting", { _key: "smtp_password", _value: password });
-        if (error) throw error;
-      }
-      await setSetting(SETTING_KEY, toSave);
-    },
+    mutationFn: () => setSetting(SETTING_KEY, form),
     onSuccess: () => {
-      toast.success("SMTP settings saved");
-      setPassword("");
+      toast.success("Email settings saved");
       qc.invalidateQueries({ queryKey: ["site-setting", SETTING_KEY] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -77,7 +50,7 @@ export function EmailSmtpTab() {
       if (result?.error) throw new Error(result.error);
       return result;
     },
-    onSuccess: () => toast.success("Test email sent successfully!"),
+    onSuccess: () => toast.success("Test email sent — check the inbox"),
     onError: (e: Error) => toast.error(`Test failed: ${e.message}`),
   });
 
@@ -86,67 +59,29 @@ export function EmailSmtpTab() {
   return (
     <div className="space-y-5">
       <div>
-        <h3 className="text-base font-semibold">Email / SMTP Configuration</h3>
-        <p className="text-sm text-muted-foreground">Configure SMTP server for sending transactional emails.</p>
+        <h3 className="text-base font-semibold">Email</h3>
+        <p className="text-sm text-muted-foreground">
+          Transactional emails are sent through Resend. The API key is stored as a Supabase secret, not here.
+        </p>
       </div>
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm flex items-center gap-2"><Mail className="h-4 w-4 text-primary" /> SMTP Server</CardTitle>
-          <CardDescription className="text-xs">Enter your SMTP provider details.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label className="text-xs">SMTP Host</Label>
-              <Input value={form.host} onChange={(e) => update("host", e.target.value)} placeholder="smtp.gmail.com" className="h-9 text-sm" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Port</Label>
-              <Input type="number" value={form.port} onChange={(e) => update("port", parseInt(e.target.value) || 587)} className="h-9 text-sm" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label className="text-xs">Username</Label>
-              <Input value={form.username} onChange={(e) => update("username", e.target.value)} placeholder="your@email.com" className="h-9 text-sm" />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Password {form.password_set && <span className="text-muted-foreground">(already set)</span>}</Label>
-              <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={form.password_set ? "••••••••" : "Enter password"} className="h-9 text-sm" />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <Label className="text-xs">Encryption</Label>
-            <Select value={form.encryption} onValueChange={(v) => update("encryption", v as SmtpConfig["encryption"])}>
-              <SelectTrigger className="h-9 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="tls">TLS (Port 587)</SelectItem>
-                <SelectItem value="ssl">SSL (Port 465)</SelectItem>
-                <SelectItem value="none">None (Port 25)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Sender Identity</CardTitle>
+          <CardTitle className="text-sm flex items-center gap-2"><Mail className="h-4 w-4 text-primary" /> Sender Identity</CardTitle>
+          <CardDescription className="text-xs">
+            The From address must be on a domain verified in Resend (e.g. orders@kachibatteries.com).
+            Leave it blank to use Resend's test sender, which only delivers to your Resend account's email.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label className="text-xs">From Name</Label>
-              <Input value={form.from_name} onChange={(e) => update("from_name", e.target.value)} placeholder="Kachi Batteries" className="h-9 text-sm" />
+              <Input value={form.from_name} onChange={(e) => setForm((p) => ({ ...p, from_name: e.target.value }))} placeholder="Kachi Batteries" className="h-9 text-sm" />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">From Email</Label>
-              <Input value={form.from_email} onChange={(e) => update("from_email", e.target.value)} placeholder="noreply@yourdomain.com" className="h-9 text-sm" />
+              <Input type="email" value={form.from_email} onChange={(e) => setForm((p) => ({ ...p, from_email: e.target.value.trim() }))} placeholder="orders@kachibatteries.com" className="h-9 text-sm" />
             </div>
           </div>
         </CardContent>
@@ -154,28 +89,24 @@ export function EmailSmtpTab() {
 
       <Button onClick={() => saveMut.mutate()} disabled={saveMut.isPending} className="w-full sm:w-auto">
         {saveMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-        Save SMTP Settings
+        Save Email Settings
       </Button>
 
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm flex items-center gap-2"><Send className="h-4 w-4 text-primary" /> Test Email</CardTitle>
-          <CardDescription className="text-xs">Send a test email to verify your SMTP configuration.</CardDescription>
+          <CardDescription className="text-xs">Send a test email to check delivery.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-2">
             <Input
               value={testEmail}
               onChange={(e) => setTestEmail(e.target.value)}
-              placeholder="test@example.com"
+              placeholder="you@example.com"
               className="h-9 text-sm flex-1"
               type="email"
             />
-            <Button
-              variant="outline"
-              onClick={() => testMut.mutate()}
-              disabled={testMut.isPending || !testEmail || !form.host}
-            >
+            <Button variant="outline" onClick={() => testMut.mutate()} disabled={testMut.isPending || !testEmail}>
               {testMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
               Send Test
             </Button>

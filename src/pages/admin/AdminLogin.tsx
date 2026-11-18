@@ -72,8 +72,9 @@ const AdminLogin = () => {
     }
     // Stage 2: Sign in (no pre-check — is_admin_email is locked down to prevent enumeration)
     console.info("[AdminLogin] stage: sign-in");
-    if (!captcha.ready) return fail("email-validation", "Please complete the security check.");
-    const { error: signInError } = await signIn(normalizedEmail, password, captcha.token);
+    const captchaToken = await captcha.getToken();
+    if (captcha.enabled && !captchaToken) return fail("email-validation", "Security check is still verifying — please wait a moment and try again.");
+    const { error: signInError } = await signIn(normalizedEmail, password, captchaToken);
     captcha.reset();
     if (signInError) {
       const lower = signInError.toLowerCase();
@@ -226,12 +227,14 @@ const AdminLogin = () => {
                 toast.error("Enter your admin email first, then click Forgot password.");
                 return;
               }
-              if (!captcha.ready) {
-                toast.error("Complete the security check first, then click Forgot password.");
+              setSubmitting(true);
+              const captchaToken = await captcha.getToken();
+              if (captcha.enabled && !captchaToken) {
+                setSubmitting(false);
+                toast.error("Security check is still verifying — please wait a moment and try again.");
                 return;
               }
-              setSubmitting(true);
-              const { error: resetError } = await resetPassword(target, captcha.token);
+              const { error: resetError } = await resetPassword(target, captchaToken);
               captcha.reset();
               setSubmitting(false);
               if (resetError) toast.error(resetError);

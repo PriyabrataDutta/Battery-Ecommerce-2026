@@ -38,16 +38,18 @@ export function SecurityTab() {
       toast.error("No signed-in account found");
       return;
     }
-    if (!captcha.ready) {
-      toast.error("Please complete the security check.");
+    setBusy(true);
+    const captchaToken = await captcha.getToken();
+    if (captcha.enabled && !captchaToken) {
+      setBusy(false);
+      toast.error("Security check is still verifying — please wait a moment and try again.");
       return;
     }
-    setBusy(true);
     // Re-authenticate before allowing a password change.
     const { error: reauthError } = await supabase.auth.signInWithPassword({
       email: user.email,
       password: current,
-      options: { captchaToken: captcha.token },
+      options: { captchaToken },
     });
     captcha.reset();
     if (reauthError) {

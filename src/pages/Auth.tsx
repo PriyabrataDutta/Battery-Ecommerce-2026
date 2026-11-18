@@ -49,9 +49,13 @@ const Auth = () => {
       toast.error(Object.values(parsed.error.flatten().fieldErrors).flat()[0] ?? "Invalid input");
       return;
     }
-    if (!captcha.ready) return toast.error("Please complete the security check.");
     setBusy(true);
-    const { error } = await signInWithIdentifier(parsed.data.identifier, parsed.data.password, captcha.token);
+    const captchaToken = await captcha.getToken();
+    if (captcha.enabled && !captchaToken) {
+      setBusy(false);
+      return toast.error("Security check is still verifying — please wait a moment and try again.");
+    }
+    const { error } = await signInWithIdentifier(parsed.data.identifier, parsed.data.password, captchaToken);
     captcha.reset();
 
     setBusy(false);
@@ -77,9 +81,13 @@ const Auth = () => {
       toast.error("Enter a valid email");
       return;
     }
-    if (!captcha.ready) return toast.error("Please complete the security check.");
     setBusy(true);
-    const { error } = await resetPassword(parsed.data.email, captcha.token);
+    const captchaToken = await captcha.getToken();
+    if (captcha.enabled && !captchaToken) {
+      setBusy(false);
+      return toast.error("Security check is still verifying — please wait a moment and try again.");
+    }
+    const { error } = await resetPassword(parsed.data.email, captchaToken);
     captcha.reset();
     setBusy(false);
     if (error) toast.error(error);

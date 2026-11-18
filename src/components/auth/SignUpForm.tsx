@@ -58,10 +58,13 @@ export const SignUpForm = () => {
     if (!ok) return;
     // Honeypot: real people never see this field; bots that fill it get a fake success.
     if (honeypot) return setDone(true);
-    if (!captcha.ready) return toast.error("Please complete the security check.");
-
     setBusy(true);
-    const { error } = await signUp(ok.email, ok.password, ok.fullName, ok.phone, captcha.token);
+    const captchaToken = await captcha.getToken();
+    if (captcha.enabled && !captchaToken) {
+      setBusy(false);
+      return toast.error("Security check is still verifying — please wait a moment and try again.");
+    }
+    const { error } = await signUp(ok.email, ok.password, ok.fullName, ok.phone, captchaToken);
     setBusy(false);
     captcha.reset();
     if (error) return toast.error(error);

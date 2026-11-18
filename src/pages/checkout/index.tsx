@@ -237,27 +237,44 @@ const Checkout = () => {
     return ok;
   };
 
+  /** Scroll to and focus the first invalid field after errors render. */
+  const focusFirstInvalid = () =>
+    setTimeout(() => {
+      const el = document.querySelector<HTMLElement>('[aria-invalid="true"]');
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      el?.focus({ preventScroll: true });
+    }, 60);
+
+  /** Validate one address field when the shopper leaves it. */
+  const validateAddressField = (k: keyof Address) => {
+    const { errors: errs } = validateAddress(address);
+    setErrors((e) => ({ ...e, [k]: errs[k] }));
+  };
+
   const goNext = () => {
     if (step === 0) {
       const ok = runAddressValidation();
-      if (!ok) return;
+      if (!ok) return focusFirstInvalid();
       setAddress(ok); // persist normalised values
     }
     if (step === 1) {
       const err = validateSchedule(deliveryDate, slot, delivery, address.notes);
-      if (err) {
-        setScheduleError(err);
-        toast.error(err);
-        const slotMeta = findSlot(slot);
-        if (slotMeta && slotMeta.notesMin > 0 && address.notes.trim().length < slotMeta.notesMin) {
-          setErrors((e) => ({
-            ...e,
-            notes: `"${slotMeta.label}" needs delivery notes (≥${slotMeta.notesMin} chars).`,
-          }));
-        }
-        return;
+      const slotMeta = findSlot(slot);
+      const notesShort = slotMeta && slotMeta.notesMin > 0 && address.notes.trim().length < slotMeta.notesMin;
+      const notesErr = notesShort
+        ? `Please add at least ${slotMeta!.notesMin} characters for "${slotMeta!.label}" (vehicle, parking spot, access details).`
+        : validateAddress(address).errors.notes;
+      setErrors((e) => ({ ...e, notes: notesErr }));
+      if (err || notesErr) {
+        setScheduleError(err && !notesShort ? err : "");
+        toast.error(notesErr ?? err);
+        return focusFirstInvalid();
       }
       setScheduleError("");
+    }
+    if (step === 2 && !availablePayments?.includes(payment)) {
+      toast.error("Please choose a payment method.");
+      return;
     }
     setStep((s) => Math.min(3, s + 1) as Step);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -419,7 +436,7 @@ const Checkout = () => {
               setAddress={setAddress}
               errors={errors}
               clearError={(k) => setErrors((e) => ({ ...e, [k]: undefined }))}
-              installationSelected={delivery === "installation"}
+              onBlurField={validateAddressField}
             />
           )}
           {step === 1 && (
@@ -440,7 +457,12 @@ const Checkout = () => {
                 }
                 setScheduleError("");
               }}
-              notesLength={address.notes.trim().length}
+              notes={address.notes}
+              setNotes={(v) => {
+                setAddress({ ...address, notes: v });
+                if (errors.notes) setErrors((e) => ({ ...e, notes: undefined }));
+              }}
+              notesError={errors.notes}
               deliveryDate={deliveryDate}
               setDeliveryDate={(d) => {
                 setDeliveryDate(d);

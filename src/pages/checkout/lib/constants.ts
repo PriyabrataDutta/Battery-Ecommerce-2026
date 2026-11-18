@@ -149,3 +149,13 @@ export const isDateDisabled = (date: Date, d: DeliveryId) => {
 /** localStorage key + TTL for the in-progress draft. */
 export const DRAFT_KEY = "kachi_checkout_draft_v1";
 export const DRAFT_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+/** States and union territories for the address form (exact names avoid typos). */
+export const INDIAN_STATES = [
+  "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chandigarh",
+  "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Goa", "Gujarat", "Haryana",
+  "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", "Karnataka", "Kerala", "Ladakh", "Lakshadweep",
+  "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry",
+  "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand",
+  "West Bengal",
+] as const;

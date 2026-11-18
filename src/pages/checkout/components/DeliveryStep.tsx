@@ -8,11 +8,13 @@
  *
  * Validation lives in ../lib/validation.ts (`validateSchedule`).
  */
-import { CalendarIcon, Clock, ShieldCheck, Truck } from "lucide-react";
+import { CalendarIcon, Clock, Truck } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Field } from "./Field";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
@@ -29,7 +31,9 @@ export const DeliveryStep = ({
   options,
   delivery,
   setDelivery,
-  notesLength,
+  notes,
+  setNotes,
+  notesError,
   deliveryDate,
   setDeliveryDate,
   slot,
@@ -39,7 +43,9 @@ export const DeliveryStep = ({
   options: DeliveryOption[];
   delivery: DeliveryId;
   setDelivery: (d: DeliveryId) => void;
-  notesLength: number;
+  notes: string;
+  setNotes: (v: string) => void;
+  notesError?: string;
   deliveryDate: Date | undefined;
   setDeliveryDate: (d: Date | undefined) => void;
   slot: SlotId | "";
@@ -49,10 +55,10 @@ export const DeliveryStep = ({
   const earliest = earliestDeliveryDate(delivery);
   const slots = slotsForDelivery(delivery);
   const selectedSlot = findSlot(slot);
-  const notesShortfall =
-    selectedSlot && selectedSlot.notesMin > 0
-      ? Math.max(0, selectedSlot.notesMin - notesLength)
-      : 0;
+  const notesLength = notes.trim().length;
+  const notesMin = selectedSlot?.notesMin ?? 0;
+  const notesShortfall = Math.max(0, notesMin - notesLength);
+  const installation = delivery === "installation";
 
   return (
     <div>
@@ -154,6 +160,7 @@ export const DeliveryStep = ({
             <RadioGroup
               value={slot}
               onValueChange={(v) => setSlot(v as SlotId)}
+              aria-invalid={!!scheduleError && !slot}
               className={cn(
                 "mt-1.5 grid gap-2",
                 delivery === "installation" ? "grid-cols-1" : "grid-cols-2",
@@ -197,31 +204,65 @@ export const DeliveryStep = ({
           </div>
         </div>
 
-        {/* Slot-driven notes status */}
-        {selectedSlot && selectedSlot.notesMin > 0 && (
-          <div
-            role={notesShortfall > 0 ? "alert" : undefined}
-            className={cn(
-              "mt-4 flex items-start gap-2 rounded-md border p-3 text-xs",
-              notesShortfall > 0
-                ? "border-amber-500/30 bg-amber-500/5 text-amber-700 dark:text-amber-400"
-                : "border-success/30 bg-success/5 text-success",
-            )}
+        {/* Notes sit next to the slot because the slot decides whether they're required. */}
+        <div className="mt-6">
+          <Field
+            label={installation ? "Installation notes" : "Delivery notes"}
+            required={notesMin > 0}
+            error={notesError}
+            help={
+              notesMin > 0
+                ? `Required for "${selectedSlot?.label}" — at least ${notesMin} characters.`
+                : installation
+                  ? "Pick a time slot above to see what's required. Helpful details speed up installation."
+                  : "Optional — anything that helps us deliver smoothly."
+            }
           >
-            <ShieldCheck className="h-4 w-4 shrink-0 mt-0.5" />
-            <div>
-              <div className="font-semibold">
-                {notesShortfall > 0
-                  ? `Add ${notesShortfall} more character${notesShortfall === 1 ? "" : "s"} to delivery notes`
-                  : "Delivery notes meet this slot's requirement"}
-              </div>
-              <div>
-                "{selectedSlot.label}" requires at least {selectedSlot.notesMin} characters of
-                notes (currently {notesLength}). Edit them in the Address step.
-              </div>
+            <Textarea
+              id="addr-notes"
+              rows={4}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              maxLength={500}
+              aria-invalid={!!notesError}
+              placeholder={
+                installation
+                  ? "e.g. Maruti Swift 2019 petrol, parked in basement B2 slot 14, gate code 4521, lift available, contact Ravi 98765 43210"
+                  : "e.g. Call 10 minutes before arriving, leave with the security guard if I'm not home"
+              }
+            />
+          </Field>
+          <div className="mt-1.5 flex flex-wrap items-start justify-between gap-2 text-xs">
+            <div className="text-muted-foreground">
+              {installation ? (
+                <>
+                  <span className="font-semibold text-ink">Please include:</span>
+                  <ul className="mt-1 list-disc pl-4 space-y-0.5">
+                    <li>Vehicle make, model and fuel type (e.g. Hyundai Creta diesel)</li>
+                    <li>Where the vehicle is parked (street, basement level, slot number)</li>
+                    <li>Building or gate access — gate code, intercom, lift</li>
+                    <li>Contact person at the location, if different from you</li>
+                  </ul>
+                </>
+              ) : (
+                <span>Examples: best time to call, gate/security instructions, floor and lift details.</span>
+              )}
+            </div>
+            <div
+              className={cn(
+                "shrink-0 font-semibold",
+                notesMin > 0 ? (notesShortfall > 0 ? "text-amber-700" : "text-success") : "text-muted-foreground",
+              )}
+              aria-live="polite"
+            >
+              {notesMin > 0
+                ? notesShortfall > 0
+                  ? `${notesLength} / ${notesMin} min — ${notesShortfall} more`
+                  : `${notesLength} characters ✓`
+                : `${notesLength} / 500`}
             </div>
           </div>
-        )}
+        </div>
 
         {scheduleError && (
           <p className="mt-3 text-xs text-destructive font-medium" role="alert">

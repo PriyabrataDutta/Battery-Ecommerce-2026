@@ -118,3 +118,21 @@ describe("prices exclude GST", () => {
   });
   it("shows paise in bill breakdowns", () => expect(formatINRExact(1372.88)).toBe("₹1,372.88"));
 });
+
+import { validateAddress, validateSchedule } from "@/pages/checkout/lib/validation";
+
+describe("checkout step validation", () => {
+  const empty = { fullName: "", phone: "", email: "", line1: "", line2: "", landmark: "", city: "", state: "", pincode: "", gstin: "", notes: "" };
+  it("an empty address can't continue and names every required field", () => {
+    const { ok, errors } = validateAddress(empty);
+    expect(ok).toBeNull();
+    expect(Object.keys(errors).sort()).toEqual(["city", "email", "fullName", "landmark", "line1", "phone", "pincode", "state"]);
+  });
+  it("installation slots need notes; standard slots don't", () => {
+    const d = new Date(); d.setDate(d.getDate() + 3); if (d.getDay() === 0) d.setDate(d.getDate() + 1);
+    expect(validateSchedule(d, "install_morning", "installation", "short")).toMatch(/needs delivery notes/);
+    expect(validateSchedule(d, "install_morning", "installation", "Swift 2019, basement B2")).toBe("");
+    expect(validateSchedule(d, "morning", "standard", "")).toBe("");
+    expect(validateSchedule(undefined, "morning", "standard", "")).toMatch(/pick a delivery date/);
+  });
+});

@@ -14,29 +14,63 @@ import NotFound from "./pages/NotFound";
 import { PostLogoutRedirect } from "./components/auth/PostLogoutRedirect";
 import { RequirePhoneVerified } from "./components/auth/RequirePhoneVerified";
 
-// Lazy-loaded routes — keeps the initial Shop/Home bundle small.
-const SearchResults = lazy(() => import("./pages/SearchResults"));
-const CategoryPage = lazy(() => import("./pages/CategoryPage"));
-const BrandPage = lazy(() => import("./pages/BrandPage"));
-const Brands = lazy(() => import("./pages/Brands"));
-const Checkout = lazy(() => import("./pages/checkout"));
-const OrderConfirmation = lazy(() => import("./pages/order-confirmation"));
-const Quote = lazy(() => import("./pages/Quote"));
-const Contact = lazy(() => import("./pages/Contact"));
-const About = lazy(() => import("./pages/AboutPage"));
-const JumpStart = lazy(() => import("./pages/SimplePages").then((m) => ({ default: m.JumpStart })));
-const Catalog = lazy(() => import("./pages/CatalogPage"));
-const BlogListing = lazy(() => import("./pages/BlogListing"));
-const BlogPost = lazy(() => import("./pages/BlogPost"));
-const Auth = lazy(() => import("./pages/Auth"));
-const AccountLayout = lazy(() => import("./pages/account/AccountLayout"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
-const VerifyPhone = lazy(() => import("./pages/VerifyPhone"));
-const AddPhone = lazy(() => import("./pages/AddPhone"));
+// Lazy-loaded routes — keeps the initial Shop/Home bundle small. Store pages
+// are pre-downloaded once the first page has loaded (see prefetchStorePages),
+// so menu clicks don't wait for a download.
+const storePages = {
+  SearchResults: () => import("./pages/SearchResults"),
+  CategoryPage: () => import("./pages/CategoryPage"),
+  BrandPage: () => import("./pages/BrandPage"),
+  Brands: () => import("./pages/Brands"),
+  Checkout: () => import("./pages/checkout"),
+  OrderConfirmation: () => import("./pages/order-confirmation"),
+  Quote: () => import("./pages/Quote"),
+  Contact: () => import("./pages/Contact"),
+  About: () => import("./pages/AboutPage"),
+  SimplePages: () => import("./pages/SimplePages"),
+  Catalog: () => import("./pages/CatalogPage"),
+  BlogListing: () => import("./pages/BlogListing"),
+  BlogPost: () => import("./pages/BlogPost"),
+  Auth: () => import("./pages/Auth"),
+  AccountLayout: () => import("./pages/account/AccountLayout"),
+  ResetPassword: () => import("./pages/ResetPassword"),
+  VerifyPhone: () => import("./pages/VerifyPhone"),
+  AddPhone: () => import("./pages/AddPhone"),
+};
+const SearchResults = lazy(storePages.SearchResults);
+const CategoryPage = lazy(storePages.CategoryPage);
+const BrandPage = lazy(storePages.BrandPage);
+const Brands = lazy(storePages.Brands);
+const Checkout = lazy(storePages.Checkout);
+const OrderConfirmation = lazy(storePages.OrderConfirmation);
+const Quote = lazy(storePages.Quote);
+const Contact = lazy(storePages.Contact);
+const About = lazy(storePages.About);
+const JumpStart = lazy(() => storePages.SimplePages().then((m) => ({ default: m.JumpStart })));
+const Catalog = lazy(storePages.Catalog);
+const BlogListing = lazy(storePages.BlogListing);
+const BlogPost = lazy(storePages.BlogPost);
+const Auth = lazy(storePages.Auth);
+const AccountLayout = lazy(storePages.AccountLayout);
+const ResetPassword = lazy(storePages.ResetPassword);
+const VerifyPhone = lazy(storePages.VerifyPhone);
+const AddPhone = lazy(storePages.AddPhone);
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 
-const queryClient = new QueryClient();
+/** Download the remaining store pages in the background when the browser is idle. */
+function prefetchStorePages() {
+  const run = () => Object.values(storePages).forEach((load) => load().catch(() => {}));
+  if ("requestIdleCallback" in window) window.requestIdleCallback(run, { timeout: 4000 });
+  else setTimeout(run, 2000);
+}
+if (typeof window !== "undefined") window.addEventListener("load", prefetchStorePages, { once: true });
+
+// Data stays fresh for a minute, so revisiting a page shows it instantly
+// instead of refetching (and showing loaders) on every navigation.
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { staleTime: 60_000, refetchOnWindowFocus: false } },
+});
 
 const PageLoader = () => (
   <div className="container-x py-20 text-center text-muted-foreground">Loading…</div>
@@ -48,7 +82,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route element={<StoreLayout />}>

@@ -50,3 +50,36 @@ export const saveDraft = (draft: Omit<CheckoutDraft, "savedAt">) => {
 export const clearDraft = () => {
   if (typeof window !== "undefined") localStorage.removeItem(DRAFT_KEY);
 };
+
+/**
+ * Idempotency key for "Place order". The same checkout attempt (same cart,
+ * address, delivery, promo, payment) reuses its key — also across a page
+ * reload — so a retry after a network error returns the order already
+ * created instead of placing a second one. Any change starts a new attempt.
+ */
+const ATTEMPT_KEY = "kachi_checkout_attempt";
+
+export function orderAttemptKey(attempt: unknown): string {
+  const sig = JSON.stringify(attempt);
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(ATTEMPT_KEY) || "null");
+    if (saved?.sig === sig && typeof saved.key === "string") return saved.key;
+  } catch {
+    /* fall through to a new key */
+  }
+  const key = crypto.randomUUID();
+  try {
+    sessionStorage.setItem(ATTEMPT_KEY, JSON.stringify({ sig, key }));
+  } catch {
+    /* private mode: key still protects in-page retries */
+  }
+  return key;
+}
+
+export function clearOrderAttempt() {
+  try {
+    sessionStorage.removeItem(ATTEMPT_KEY);
+  } catch {
+    /* ignore */
+  }
+}

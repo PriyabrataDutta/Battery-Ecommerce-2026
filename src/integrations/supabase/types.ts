@@ -670,6 +670,7 @@ export type Database = {
           delivery_method: string | null
           discount: number
           id: string
+          idempotency_key: string | null
           notes: string | null
           order_number: string | null
           paid_at: string | null
@@ -702,6 +703,7 @@ export type Database = {
           delivery_method?: string | null
           discount?: number
           id?: string
+          idempotency_key?: string | null
           notes?: string | null
           order_number?: string | null
           paid_at?: string | null
@@ -734,6 +736,7 @@ export type Database = {
           delivery_method?: string | null
           discount?: number
           id?: string
+          idempotency_key?: string | null
           notes?: string | null
           order_number?: string | null
           paid_at?: string | null
@@ -1344,6 +1347,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _order_result: { Args: { p_order_id: string }; Returns: Json }
       _price_order: {
         Args: { p_delivery: string; p_items: Json; p_promo: string }
         Returns: Json
@@ -1452,6 +1456,7 @@ export type Database = {
         Args: {
           p_address: Json
           p_delivery: string
+          p_idempotency_key?: string
           p_items: Json
           p_payment: string
           p_promo: string

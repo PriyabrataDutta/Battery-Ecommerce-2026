@@ -40,3 +40,19 @@ describe("checkout phone", () => {
     expect(addressSchema.safeParse({ ...base, phone: "98765" }).success).toBe(false);
   });
 });
+
+import { orderAttemptKey, clearOrderAttempt } from "@/pages/checkout/lib/draft";
+
+describe("order attempt key (idempotency)", () => {
+  const attempt = { items: [{ product_id: "p1", qty: 2 }], delivery: "standard", payment: "cod" };
+  it("reuses the key for a retry of the same attempt", () => {
+    clearOrderAttempt();
+    expect(orderAttemptKey(attempt)).toBe(orderAttemptKey({ ...attempt }));
+  });
+  it("starts a new key when anything changes or after success", () => {
+    const k = orderAttemptKey(attempt);
+    expect(orderAttemptKey({ ...attempt, delivery: "express" })).not.toBe(k);
+    clearOrderAttempt();
+    expect(orderAttemptKey(attempt)).not.toBe(k);
+  });
+});

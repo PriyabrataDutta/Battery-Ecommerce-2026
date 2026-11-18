@@ -62,6 +62,8 @@ export interface PlaceOrderInput {
   slot: string;
   slotLabel: string;
   slotWindow: string;
+  /** Same key for a retried attempt → the server returns the existing order. */
+  idempotencyKey: string;
 }
 
 /** Prices, reserves stock and writes the order + items in one transaction. */
@@ -76,6 +78,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlacedOrder> {
     p_slot: input.slot,
     p_slot_label: input.slotLabel,
     p_slot_window: input.slotWindow,
+    p_idempotency_key: input.idempotencyKey,
   });
   if (error) throw error;
   return data as unknown as PlacedOrder;

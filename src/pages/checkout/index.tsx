@@ -60,7 +60,7 @@ import {
   slotsForDelivery,
 } from "./lib/constants";
 import { validateAddress, validateSchedule } from "./lib/validation";
-import { clearDraft, loadDraft, saveDraft } from "./lib/draft";
+import { clearDraft, clearOrderAttempt, loadDraft, orderAttemptKey, saveDraft } from "./lib/draft";
 import type {
   Address,
   AddressErrors,
@@ -286,19 +286,20 @@ const Checkout = () => {
     const slotMeta = findSlot(slot)!;
     const paymentMeta = PAYMENT_OPTIONS.find((p) => p.id === payment)!;
 
+    const request = {
+      items: cartLines,
+      delivery,
+      promo: promoCode,
+      payment,
+      address: JSON.parse(JSON.stringify(ok)),
+      scheduledDate: format(deliveryDate!, "yyyy-MM-dd"),
+      slot,
+      slotLabel: slotMeta.label,
+      slotWindow: slotMeta.window,
+    };
     let placed;
     try {
-      placed = await placeOrderMutation.mutateAsync({
-        items: cartLines,
-        delivery,
-        promo: promoCode,
-        payment,
-        address: JSON.parse(JSON.stringify(ok)),
-        scheduledDate: format(deliveryDate!, "yyyy-MM-dd"),
-        slot,
-        slotLabel: slotMeta.label,
-        slotWindow: slotMeta.window,
-      });
+      placed = await placeOrderMutation.mutateAsync({ ...request, idempotencyKey: orderAttemptKey(request) });
     } catch (err) {
       setSubmitting(false);
       const message =
@@ -345,6 +346,7 @@ const Checkout = () => {
     sessionStorage.setItem("kachi_last_order", JSON.stringify(order));
     clear();
     clearDraft();
+    clearOrderAttempt();
     const confirmationUrl = `/order-confirmation?order=${encodeURIComponent(placed.order_number)}`;
 
     if (payment === "online") {

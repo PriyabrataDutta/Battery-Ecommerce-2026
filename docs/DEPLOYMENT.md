@@ -11,22 +11,10 @@ Roles live in the `user_roles` table (`admin`, `staff`, `customer`). Never store
 The `handle_new_user` trigger links any sign-up whose email exists in `admin_profiles`.
 
 ### Option 1 — Lovable Cloud (this project)
-1. Open **Cloud → Database → SQL editor** (or ask the Lovable agent to run it).
-2. Pre-register the email:
-   ```sql
-   insert into public.admin_profiles (id, email, full_name, is_active)
-   values (gen_random_uuid(), 'owner@example.com', 'Owner Name', true)
-   on conflict do nothing;
-   ```
-3. Go to `/auth` (or `/admin/login`) and sign up / reset password with that email. Confirm the email.
-4. Promote to admin:
-   ```sql
-   delete from public.user_roles
-    where user_id = (select id from auth.users where lower(email)=lower('owner@example.com'));
-   insert into public.user_roles (user_id, role)
-   select id, 'admin' from auth.users where lower(email)=lower('owner@example.com');
-   ```
-5. Sign in at `/admin/login`. Admins automatically have every permission.
+If this project already has a Super Admin, add more people through **Admin → Team → Invite**.
+For a first Super Admin on a separately purchased Supabase project, follow section C8;
+do not create an `admin_profiles` row with a random ID. That table's ID must match an
+existing authentication user.
 
 ### Option 2 — Your own Supabase account
 Use this once you have a Supabase project you bought yourself. The full
@@ -80,17 +68,19 @@ settings are rebuilt once on the new project.
 
 ### C2. Install the CLI and link the project
 
+From the app repository folder, replace `YOUR_PROJECT_REF` with the new project's
+reference (shown in its project URL):
+
 ```bash
-npm install -g supabase
-supabase login                      # browser sign-in to your new account
-cd <project-folder>
-supabase link --project-ref <new-ref>
+npm install --global supabase
+supabase login
+supabase link --project-ref YOUR_PROJECT_REF
 ```
 
 Then make `supabase/config.toml` match the new project:
 
 ```toml
-project_id = "<new-ref>"
+project_id = "YOUR_PROJECT_REF"
 
 [functions.client-ip]
 verify_jwt = false
@@ -120,14 +110,17 @@ three as host env vars (Vercel/Netlify) or bake them in before `npm run build`.
 > backend. The new Supabase account is what your own build and host use. When you
 > cut over for good, keep the code in Git and stop using Lovable Cloud.
 
-### C4. Push the schema
+### C4. Push the schema and security rules
 
 ```bash
-supabase db push        # applies all 29 files in supabase/migrations, in order
+supabase db push        # applies all 30 files in supabase/migrations, in order
 ```
 
-This creates every table, enum, RLS policy, trigger and database function exactly
-as the app expects. Confirm nothing was skipped:
+This applies the schema, roles, database functions, triggers, and security policies.
+The last migration also limits public settings and GST reads, hides media-library
+metadata, and restricts quote-file uploads. The same policy update was applied to
+Lovable Cloud from `drizzle/migrations/`; for the separately purchased project,
+`supabase/migrations/` is the deployable copy. Confirm nothing was skipped:
 
 ```sql
 select count(*) from information_schema.tables
@@ -145,19 +138,9 @@ select proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
 
 ### C5. Storage buckets
 
-Migrations already create **media** (public), **review-images** (public) and
-**return-images** (private). Create the remaining five — **Storage → New bucket**
-in the dashboard, or run this in the SQL editor:
-
-```sql
-insert into storage.buckets (id, name, public) values
-  ('blog',           'blog',           true),
-  ('brand-logos',    'brand-logos',    true),
-  ('catalogs',       'catalogs',       true),
-  ('product-images', 'product-images', true),
-  ('quote-uploads',  'quote-uploads',  false)
-on conflict (id) do nothing;
-```
+All eight required buckets are created by the migrations. After `supabase db push`,
+open **Storage → Buckets** and confirm the names and visibility below; do not create
+duplicates.
 
 | Bucket | Public | Used for |
 | ------ | ------ | -------- |
@@ -202,27 +185,38 @@ supabase secrets set \
 2. **Authentication → URL Configuration**:
    - Site URL: `https://yourdomain.com`
    - Redirect URLs: `https://yourdomain.com/**` and `http://localhost:8080/**`
-3. **SMTP** for reset-password and confirmation emails: either Authentication →
-   SMTP in the dashboard, or Admin → Settings → Email/SMTP in the app, which
-   writes `smtp_config` and `smtp_password` into `site_settings` for the
-   `send-test-email` function to read. Either way you need real SMTP credentials
-   (Gmail app password, Resend, SES, etc.).
-4. **Phone verification**: codes are hashed into `phone_verification_codes` and
-   checked by `verify_phone_code`, but `send-phone-verification-code` has no SMS
-   provider wired in yet — add your provider there before launch.
+3. Configure **Authentication SMTP** for confirmation and password-reset emails.
+   The app's **Admin → Settings → Email/SMTP** stores separate settings used by its
+   test-email function; it does not configure Authentication SMTP automatically.
+   Use your own email provider credentials and never put a secret key in the app's
+   public environment variables.
+4. **Phone verification**: the code is stored hashed and checked by
+   `verify_phone_code`. The included sender tries to call `send-transactional-email`,
+   which is not one of the six functions in this repository. Configure/deploy a
+   compatible email function (or connect an SMS provider) and test delivery before
+   relying on phone verification in production.
 5. **Google sign-in** is not wired up. If you want it, add the Google provider in
    the dashboard and a `signInWithOAuth` call in `src/pages/Auth.tsx`.
 
 ### C8. Create the first super admin
 
-"Super admin" in this app is one row: a `user_roles` record with `role = 'admin'`.
-Admins see every tab in the admin panel and skip the per-tab permission checks, and
-the sidebar labels them **Super Admin**. There is no bootstrap shortcut — the in-app
-**Invite** button and the `admin_create_admin_profile` database function both insist
-the caller is *already* an admin — so the very first one has to be made from the
-Supabase dashboard or the SQL editor.
+#### How this app's roles work
 
-Run the steps in order: create the login (C8.1), then register and promote it (C8.3).
+The migrations already create the role system; do not create a second role table
+or add a role column to profiles. `public.user_roles` keeps roles separate from
+profile data and supports `admin`, `staff`, and `customer`:
+
+- `admin` is the app's Super Admin role. Admins can access all admin areas and
+  manage team access.
+- `staff` is for team members. Their access is controlled by rows in
+  `public.staff_permissions`; saved permission templates are in
+  `public.permission_presets`.
+- `customer` is assigned to ordinary customer accounts.
+
+The first Super Admin must be promoted once from the new project's SQL Editor,
+because the in-app team invitation and admin-provisioning function require an
+existing admin. Use the dashboard to create the account first, then run the SQL in
+C8.3.
 
 #### C8.1 Create the login
 
@@ -240,21 +234,9 @@ Run the steps in order: create the login (C8.1), then register and promote it (C
 2. Click the link in the confirmation email.
 
 Path B needs the Email provider switched on (C7) and a working mailer, and it gives
-you a *customer* profile plus the `customer` role — so if you take this path, run the
-cleanup step in C8.3 as well.
-
-**Optional — let the trigger do the role work.** If you insert the email into
-`admin_profiles` *before* the account exists, the `handle_new_user` trigger moves that
-row onto your real user id at sign-up and grants `staff`:
-
-```sql
-insert into public.admin_profiles (id, email, full_name, is_active)
-values (gen_random_uuid(), 'you@example.com', 'Priyabrata Dutta', true);
-```
-
-You still have to promote it to `admin` afterwards. This trick only works before the
-account exists — once the user is there, `admin_profiles.id` must be the real
-`auth.users.id` (it is a primary key and a foreign key), never a random uuid.
+you a *customer* profile plus the `customer` role. C8.3 replaces that role and removes
+the customer profile. Use Path A if possible; it avoids depending on confirmation
+email delivery during initial setup.
 
 #### C8.2 Where to run the SQL
 
@@ -265,42 +247,48 @@ this — don't try to run it from the site's console.
 
 #### C8.3 Register and promote (run once, after the login exists)
 
-Replace `you@example.com` and the name, then run it as one block:
+Replace the email and name, then run this entire block once in the new project's SQL
+Editor. It checks that the login exists before changing anything, so a typo will
+produce a clear error instead of silently leaving you without access.
 
 ```sql
-begin;
+do $$
+declare
+  v_email text := lower('you@example.com');
+  v_user_id uuid;
+begin
+  select id into v_user_id
+    from auth.users
+   where lower(email) = v_email;
 
--- 1. admin profile row, keyed to the real auth.users id
-insert into public.admin_profiles (id, email, full_name, is_active)
-select u.id, u.email::text, 'Priyabrata Dutta', true
-  from auth.users u
- where lower(u.email) = 'you@example.com'
-on conflict (id) do update
-   set email     = excluded.email,
-       full_name = coalesce(excluded.full_name, public.admin_profiles.full_name),
-       is_active = true;
+  if v_user_id is null then
+    raise exception 'No login found for %. Create the user first, then run this block again.', v_email;
+  end if;
 
--- 2. exactly one role: admin
-delete from public.user_roles
- where user_id = (select id from auth.users where lower(email) = 'you@example.com');
+  -- Create or refresh the staff profile using the real authentication user ID.
+  insert into public.admin_profiles (id, email, full_name, is_active)
+  select id, email::text, 'Your Name', true
+    from auth.users
+   where id = v_user_id
+  on conflict (id) do update
+     set email = excluded.email,
+         full_name = excluded.full_name,
+         is_active = true;
 
-insert into public.user_roles (user_id, role)
-select id, 'admin'::public.app_role
-  from auth.users
- where lower(email) = 'you@example.com';
+  -- Replace the trigger-created customer role (if any) with the Super Admin role.
+  delete from public.user_roles where user_id = v_user_id;
+  insert into public.user_roles (user_id, role)
+  values (v_user_id, 'admin'::public.app_role);
 
--- 3. only if you signed up before being registered: drop the customer profile row
-delete from public.profiles
- where id = (select id from auth.users where lower(email) = 'you@example.com');
-
-commit;
+  -- Keep team accounts out of the separate customer-profile list.
+  delete from public.profiles where id = v_user_id;
+end $$;
 ```
 
-Why each part: `admin_profiles` is what the Team and permissions screens read, and
-`is_active = true` is what the staff checks look for; `user_roles` is the only thing
-that actually opens the admin panel; and step 3 stops you appearing in your own
-customer list. `user_roles` has a `unique (user_id, role)` constraint, so
-delete-then-insert is the safe way to change a role.
+Use the same email address you created in C8.1. Replace `'Your Name'` with your
+name. `admin_profiles.id` must match the existing `auth.users.id` because it is a
+foreign key; do not use `gen_random_uuid()` here. The signup trigger may create a
+customer profile and role automatically, which this block safely replaces.
 
 #### C8.4 Verify
 
@@ -383,7 +371,7 @@ their password on the new site or sign up again.
 - [ ] `/` loads, images show, search returns results
 - [ ] Shop filters and pagination work, brand counts look right
 - [ ] Add to cart → `/checkout` → GST per line item → order appears in Admin → Orders
-- [ ] Sign up → phone code arrives → `/account` opens
+- [ ] Sign up and confirm email → `/account` opens; phone verification works after an SMS provider is configured (C7)
 - [ ] `/admin/login` as superadmin sees every tab; a staff account sees only what you granted
 - [ ] Review with photo upload; return request with photo upload
 - [ ] Admin → Settings → Email/SMTP → send test email succeeds

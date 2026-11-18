@@ -19,6 +19,7 @@ export const ALL_PERMISSIONS = [
   "users.manage",
   "settings.manage",
   "audit_log.view",
+  "system.view",
 ] as const;
 
 export type PermissionKey = (typeof ALL_PERMISSIONS)[number];
@@ -39,15 +40,16 @@ export const PERMISSION_LABELS: Record<PermissionKey, string> = {
   "users.manage": "Manage Team",
   "settings.manage": "Manage Settings",
   "audit_log.view": "View Audit Log",
+  "system.view": "View System Log (performance & DB status)",
 };
 
 /** Group permissions for the editor UI */
 export const PERMISSION_GROUPS = [
   { label: "Overview", keys: ["dashboard.view"] as PermissionKey[] },
-  { label: "E-Commerce", keys: ["orders.manage", "quotes.manage", "messages.manage", "customers.view"] as PermissionKey[] },
+  { label: "E-Commerce", keys: ["orders.manage", "quotes.manage", "messages.manage", "customers.view", "reviews.manage", "returns.manage"] as PermissionKey[] },
   { label: "Product Catalog", keys: ["products.manage", "brands.manage", "categories.manage", "fitment.manage"] as PermissionKey[] },
   { label: "Content & Media", keys: ["media.manage"] as PermissionKey[] },
-  { label: "Administration", keys: ["users.manage", "settings.manage", "audit_log.view"] as PermissionKey[] },
+  { label: "Administration", keys: ["users.manage", "settings.manage", "audit_log.view", "system.view"] as PermissionKey[] },
 ];
 
 async function fetchMyPermissions(): Promise<Set<PermissionKey>> {

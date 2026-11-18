@@ -15,6 +15,7 @@ import {
   ImageIcon,
   Star,
   RotateCcw,
+  ServerCog,
 } from "lucide-react";
 import type { AdminTab } from "@/stores/dashboardTabs";
 import type { PermissionKey } from "@/hooks/usePermissions";
@@ -173,6 +174,15 @@ export const ADMIN_TAB_DEFS: AdminTabDef[] = [
     section: "admin",
     requiredPermission: "audit_log.view",
     component: lazy(() => import("@/pages/admin/AuditLog")),
+  },
+  {
+    id: "system-log",
+    title: "System Log",
+    sidebarLabel: "System Log",
+    icon: ServerCog,
+    section: "admin",
+    requiredPermission: "system.view",
+    component: lazy(() => import("@/pages/admin/system-log")),
   },
 ];
 

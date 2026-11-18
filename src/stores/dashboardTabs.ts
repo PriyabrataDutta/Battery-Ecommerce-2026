@@ -52,6 +52,7 @@ export const ADMIN_TABS = [
   "quotes",
   "messages",
   "audit-log",
+  "system-log",
 ] as const;
 export type AdminTab = (typeof ADMIN_TABS)[number];
 export const isAdminTab = (v: unknown): v is AdminTab =>

@@ -1439,6 +1439,7 @@ export type Database = {
           total_bytes: number
         }[]
       }
+      admin_system_status: { Args: never; Returns: Json }
       available_payment_methods: { Args: never; Returns: Json }
       car_brand_product_counts: {
         Args: { in_stock_only?: boolean }

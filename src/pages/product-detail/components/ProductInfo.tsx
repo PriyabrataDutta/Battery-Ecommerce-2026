@@ -187,7 +187,7 @@ export const ProductInfo = ({
           <div className="flex items-center justify-between">
             <div>
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {withExchange ? "Total (with exchange)" : "Total"}
+                {withExchange ? "Total (with exchange, excl. GST)" : "Total (excl. GST)"}
               </span>
               <span className="text-xs text-muted-foreground ml-2">
                 {qty > 1 ? `${qty} × ${formatINR(withExchange ? withExchangePrice : withoutExchangePrice)}` : ""}

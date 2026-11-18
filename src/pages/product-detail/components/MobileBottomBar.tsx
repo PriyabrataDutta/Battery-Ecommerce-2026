@@ -22,7 +22,7 @@ export const MobileBottomBar = ({
   <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-line shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.1)] px-3 py-2 flex items-center gap-2">
     <div className="flex-1 min-w-0">
       <div className="text-[10px] uppercase tracking-wider text-muted-foreground leading-none">
-        {withExchange ? "With exchange" : "Total"}
+        {withExchange ? "With exchange · + GST" : "Price · + GST"}
       </div>
       <div className="font-display text-lg font-bold text-ink truncate">
         {formatINR(lineTotal)}

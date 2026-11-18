@@ -2,7 +2,8 @@ import { Link } from "react-router-dom";
 import { useCart, useCartSync, lineKey, lineUnitPrice, hasExchangeOption, maxQty } from "@/hooks/useCart";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { formatINR, formatINRExact } from "@/lib/format";
+import { formatINR } from "@/lib/format";
+import { PriceBreakup } from "@/components/PriceBreakup";
 import { Trash2, Minus, Plus, ArrowLeftRight } from "lucide-react";
 
 const Cart = () => {
@@ -84,14 +85,7 @@ const Cart = () => {
           </div>
           <aside className="bg-white border border-line p-6 h-fit sticky top-32">
             <h2 className="font-display font-bold text-lg uppercase tracking-wide">Order Summary</h2>
-            <div className="mt-4 space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal (excl. GST)</span><span className="font-semibold">{formatINR(subtotal)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">GST (18%)</span><span className="font-semibold">{formatINRExact(gst)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Delivery</span><span className="text-muted-foreground">Chosen at checkout</span></div>
-            </div>
-            <div className="border-t border-line mt-4 pt-4 flex justify-between font-display font-bold text-xl">
-              <span>Total (incl. GST)</span><span>{formatINRExact(total)}</span>
-            </div>
+            <PriceBreakup className="mt-4" subtotal={subtotal} gst={gst} delivery="Chosen at checkout" total={total} />
             <p className="mt-1 text-xs text-muted-foreground">
               Standard delivery is free; express ₹299, installation ₹499 — chosen at checkout.
             </p>

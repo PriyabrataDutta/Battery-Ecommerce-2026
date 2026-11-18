@@ -39,6 +39,7 @@ import { lineUnitPrice, useCart, useCartSync } from "@/hooks/useCart";
 import { useDefaultAddress } from "@/hooks/queries/useAddresses";
 import { useOrderQuote, usePlaceOrder } from "@/hooks/queries/useOrders";
 import { useShippingSettings } from "@/hooks/useShippingSettings";
+import { groupTaxed } from "@/lib/gst";
 import { quoteOrder } from "@/api/orders";
 import { getPaymentMethods } from "@/api/payments";
 import { payOnline } from "@/lib/cashfree";
@@ -181,6 +182,7 @@ const Checkout = () => {
     total: quote?.total ?? 0,
   };
   const { total } = totals;
+  const gstGroups = quote ? groupTaxed(quote.lines.map((l) => ({ rate: Number(l.gst_rate), tax: Number(l.tax) }))) : undefined;
   const appliedPromo: Promo | null = quote?.promo ?? null;
 
   // A promo can stop qualifying after cart edits — drop it and say why.
@@ -340,6 +342,7 @@ const Checkout = () => {
         promo: placed.promo,
         tax: placed.tax,
         shipping: placed.shipping,
+        gst: groupTaxed(placed.lines.map((l) => ({ rate: Number(l.gst_rate), tax: Number(l.tax) }))),
         total: placed.total,
       },
     };
@@ -503,6 +506,7 @@ const Checkout = () => {
           totals={totals}
           deliveryOption={deliveryOption}
           appliedPromo={appliedPromo}
+          gst={gstGroups}
           quoteError={quoteError instanceof Error ? quoteError.message : null}
           promoInput={promoInput}
           setPromoInput={setPromoInput}

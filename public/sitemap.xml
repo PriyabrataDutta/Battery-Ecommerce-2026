@@ -101,42 +101,37 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.kachibatteries.com/product/power-zone-pzdin45-automotive-battery</loc>
+    <loc>https://www.kachibatteries.com/product/amaron-bh45d20l-automotive-battery</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.kachibatteries.com/product/power-zone-pz90d23lb-automotive-battery</loc>
+    <loc>https://www.kachibatteries.com/product/amaron-95d26r-automotive-battery</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.kachibatteries.com/product/power-zone-din80-automotive-battery</loc>
+    <loc>https://www.kachibatteries.com/product/amaron-95d26l-automotive-battery</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.kachibatteries.com/product/power-zone-din66-automotive-battery</loc>
+    <loc>https://www.kachibatteries.com/product/exide-din50r-automotive-battery</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.kachibatteries.com/product/power-zone-din65-automotive-battery</loc>
+    <loc>https://www.kachibatteries.com/product/amaron-85d23r-automotive-battery</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.kachibatteries.com/product/power-zone-din50r-automotive-battery</loc>
+    <loc>https://www.kachibatteries.com/product/amaron-80d23l-automotive-battery</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.kachibatteries.com/product/power-zone-din50l-automotive-battery</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.kachibatteries.com/product/power-zone-din100-automotive-battery</loc>
+    <loc>https://www.kachibatteries.com/product/amaron-55b24ls-automotive-battery</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -226,46 +221,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.kachibatteries.com/product/amaron-50b24l-automotive-battery</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.kachibatteries.com/product/amaron-40b20r-automotive-battery</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.kachibatteries.com/product/amaron-40b20l-automotive-battery</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.kachibatteries.com/product/amaron-38b20r-automotive-battery</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.kachibatteries.com/product/amaron-38b20l-automotive-battery</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.kachibatteries.com/product/amaron-105d31r-automotive-battery</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.kachibatteries.com/product/amaron-105d31l-automotive-battery</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.kachibatteries.com/product/exide-mldin44lh-automotive-battery</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://www.kachibatteries.com/product/exide-ml75d23lbh-automotive-battery</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -351,7 +306,87 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.kachibatteries.com/product/power-zone-pzdin45-automotive-battery</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.kachibatteries.com/product/power-zone-pz90d23lb-automotive-battery</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.kachibatteries.com/product/power-zone-din80-automotive-battery</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.kachibatteries.com/product/power-zone-din66-automotive-battery</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.kachibatteries.com/product/power-zone-din65-automotive-battery</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.kachibatteries.com/product/power-zone-din50r-automotive-battery</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.kachibatteries.com/product/power-zone-din50l-automotive-battery</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.kachibatteries.com/product/power-zone-din100-automotive-battery</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.kachibatteries.com/product/exide-38b20r-automotive-battery</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.kachibatteries.com/product/amaron-50b24l-automotive-battery</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.kachibatteries.com/product/amaron-40b20r-automotive-battery</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.kachibatteries.com/product/amaron-40b20l-automotive-battery</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.kachibatteries.com/product/amaron-38b20r-automotive-battery</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.kachibatteries.com/product/amaron-38b20l-automotive-battery</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.kachibatteries.com/product/amaron-105d31r-automotive-battery</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.kachibatteries.com/product/amaron-105d31l-automotive-battery</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.kachibatteries.com/product/exide-mldin44lh-automotive-battery</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -427,41 +462,6 @@
   </url>
   <url>
     <loc>https://www.kachibatteries.com/product/amaron-bh90d23l-automotive-battery</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.kachibatteries.com/product/amaron-bh45d20l-automotive-battery</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.kachibatteries.com/product/amaron-95d26r-automotive-battery</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.kachibatteries.com/product/amaron-95d26l-automotive-battery</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.kachibatteries.com/product/exide-din50r-automotive-battery</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.kachibatteries.com/product/amaron-85d23r-automotive-battery</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.kachibatteries.com/product/amaron-80d23l-automotive-battery</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.kachibatteries.com/product/amaron-55b24ls-automotive-battery</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

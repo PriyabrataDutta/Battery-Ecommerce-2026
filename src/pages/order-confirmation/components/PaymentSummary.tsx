@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Tag } from "lucide-react";
-import { formatINR, formatINRExact } from "@/lib/format";
+import { formatINR } from "@/lib/format";
+import { PriceBreakup } from "@/components/PriceBreakup";
 import type { SavedOrder } from "../lib/types";
 
 /**
@@ -33,33 +34,16 @@ export function PaymentSummary({
         <PromoCallout promo={totals.promo} discount={totals.discount!} subtotal={totals.subtotal} />
       ) : null}
 
-      <div className="border-t border-line mt-4 pt-4 space-y-2 text-sm">
-        <Row label="Subtotal (excl. GST)" value={formatINRExact(totals.subtotal)} />
-        {hasDiscount && (
-          <>
-            <Row
-              label={`Discount${totals.promo ? ` (${totals.promo.code})` : ""}`}
-              value={`−${formatINRExact(totals.discount!)}`}
-              tone="success"
-            />
-            <Row
-              label="Taxable amount"
-              value={formatINRExact(totals.subtotal - totals.discount!)}
-            />
-          </>
-        )}
-        <Row label="GST (18%)" value={formatINRExact(totals.tax)} />
-        <Row
-          label="Shipping"
-          value={totals.shipping === 0 ? "FREE" : formatINRExact(totals.shipping)}
-          tone={totals.shipping === 0 ? "success" : undefined}
-        />
-      </div>
-
-      <div className="border-t border-line mt-4 pt-4 flex justify-between font-display font-bold text-xl">
-        <span>Amount payable</span>
-        <span>{formatINRExact(totals.total)}</span>
-      </div>
+      <PriceBreakup
+        className="border-t border-line mt-4 pt-4"
+        subtotal={totals.subtotal}
+        discount={totals.discount ?? 0}
+        discountLabel={`Discount${totals.promo ? ` (${totals.promo.code})` : ""}`}
+        gst={totals.gst ?? [{ rate: NaN, amount: totals.tax }]}
+        delivery={totals.shipping}
+        total={totals.total}
+        totalLabel="Amount payable"
+      />
 
       <p className="text-[11px] text-muted-foreground mt-4">
         Need help? Reach us at{" "}

@@ -23,14 +23,6 @@ export function formatINRExact(amount: number): string {
   return inrExact.format(amount);
 }
 
-/** Store prices exclude GST; GST (default 18%) is added in the cart and at checkout. */
-export const DEFAULT_GST_RATE = 18;
-const toPaise = (n: number) => Math.round(n * 100) / 100;
-/** GST on a pre-GST amount, rounded to paise — same as the server (_price_order). */
-export const gstOn = (amount: number, ratePct = DEFAULT_GST_RATE) => toPaise((amount * ratePct) / 100);
-/** Pre-GST amount + GST, exact to the paisa (no rounding to the rupee). */
-export const withGst = (amount: number, ratePct = DEFAULT_GST_RATE) => toPaise(amount + gstOn(amount, ratePct));
-
 export function discountPct(price: number, mrp: number | null): number | null {
   if (!mrp || mrp <= price) return null;
   return Math.round(((mrp - price) / mrp) * 100);

@@ -106,6 +106,7 @@ export interface CartProductRow {
   price_without_exchange: number;
   has_exchange: boolean;
   stock: number;
+  gst_rate_id: string | null;
 }
 
 /** Current price/stock for cart lines. Missing ids = removed or no longer active. */
@@ -113,7 +114,7 @@ export async function getCartProducts(ids: string[]): Promise<CartProductRow[]> 
   if (ids.length === 0) return [];
   const { data, error } = await supabase
     .from("products")
-    .select("id, name, price, price_with_exchange, price_without_exchange, has_exchange, stock")
+    .select("id, name, price, price_with_exchange, price_without_exchange, has_exchange, stock, gst_rate_id")
     .in("id", ids)
     .eq("status", "active");
   if (error) throw error;

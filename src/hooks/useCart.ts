@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { CartItem } from "@/types/catalog";
-import { gstOn } from "@/lib/format";
+import { groupGst, useGstRateOf } from "@/lib/gst";
 import { getCartProducts } from "@/api/products";
 
 const KEY = "kachi_cart";
@@ -58,6 +58,7 @@ function lineKey(it: Pick<CartItem, "id">) {
 
 export function useCart() {
   const [items, setItems] = useState<CartItem[]>(read);
+  const { rateOf, ready: gstReady } = useGstRateOf();
 
   useEffect(() => {
     const sync = () => setItems(read());
@@ -110,9 +111,12 @@ export function useCart() {
   const clear = useCallback(() => write([]), []);
 
   const subtotal = items.reduce((s, i) => s + lineUnitPrice(i) * i.qty, 0);
-  // GST is added per line (default 18%), rounded to paise like the server.
-  const gst = items.reduce((s, i) => s + gstOn(lineUnitPrice(i) * i.qty), 0);
-  const total = Math.round((subtotal + gst) * 100) / 100;
+  // GST per line at the product's rate from Settings → GST, rounded to paise like the server.
+  const gst = gstReady
+    ? groupGst(items.map((i) => ({ amount: lineUnitPrice(i) * i.qty, rate: rateOf(i.gst_rate_id) ?? 0 })))
+    : undefined;
+  const gstTotal = gst?.reduce((s, g) => s + g.amount, 0);
+  const total = gstTotal === undefined ? undefined : Math.round((subtotal + gstTotal) * 100) / 100;
   const count = items.reduce((s, i) => s + i.qty, 0);
 
   return {
@@ -124,7 +128,9 @@ export function useCart() {
     clear,
     subtotal,
     gst,
+    gstTotal,
     total,
+    rateOf,
     count,
     lineKey,
   };
@@ -168,6 +174,7 @@ export function useCartSync() {
         priceWithoutExchange: Number(p.price_without_exchange) || Number(p.price),
         hasExchange: p.has_exchange,
         stock: p.stock,
+        gst_rate_id: p.gst_rate_id,
       };
       if (!hasExchangeOption(upd)) upd.withExchange = false;
       upd.qty = Math.min(maxQty(upd), it.qty);

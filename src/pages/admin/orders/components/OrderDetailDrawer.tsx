@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatINR } from "@/lib/format";
+import { groupTaxed } from "@/lib/gst";
 import { ORDER_STATUSES, type AdminOrderRow, type OrderStatus } from "@/api/admin/orders";
 import { useAdminOrderItems, useSetOrderStatus, useSetOrderNotes } from "../hooks/useAdminOrders";
 import { Loader2 } from "lucide-react";
@@ -34,6 +35,12 @@ export function OrderDetailDrawer({
   order: AdminOrderRow | null;
 }) {
   const itemsQ = useAdminOrderItems(order?.id ?? null);
+  // GST per slab from the saved order lines (older orders without per-line GST show one total).
+  const gstGroups = groupTaxed(
+    (itemsQ.data ?? [])
+      .filter((it) => it.gst_rate != null && it.tax_amount != null)
+      .map((it) => ({ rate: Number(it.gst_rate), tax: Number(it.tax_amount) })),
+  );
   const setStatus = useSetOrderStatus();
   const setNotes = useSetOrderNotes();
   const [notes, setNotesValue] = useState("");
@@ -167,7 +174,10 @@ export function OrderDetailDrawer({
                     {formatINR(Number(it.unit_price) * it.qty)}
                   </div>
                   <div className="text-[11px] text-muted-foreground">
-                    {formatINR(Number(it.unit_price))} each
+                    {formatINR(Number(it.unit_price))} each excl. GST
+                    {it.gst_rate != null && it.tax_amount != null && (
+                      <> · GST {Number(it.gst_rate)}% {formatINR(Number(it.tax_amount))}</>
+                    )}
                   </div>
                 </div>
               </li>
@@ -181,20 +191,22 @@ export function OrderDetailDrawer({
 
       {/* Totals */}
       <Card title="Totals">
-        <Row label="Subtotal" value={formatINR(Number(order.subtotal))} />
+        <Row label="Subtotal (excl. GST)" value={formatINR(Number(order.subtotal))} />
         {Number(order.discount) > 0 && (
           <Row
             label={`Discount${order.promo_code ? ` (${order.promo_code})` : ""}`}
             value={`−${formatINR(Number(order.discount))}`}
           />
         )}
-        <Row label="GST" value={formatINR(Number(order.tax))} />
+        {gstGroups.length > 0
+          ? gstGroups.map((g) => <Row key={g.rate} label={`GST @ ${g.rate}%`} value={formatINR(g.amount)} />)
+          : <Row label="GST" value={formatINR(Number(order.tax))} />}
         <Row
           label="Shipping"
           value={Number(order.shipping) === 0 ? "FREE" : formatINR(Number(order.shipping))}
         />
         <div className="flex justify-between border-t border-line mt-2 pt-2 font-display font-bold text-base">
-          <span>Total</span>
+          <span>Total (incl. GST)</span>
           <span>{formatINR(Number(order.total))}</span>
         </div>
       </Card>

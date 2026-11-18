@@ -7,7 +7,9 @@
 import { ArrowLeftRight, Lock } from "lucide-react";
 import { lineKey, lineUnitPrice, hasExchangeOption, useCart } from "@/hooks/useCart";
 import { Switch } from "@/components/ui/switch";
-import { formatINR, formatINRExact } from "@/lib/format";
+import { formatINR } from "@/lib/format";
+import { PriceBreakup } from "@/components/PriceBreakup";
+import type { GstGroup } from "@/lib/gst";
 import { PromoInput } from "./PromoInput";
 import type { DeliveryOption, Promo } from "../lib/types";
 
@@ -16,6 +18,7 @@ export const OrderSummary = ({
   totals,
   deliveryOption,
   appliedPromo,
+  gst,
   quoteError,
   promoInput,
   setPromoInput,
@@ -26,6 +29,8 @@ export const OrderSummary = ({
 }: {
   items: ReturnType<typeof useCart>["items"];
   totals: { subtotal: number; discount: number; tax: number; shipping: number; total: number };
+  /** GST per slab, from the server quote. */
+  gst: GstGroup[] | undefined;
   deliveryOption: DeliveryOption;
   appliedPromo: Promo | null;
   quoteError: string | null;
@@ -102,34 +107,15 @@ export const OrderSummary = ({
         onRemove={onRemovePromo}
       />
 
-      <div className="border-t border-line mt-4 pt-4 space-y-2 text-sm">
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Subtotal (excl. GST)</span>
-          <span className="font-semibold">{formatINRExact(subtotal)}</span>
-        </div>
-        {discount > 0 && (
-          <div className="flex justify-between">
-            <span className="text-success">
-              Discount{appliedPromo ? ` (${appliedPromo.code})` : ""}
-            </span>
-            <span className="font-semibold text-success">−{formatINRExact(discount)}</span>
-          </div>
-        )}
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">GST (18%)</span>
-          <span className="font-semibold">{formatINRExact(tax)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Shipping</span>
-          <span className={shipping === 0 ? "text-success font-semibold" : "font-semibold"}>
-            {shipping === 0 ? "FREE" : formatINRExact(shipping)}
-          </span>
-        </div>
-      </div>
-      <div className="border-t border-line mt-4 pt-4 flex justify-between font-display font-bold text-xl">
-        <span>Total</span>
-        <span>{formatINRExact(total)}</span>
-      </div>
+      <PriceBreakup
+        className="border-t border-line mt-4 pt-4"
+        subtotal={subtotal}
+        discount={discount}
+        discountLabel={`Discount${appliedPromo ? ` (${appliedPromo.code})` : ""}`}
+        gst={gst}
+        delivery={shipping}
+        total={total}
+      />
       {quoteError && (
         <div className="mt-2 text-xs text-destructive font-medium">{quoteError}</div>
       )}

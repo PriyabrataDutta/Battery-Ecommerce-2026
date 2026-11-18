@@ -83,12 +83,14 @@ export interface AdminOrderItem {
   product_sku: string | null;
   qty: number;
   unit_price: number;
+  gst_rate: number | null;
+  tax_amount: number | null;
 }
 
 export async function getAdminOrderItems(orderId: string): Promise<AdminOrderItem[]> {
   const { data, error } = await supabase
     .from("order_items")
-    .select("id, product_id, product_name, product_sku, qty, unit_price")
+    .select("id, product_id, product_name, product_sku, qty, unit_price, gst_rate, tax_amount")
     .eq("order_id", orderId)
     .order("created_at");
   if (error) throw error;

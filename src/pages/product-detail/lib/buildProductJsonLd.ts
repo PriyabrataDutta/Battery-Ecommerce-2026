@@ -5,7 +5,7 @@
  * Returns null if the product lacks the minimum required data (name + price).
  */
 import type { Product } from "@/types/catalog";
-import { withGst } from "@/lib/format";
+import { withGst } from "@/lib/gst";
 
 /** Ensures a price is a finite positive number; falls back otherwise. */
 const safePrice = (val: unknown, fallback: number): number => {
@@ -20,17 +20,18 @@ export function buildProductJsonLd(
   product: Product,
   images: string[],
   canonicalUrl: string,
+  gstRate: number,
 ) {
   // ─── Base price logic ───
   // Primary price is ALWAYS the with-exchange price (admin-entered).
   const basePrice = safePrice(product.price, 0.01);
   // Store prices exclude GST; search engines get the GST-inclusive price customers pay.
-  const withoutExchange = withGst(safePrice(product.price_without_exchange, basePrice));
-  const withExchangePrice = withGst(safePrice(product.price_with_exchange, basePrice));
+  const withoutExchange = withGst(safePrice(product.price_without_exchange, basePrice), gstRate);
+  const withExchangePrice = withGst(safePrice(product.price_with_exchange, basePrice), gstRate);
 
   // lowPrice = always with-exchange price (the price shown to customers)
   let lowPrice = withExchangePrice;
-  let highPrice = product.mrp ? withGst(Number(product.mrp)) : withoutExchange;
+  let highPrice = product.mrp ? withGst(Number(product.mrp), gstRate) : withoutExchange;
   if (highPrice < withoutExchange) highPrice = withoutExchange;
   if (lowPrice > highPrice) [lowPrice, highPrice] = [highPrice, lowPrice];
 

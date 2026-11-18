@@ -317,7 +317,7 @@ export function ProductEditor({
                 }}
               />
               <span className="text-xs text-muted-foreground">
-                Use default GST ({gstRates?.find((r) => r.is_default)?.rate ?? 18}%)
+                Use default GST ({gstRates?.find((r) => r.is_default)?.rate ?? "—"}%)
               </span>
             </label>
             {(!form.gst_rate_id || form.gst_rate_id !== (gstRates?.find((r) => r.is_default)?.id ?? "__")) && (

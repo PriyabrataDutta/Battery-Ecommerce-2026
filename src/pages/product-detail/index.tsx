@@ -16,7 +16,8 @@ import { Link, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { toast } from "sonner";
 import { getProductImage } from "@/lib/productImage";
-import { formatINR, withGst } from "@/lib/format";
+import { formatINR } from "@/lib/format";
+import { useGstRateOf, withGst } from "@/lib/gst";
 import { useCart } from "@/hooks/useCart";
 import {
   useProductBySlug,
@@ -46,6 +47,9 @@ const ProductDetail = () => {
   const [withExchange, setWithExchange] = useState(false);
 
   const { data: product, isLoading } = useProductBySlug(slug);
+  const { rateOf } = useGstRateOf();
+  // This product's GST % from Settings → GST (its own slab, or the default).
+  const gstRate = rateOf(product?.gst_rate_id) ?? 0;
   const { data: related = [] } = useRelatedProducts(
     product?.brand_id,
     product?.id
@@ -72,9 +76,9 @@ const ProductDetail = () => {
   const jsonLdString = useMemo(
     () =>
       product
-        ? JSON.stringify(buildProductJsonLd(product, allImages, canonicalUrl))
+        ? JSON.stringify(buildProductJsonLd(product, allImages, canonicalUrl, gstRate))
         : "",
-    [product, allImages, canonicalUrl],
+    [product, allImages, canonicalUrl, gstRate],
   );
 
   if (isLoading) return <ProductSkeleton />;
@@ -131,7 +135,7 @@ const ProductDetail = () => {
   const seoDesc =
     product.meta_description ||
     product.short_description ||
-    `Buy ${product.name} at ${formatINR(withGst(withoutExchange))} incl. GST. ${product.warranty_months ?? 0} month warranty. Free standard delivery, doorstep installation available.`;
+    `Buy ${product.name} at ${formatINR(withGst(withoutExchange, gstRate))} incl. GST. ${product.warranty_months ?? 0} month warranty. Free standard delivery, doorstep installation available.`;
   return (
     <>
       <Helmet>
@@ -149,7 +153,7 @@ const ProductDetail = () => {
         {product.primary_image_url && (
           <meta property="og:image" content={product.primary_image_url} />
         )}
-        <meta property="product:price:amount" content={String(withGst(withoutExchange))} />
+        <meta property="product:price:amount" content={String(withGst(withoutExchange, gstRate))} />
         <meta property="product:price:currency" content="INR" />
       </Helmet>
 
@@ -205,6 +209,7 @@ const ProductDetail = () => {
               showExchange={showExchange}
               withoutExchangePrice={withoutExchange}
               withExchangePrice={withExchangePrice}
+              gstRate={gstRate}
             />
           </div>
         </div>

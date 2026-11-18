@@ -96,14 +96,22 @@ describe("sign-up form validation", () => {
   ])("rejects %o", (v, msg) => expect(firstError(v)).toBe(msg));
 });
 
-import { withGst, formatINR, formatINRExact } from "@/lib/format";
+import { formatINR, formatINRExact } from "@/lib/format";
+import { withGst, groupGst, groupTaxed } from "@/lib/gst";
 
 describe("prices exclude GST", () => {
   it.each([
     [7627.12, 9000], // Amaron 105D31L without exchange
     [5635.59, 6650], // with exchange
     [2711.86, 3199.99], // exact paise, no rounding to the rupee
-  ])("%s + 18%% GST → ₹%s", (excl, incl) => expect(withGst(excl)).toBe(incl));
+  ])("%s + 18%% GST → ₹%s", (excl, incl) => expect(withGst(excl, 18)).toBe(incl));
+  it("groups GST by slab (rates come from Settings → GST)", () => {
+    expect(groupGst([{ amount: 2711.86, rate: 18 }, { amount: 1000, rate: 28 }, { amount: 100, rate: 18 }])).toEqual([
+      { rate: 18, amount: 506.13 },
+      { rate: 28, amount: 280 },
+    ]);
+    expect(groupTaxed([{ rate: 18, tax: 488.13 }, { rate: 18, tax: 1372.88 }])).toEqual([{ rate: 18, amount: 1861.01 }]);
+  });
   it("formats ₹ with paise only when present", () => {
     expect(formatINR(9000)).toBe("₹9,000");
     expect(formatINR(7627.12)).toBe("₹7,627.12");

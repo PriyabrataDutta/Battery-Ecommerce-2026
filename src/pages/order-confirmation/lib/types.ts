@@ -50,6 +50,8 @@ export interface SavedOrder {
     promo?: { code: string; label: string } | null;
     tax: number;
     shipping: number;
+    /** GST per slab (rate %, amount) — absent on snapshots saved before this field existed. */
+    gst?: { rate: number; amount: number }[];
     total: number;
   };
 }

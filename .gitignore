@@ -25,3 +25,16 @@ dist-ssr
 
 # Supabase CLI link state
 supabase/.temp/
+
+# Environment (keep .env.example)
+.env
+.env.*
+!.env.example
+
+# Build / test output
+coverage
+*.tsbuildinfo
+.vite
+
+# Supabase local
+supabase/.branches/

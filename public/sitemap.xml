@@ -101,52 +101,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://power-drive-finder.lovable.app/product/amaron-pro-65ah</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://power-drive-finder.lovable.app/product/exide-mileage-70ah</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://power-drive-finder.lovable.app/product/exide-matrix-45ah</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://power-drive-finder.lovable.app/product/power-zone-150ah-tubular</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://power-drive-finder.lovable.app/product/power-zone-100ah-smf</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://power-drive-finder.lovable.app/product/amaron-cr150-tall-tubular</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://power-drive-finder.lovable.app/product/exide-it500-200ah</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://power-drive-finder.lovable.app/product/amaron-flo-35ah</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://power-drive-finder.lovable.app/product/elito-charge-60ah</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://power-drive-finder.lovable.app/product/elito-power-100ah-tubular</loc>
+    <loc>https://power-drive-finder.lovable.app/product/amaron-clearance-35ah</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -156,7 +111,52 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://power-drive-finder.lovable.app/product/amaron-clearance-35ah</loc>
+    <loc>https://power-drive-finder.lovable.app/product/exide-it500-200ah</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://power-drive-finder.lovable.app/product/amaron-cr150-tall-tubular</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://power-drive-finder.lovable.app/product/power-zone-150ah-tubular</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://power-drive-finder.lovable.app/product/elito-power-100ah-tubular</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://power-drive-finder.lovable.app/product/exide-mileage-70ah</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://power-drive-finder.lovable.app/product/power-zone-100ah-smf</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://power-drive-finder.lovable.app/product/amaron-pro-65ah</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://power-drive-finder.lovable.app/product/elito-charge-60ah</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://power-drive-finder.lovable.app/product/exide-matrix-45ah</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://power-drive-finder.lovable.app/product/amaron-flo-35ah</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

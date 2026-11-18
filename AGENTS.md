@@ -1,0 +1,1 @@
+Database changes for Lovable Cloud must be recorded as applied Drizzle migrations under drizzle/migrations; preserve the generated migration config and journal so deployed access rules remain reproducible.

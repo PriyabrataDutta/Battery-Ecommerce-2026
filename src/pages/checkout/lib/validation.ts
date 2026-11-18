@@ -38,7 +38,7 @@ export const addressSchema = z.object({
     .regex(/^[\p{L}\s.'’-]+$/u, "Full name can only contain letters, spaces, and . ' -"),
   phone: z
     .string()
-    .transform((v) => v.replace(/\D/g, ""))
+    .transform((v) => v.replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, ""))
     .pipe(
       z
         .string()

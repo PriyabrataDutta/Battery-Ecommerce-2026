@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { useCart, lineUnitPrice, lineKey, hasExchangeOption } from "@/hooks/useCart";
+import { useCart, useCartSync, lineUnitPrice, lineKey, hasExchangeOption, maxQty } from "@/hooks/useCart";
 import { formatINR } from "@/lib/format";
 
 interface CartDrawerProps {
@@ -18,6 +18,7 @@ interface CartDrawerProps {
 
 export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
   const { items, setQty, removeItem, setExchange, subtotal, count } = useCart();
+  useCartSync();
 
   const close = () => onOpenChange(false);
 
@@ -101,7 +102,8 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                             <button
                               type="button"
                               onClick={() => setQty(key, it.qty + 1)}
-                              className="h-8 w-8 grid place-items-center text-ink hover:bg-muted"
+                              disabled={it.qty >= maxQty(it)}
+                              className="h-8 w-8 grid place-items-center text-ink hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
                               aria-label="Increase quantity"
                             >
                               <Plus className="h-3.5 w-3.5" />

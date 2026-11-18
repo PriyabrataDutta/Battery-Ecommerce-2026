@@ -5,7 +5,6 @@
  * quantity stepper, exchange toggle, pincode check, CTAs, and trust strip.
  */
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
 import { toast } from "sonner";
 import {
   BadgeCheck,
@@ -20,7 +19,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-import { Input } from "@/components/ui/input";
 import { discountPct, formatINR } from "@/lib/format";
 import { Trust } from "./Trust";
 
@@ -32,7 +30,7 @@ type Props = {
   setQty: (n: number) => void;
   withExchange: boolean;
   setWithExchange: (v: boolean) => void;
-  onAddToCart: () => void;
+  onAddToCart: (opts?: { buyNow?: boolean }) => void;
   lineTotal: number;
   showExchange: boolean;
   withoutExchangePrice: number;
@@ -51,23 +49,12 @@ export const ProductInfo = ({
   withoutExchangePrice,
   withExchangePrice,
 }: Props) => {
-  const [pin, setPin] = useState("");
   const navigate = useNavigate();
   const dpct = discountPct(withoutExchangePrice, product.mrp);
   const saving = showExchange ? withoutExchangePrice - withExchangePrice : 0;
 
-  const handleCheckPin = () => {
-    if (!/^\d{6}$/.test(pin)) {
-      toast.error("Enter a valid 6-digit pincode");
-      return;
-    }
-    toast.success(`Delivery available to ${pin}`, {
-      description: "Estimated 2–4 business days. Free shipping & installation.",
-    });
-  };
-
   const handleBuyNow = () => {
-    onAddToCart();
+    onAddToCart({ buyNow: true });
     navigate("/checkout");
   };
 
@@ -208,38 +195,17 @@ export const ProductInfo = ({
           </div>
           <div className="flex items-center gap-1.5 mt-1">
             <Truck className="h-3 w-3 text-success" />
-            <span className="text-[10px] font-semibold text-success uppercase tracking-wider">Free Shipping & Installation</span>
+            <span className="text-[10px] font-semibold text-success uppercase tracking-wider">Free standard delivery · Installation ₹499</span>
           </div>
         </div>
       )}
-
-      {/* Pincode check */}
-      <div>
-        <label htmlFor="delivery-pincode" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-          Check Delivery
-        </label>
-        <div className="flex gap-2 mt-1">
-          <Input
-            id="delivery-pincode"
-            name="pincode"
-            inputMode="numeric"
-            value={pin}
-            onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
-            placeholder="Enter 6-digit pincode"
-            className="h-11"
-          />
-          <Button variant="outline" className="h-11" onClick={handleCheckPin}>
-            Check
-          </Button>
-        </div>
-      </div>
 
       {/* CTAs */}
       <div className="grid grid-cols-2 gap-3">
         <Button size="lg" className="h-12" onClick={handleBuyNow} disabled={product.stock <= 0}>
           <Zap className="h-4 w-4 mr-2" /> Buy Now
         </Button>
-        <Button size="lg" variant="outline" className="h-12" onClick={onAddToCart} disabled={product.stock <= 0}>
+        <Button size="lg" variant="outline" className="h-12" onClick={() => onAddToCart()} disabled={product.stock <= 0}>
           <ShoppingCart className="h-4 w-4 mr-2" /> Add to Cart
         </Button>
       </div>

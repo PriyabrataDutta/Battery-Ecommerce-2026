@@ -1,14 +1,12 @@
 /**
  * PaymentStep — Step 3 of checkout.
  *
- * Demo only — none of the inputs (card number, UPI ID) are sent anywhere.
- * To wire a real PSP later, replace the inline demo fields with the PSP's
- * SDK and call it from `placeOrder` in ../index.tsx.
+ * Cash on Delivery only for now. When Cashfree is wired, add it to
+ * PAYMENT_OPTIONS and to place_order, and open its checkout from
+ * `placeOrder` in ../index.tsx.
  */
 import { CreditCard } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Field } from "./Field";
 import { PAYMENT_OPTIONS } from "../lib/constants";
 import type { PaymentId } from "../lib/types";
 
@@ -26,7 +24,7 @@ export const PaymentStep = ({
         <h2 className="font-display-tight text-xl font-bold">Payment method</h2>
       </div>
       <p className="text-sm text-muted-foreground mt-1">
-        This is a demo checkout. No real payment is taken.
+        Pay when your battery is delivered. Online payment is coming soon.
       </p>
 
       <RadioGroup
@@ -56,37 +54,6 @@ export const PaymentStep = ({
           );
         })}
       </RadioGroup>
-
-      {payment === "card" && (
-        <div className="mt-6 grid sm:grid-cols-2 gap-4 p-4 border border-dashed border-line bg-muted/30">
-          <Field label="Card number" className="sm:col-span-2">
-            <Input placeholder="1234 5678 9012 3456" inputMode="numeric" maxLength={19} />
-          </Field>
-          <Field label="Name on card">
-            <Input placeholder="As printed on card" />
-          </Field>
-          <Field label="Expiry">
-            <Input placeholder="MM / YY" inputMode="numeric" maxLength={7} />
-          </Field>
-          <Field label="CVV">
-            <Input placeholder="•••" inputMode="numeric" maxLength={4} />
-          </Field>
-          <p className="sm:col-span-2 text-[11px] text-muted-foreground">
-            Demo only — card data is not transmitted or stored.
-          </p>
-        </div>
-      )}
-
-      {payment === "upi" && (
-        <div className="mt-6 p-4 border border-dashed border-line bg-muted/30">
-          <Field label="UPI ID">
-            <Input placeholder="yourname@okhdfcbank" />
-          </Field>
-          <p className="mt-2 text-[11px] text-muted-foreground">
-            Demo only — no UPI request will be sent.
-          </p>
-        </div>
-      )}
     </div>
   );
 };

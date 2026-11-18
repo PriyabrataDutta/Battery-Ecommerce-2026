@@ -118,12 +118,18 @@ export function OrderDetailDrawer({
           <Row
             label="Address"
             value={
-              [address.line1, address.line2, address.city, address.state, address.pincode]
+              [address.line1, address.line2, address.landmark && `Near ${address.landmark}`, address.city, address.state, address.pincode]
                 .filter(Boolean)
                 .join(", ") || "—"
             }
           />
           {address.gstin && <Row label="GSTIN" value={address.gstin} />}
+          {address.notes && (
+            <div className="pt-1">
+              <div className="text-muted-foreground">Customer delivery notes</div>
+              <div className="font-medium whitespace-pre-wrap">{address.notes}</div>
+            </div>
+          )}
         </Card>
       </div>
 
@@ -169,7 +175,7 @@ export function OrderDetailDrawer({
             value={`−${formatINR(Number(order.discount))}`}
           />
         )}
-        <Row label="GST" value={formatINR(Number(order.tax))} />
+        <Row label="GST (included)" value={formatINR(Number(order.tax))} />
         <Row
           label="Shipping"
           value={Number(order.shipping) === 0 ? "FREE" : formatINR(Number(order.shipping))}

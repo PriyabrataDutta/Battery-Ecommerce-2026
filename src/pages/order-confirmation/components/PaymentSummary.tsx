@@ -7,7 +7,7 @@ import type { SavedOrder } from "../lib/types";
  * PaymentSummary
  * --------------------------------------------------------------
  * Right-rail card with payment method, optional promo recap, the
- * line-by-line totals, and a final "Total paid" row.
+ * line-by-line totals, and a final "Amount payable" row.
  *
  * Promo callout is only rendered when both `promo` and a positive
  * `discount` are present.
@@ -56,7 +56,7 @@ export function PaymentSummary({
       </div>
 
       <div className="border-t border-line mt-4 pt-4 flex justify-between font-display font-bold text-xl">
-        <span>Total paid</span>
+        <span>Amount payable</span>
         <span>{formatINR(totals.total)}</span>
       </div>
       <div className="mt-1 text-xs text-muted-foreground text-right">

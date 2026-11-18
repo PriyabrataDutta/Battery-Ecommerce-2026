@@ -18,15 +18,15 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { formatINR } from "@/lib/format";
 import {
-  DELIVERY_OPTIONS,
   earliestDeliveryDate,
   findSlot,
   isDateDisabled,
   slotsForDelivery,
 } from "../lib/constants";
-import type { DeliveryId, SlotId } from "../lib/types";
+import type { DeliveryId, DeliveryOption, SlotId } from "../lib/types";
 
 export const DeliveryStep = ({
+  options,
   delivery,
   setDelivery,
   notesLength,
@@ -36,6 +36,7 @@ export const DeliveryStep = ({
   setSlot,
   scheduleError,
 }: {
+  options: DeliveryOption[];
   delivery: DeliveryId;
   setDelivery: (d: DeliveryId) => void;
   notesLength: number;
@@ -68,7 +69,7 @@ export const DeliveryStep = ({
         onValueChange={(v) => setDelivery(v as DeliveryId)}
         className="mt-6 space-y-3"
       >
-        {DELIVERY_OPTIONS.map((o) => {
+        {options.map((o) => {
           const Icon = o.icon;
           const active = delivery === o.id;
           return (

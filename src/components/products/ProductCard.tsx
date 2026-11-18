@@ -30,6 +30,8 @@ export const ProductCard = forwardRef<HTMLAnchorElement, { product: Product }>(f
     image: product.primary_image_url,
     withExchange: false as const,
     exchangeRebate: product.exchange_rebate,
+    hasExchange: product.has_exchange,
+    stock: product.stock,
     gst_rate_id: (product as any).gst_rate_id ?? null,
   };
 
@@ -43,7 +45,7 @@ export const ProductCard = forwardRef<HTMLAnchorElement, { product: Product }>(f
   const handleBuyNow = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem(cartPayload);
+    addItem(cartPayload, 1, { buyNow: true });
     navigate("/checkout");
   };
 
@@ -117,16 +119,18 @@ export const ProductCard = forwardRef<HTMLAnchorElement, { product: Product }>(f
             size="sm"
             className="h-11 w-full px-3 text-sm font-semibold inline-flex items-center justify-center gap-2 rounded-md shadow-sm hover:shadow-md transition-shadow"
             onClick={handleBuyNow}
+            disabled={product.stock <= 0}
             aria-label={`Buy ${product.name} now`}
           >
             <Zap className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <span>Buy Now</span>
+            <span>{product.stock <= 0 ? "Out of stock" : "Buy Now"}</span>
           </Button>
           <Button
             size="sm"
             variant="outline"
             className="h-10 w-full px-3 text-sm font-medium inline-flex items-center justify-center gap-2 rounded-md border-ink/20 hover:border-ink hover:bg-ink hover:text-white transition-colors"
             onClick={handleAdd}
+            disabled={product.stock <= 0}
             aria-label={`Add ${product.name} to cart`}
           >
             <ShoppingCart className="h-4 w-4 shrink-0" aria-hidden="true" />

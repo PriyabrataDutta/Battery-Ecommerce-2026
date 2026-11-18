@@ -35,9 +35,10 @@ import { Check, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { lineUnitPrice, useCart } from "@/hooks/useCart";
+import { lineUnitPrice, useCart, useCartSync } from "@/hooks/useCart";
 import { useDefaultAddress } from "@/hooks/queries/useAddresses";
 import { useOrderQuote, usePlaceOrder } from "@/hooks/queries/useOrders";
+import { useShippingSettings } from "@/hooks/useShippingSettings";
 import { quoteOrder } from "@/api/orders";
 import { formatINR } from "@/lib/format";
 
@@ -48,7 +49,6 @@ import { ReviewStep } from "./components/ReviewStep";
 import { OrderSummary } from "./components/OrderSummary";
 
 import {
-  DELIVERY_OPTIONS,
   EMPTY_ADDRESS,
   PAYMENT_OPTIONS,
   STEPS,
@@ -73,6 +73,10 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { items, subtotal, clear } = useCart();
+  useCartSync();
+  // Delivery methods and prices come from Admin → Settings → Shipping, the same
+  // source the server prices from.
+  const { deliveryOptions } = useShippingSettings();
   // Hydrate from any non-expired draft synchronously so a page refresh keeps
   // exactly what the user typed. Drafts older than 5 minutes self-destruct.
   const initialDraft = typeof window !== "undefined" ? loadDraft() : null;
@@ -81,7 +85,7 @@ const Checkout = () => {
   const [address, setAddress] = useState<Address>(initialDraft?.address ?? EMPTY_ADDRESS);
   const [errors, setErrors] = useState<AddressErrors>({});
   const [delivery, setDelivery] = useState<DeliveryId>(initialDraft?.delivery ?? "standard");
-  const [payment, setPayment] = useState<PaymentId>(initialDraft?.payment ?? "upi");
+  const [payment, setPayment] = useState<PaymentId>("cod");
   const [submitting, setSubmitting] = useState(false);
   const [promoInput, setPromoInput] = useState(initialDraft?.promoInput ?? "");
   const [promoCode, setPromoCode] = useState<string | null>(null);
@@ -146,8 +150,8 @@ const Checkout = () => {
   }, [user, defaultAddress]);
 
   const deliveryOption = useMemo(
-    () => DELIVERY_OPTIONS.find((o) => o.id === delivery)!,
-    [delivery],
+    () => deliveryOptions.find((o) => o.id === delivery) ?? deliveryOptions[0],
+    [delivery, deliveryOptions],
   );
 
   // Prices, GST, promo and shipping all come from the server (quote_order).
@@ -389,6 +393,7 @@ const Checkout = () => {
           )}
           {step === 1 && (
             <DeliveryStep
+              options={deliveryOptions}
               delivery={delivery}
               setDelivery={(d) => {
                 setDelivery(d);
@@ -454,7 +459,7 @@ const Checkout = () => {
               <Button
                 onClick={placeOrder}
                 size="lg"
-                disabled={submitting}
+                disabled={submitting || !quote || !!quoteError}
                 className="min-w-[180px]"
               >
                 {submitting ? "Placing order…" : `Place order · ${formatINR(total)}`}

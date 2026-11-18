@@ -1,5 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import type { CartItem } from "@/types/catalog";
+import { getCartProducts } from "@/api/products";
 
 const KEY = "kachi_cart";
 
@@ -32,9 +35,15 @@ export function lineUnitPrice(it: CartItem) {
   return it.withExchange && it.exchangeRebate ? Math.max(0, it.price - it.exchangeRebate) : it.price;
 }
 
+/** Server limit per line (place_order allows 1–20), further capped by stock. */
+export const MAX_LINE_QTY = 20;
+export const maxQty = (it: Pick<CartItem, "stock">) =>
+  Math.max(1, Math.min(MAX_LINE_QTY, it.stock ?? MAX_LINE_QTY));
+
 /** Whether this item supports exchange pricing */
 export function hasExchangeOption(it: CartItem) {
   return (
+    it.hasExchange !== false &&
     it.priceWithExchange > 0 &&
     it.priceWithoutExchange > 0 &&
     it.priceWithExchange < it.priceWithoutExchange
@@ -57,17 +66,19 @@ export function useCart() {
     };
   }, []);
 
-  const addItem = useCallback((item: Omit<CartItem, "qty">, qty = 1) => {
+  /** `buyNow` puts the item in the cart without bumping an existing line. */
+  const addItem = useCallback((item: Omit<CartItem, "qty">, qty = 1, opts?: { buyNow?: boolean }) => {
     const current = read();
     const key = lineKey(item);
     const existing = current.find((i) => lineKey(i) === key);
     if (existing) {
-      existing.qty += qty;
+      Object.assign(existing, { stock: item.stock, hasExchange: item.hasExchange });
+      existing.qty = Math.min(maxQty(existing), opts?.buyNow ? existing.qty : existing.qty + qty);
       // Update exchange preference to the latest selection
       existing.withExchange = item.withExchange;
       write([...current]);
     } else {
-      write([...current, { ...item, qty }]);
+      write([...current, { ...item, qty: Math.min(maxQty(item), qty) }]);
     }
   }, []);
 
@@ -80,7 +91,7 @@ export function useCart() {
     const current = read();
     const it = current.find((i) => lineKey(i) === key);
     if (it) {
-      it.qty = qty;
+      it.qty = Math.min(maxQty(it), qty);
       write([...current]);
     }
   }, [removeLine]);
@@ -114,3 +125,56 @@ export function useCart() {
 }
 
 export { lineKey };
+
+/**
+ * Refresh cart lines from the database: drop products that were removed or
+ * hidden, take current prices/stock/exchange flag, and cap quantities.
+ * Mount on pages that show cart totals (cart, drawer, checkout).
+ */
+export function useCartSync() {
+  const { items } = useCart();
+  const ids = items.map((i) => i.id).sort();
+  const { data } = useQuery({
+    queryKey: ["cart-products", ids],
+    queryFn: () => getCartProducts(ids),
+    enabled: ids.length > 0,
+    staleTime: 60_000,
+  });
+
+  useEffect(() => {
+    if (!data) return;
+    const live = new Map(data.map((p) => [p.id, p]));
+    const current = read();
+    const removed: string[] = [];
+    let changed = false;
+    const next = current.flatMap((it) => {
+      const p = live.get(it.id);
+      if (!p || p.stock <= 0) {
+        removed.push(it.name);
+        changed = true;
+        return [];
+      }
+      const upd: CartItem = {
+        ...it,
+        name: p.name,
+        price: Number(p.price),
+        priceWithExchange: Number(p.price_with_exchange),
+        priceWithoutExchange: Number(p.price_without_exchange) || Number(p.price),
+        hasExchange: p.has_exchange,
+        stock: p.stock,
+      };
+      if (!hasExchangeOption(upd)) upd.withExchange = false;
+      upd.qty = Math.min(maxQty(upd), it.qty);
+      if (JSON.stringify(upd) !== JSON.stringify(it)) changed = true;
+      return [upd];
+    });
+    if (!changed) return;
+    write(next);
+    if (removed.length) {
+      toast.warning(`Removed from your cart: ${removed.join(", ")}`, {
+        description: "No longer available or out of stock.",
+      });
+    }
+  }, [data]);
+}
+

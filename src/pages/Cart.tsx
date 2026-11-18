@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useCart, lineKey, lineUnitPrice, hasExchangeOption } from "@/hooks/useCart";
+import { useCart, useCartSync, lineKey, lineUnitPrice, hasExchangeOption, maxQty } from "@/hooks/useCart";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { formatINR } from "@/lib/format";
@@ -7,6 +7,7 @@ import { Trash2, Minus, Plus, ArrowLeftRight } from "lucide-react";
 
 const Cart = () => {
   const { items, setQty, removeItem, setExchange, subtotal, clear } = useCart();
+  useCartSync();
 
   return (
     <div className="container-x py-10">
@@ -74,7 +75,7 @@ const Cart = () => {
                     <div className="flex items-center border border-line rounded">
                       <button onClick={() => setQty(key, it.qty - 1)} className="h-9 w-9 grid place-items-center hover:bg-muted"><Minus className="h-3 w-3" /></button>
                       <span className="w-10 text-center text-sm font-semibold">{it.qty}</span>
-                      <button onClick={() => setQty(key, it.qty + 1)} className="h-9 w-9 grid place-items-center hover:bg-muted"><Plus className="h-3 w-3" /></button>
+                      <button onClick={() => setQty(key, it.qty + 1)} disabled={it.qty >= maxQty(it)} aria-label="Increase quantity" className="h-9 w-9 grid place-items-center hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"><Plus className="h-3 w-3" /></button>
                     </div>
                   </div>
                 </div>
@@ -85,11 +86,14 @@ const Cart = () => {
             <h2 className="font-display font-bold text-lg uppercase tracking-wide">Order Summary</h2>
             <div className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="font-semibold">{formatINR(subtotal)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span className="text-success font-semibold">FREE</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Delivery</span><span className="text-muted-foreground">Chosen at checkout</span></div>
             </div>
             <div className="border-t border-line mt-4 pt-4 flex justify-between font-display font-bold text-xl">
-              <span>Total</span><span>{formatINR(subtotal)}</span>
+              <span>Subtotal</span><span>{formatINR(subtotal)}</span>
             </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Prices include GST. Standard delivery is free; express ₹299, installation ₹499.
+            </p>
             <Button asChild className="w-full mt-5" size="lg">
               <Link to="/checkout">Proceed to Checkout</Link>
             </Button>

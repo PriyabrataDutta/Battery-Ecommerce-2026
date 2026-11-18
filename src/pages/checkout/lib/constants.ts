@@ -4,7 +4,8 @@
  * Only constants + plain helpers that derive from those constants. No React.
  *
  * Where to add things:
- *   - new delivery method  → DELIVERY_OPTIONS + DELIVERY_LEAD_DAYS
+ *   - delivery methods/prices → Admin → Settings → Shipping (DELIVERY_OPTIONS is
+ *                            only the fallback); lead times → DELIVERY_LEAD_DAYS
  *   - new payment method   → PAYMENT_OPTIONS + a PaymentId in lib/types.ts
  *   - new time slot        → STANDARD_SLOTS or INSTALLATION_SLOTS, plus a
  *                            SlotId in lib/types.ts
@@ -14,10 +15,7 @@
 import {
   Truck,
   ShieldCheck,
-  CreditCard,
-  Wallet,
   Banknote,
-  Smartphone,
 } from "lucide-react";
 import { addDays } from "date-fns";
 import type {
@@ -55,11 +53,9 @@ export const DELIVERY_OPTIONS: DeliveryOption[] = [
   },
 ];
 
+/** Cash on Delivery only until Cashfree is wired (place_order rejects anything else). */
 export const PAYMENT_OPTIONS: PaymentOption[] = [
-  { id: "upi", label: "UPI", hint: "Pay via Google Pay, PhonePe, Paytm, BHIM", icon: Smartphone },
-  { id: "card", label: "Credit / Debit Card", hint: "Visa, Mastercard, Rupay, Amex", icon: CreditCard },
-  { id: "netbanking", label: "Net Banking", hint: "All major Indian banks", icon: Wallet },
-  { id: "cod", label: "Cash on Delivery", hint: "Pay in cash when your battery arrives", icon: Banknote },
+  { id: "cod", label: "Cash on Delivery", hint: "Pay in cash or UPI to the delivery partner when your battery arrives", icon: Banknote },
 ];
 
 export const STEPS = ["Address", "Delivery", "Payment", "Review"] as const;

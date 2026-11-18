@@ -97,7 +97,7 @@ const ProductDetail = () => {
   const effectiveUnit = withExchange ? withExchangePrice : withoutExchange;
   const lineTotal = effectiveUnit * qty;
 
-  const handleAdd = () => {
+  const handleAdd = (opts?: { buyNow?: boolean }) => {
     addItem(
       {
         id: product.id,
@@ -110,9 +110,12 @@ const ProductDetail = () => {
         image: product.primary_image_url,
         withExchange,
         exchangeRebate: product.exchange_rebate,
+        hasExchange: product.has_exchange,
+        stock: product.stock,
         gst_rate_id: (product as any).gst_rate_id ?? null,
       },
-      qty
+      qty,
+      { buyNow: opts?.buyNow === true },
     );
     toast.success("Added to cart", {
       description: withExchange
@@ -128,7 +131,7 @@ const ProductDetail = () => {
   const seoDesc =
     product.meta_description ||
     product.short_description ||
-    `Buy ${product.name} at ${formatINR(withoutExchange)}. ${product.warranty_months ?? 0} month warranty. Free shipping & installation across India.`;
+    `Buy ${product.name} at ${formatINR(withoutExchange)}. ${product.warranty_months ?? 0} month warranty. Free standard delivery, doorstep installation available.`;
   return (
     <>
       <Helmet>

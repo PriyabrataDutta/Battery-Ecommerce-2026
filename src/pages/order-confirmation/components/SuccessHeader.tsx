@@ -20,8 +20,8 @@ export function SuccessHeader({ order }: { order: SavedOrder }) {
         Order placed successfully!
       </h1>
       <p className="text-muted-foreground mt-2 max-w-md mx-auto">
-        Thanks {firstName}, we've received your order. A confirmation has been sent to{" "}
-        <span className="font-semibold text-ink">{order.address.email}</span>.
+        Thanks {firstName}, we've received your order. We'll call you on{" "}
+        <span className="font-semibold text-ink">{order.address.phone}</span> to confirm delivery.
       </p>
 
       <div className="mt-6 inline-flex items-center gap-3 px-5 py-3 bg-muted">

@@ -97,3 +97,25 @@ export async function suggestProducts(term: string, limit = 6): Promise<ProductS
   if (error) throw error;
   return (data ?? []) as unknown as ProductSuggestion[];
 }
+
+export interface CartProductRow {
+  id: string;
+  name: string;
+  price: number;
+  price_with_exchange: number;
+  price_without_exchange: number;
+  has_exchange: boolean;
+  stock: number;
+}
+
+/** Current price/stock for cart lines. Missing ids = removed or no longer active. */
+export async function getCartProducts(ids: string[]): Promise<CartProductRow[]> {
+  if (ids.length === 0) return [];
+  const { data, error } = await supabase
+    .from("products")
+    .select("id, name, price, price_with_exchange, price_without_exchange, has_exchange, stock")
+    .in("id", ids)
+    .eq("status", "active");
+  if (error) throw error;
+  return (data ?? []) as CartProductRow[];
+}

@@ -87,6 +87,10 @@ export interface CartItem {
   qty: number;
   image: string | null;
   withExchange?: boolean;
+  /** Product offers an exchange price (server ignores withExchange otherwise) */
+  hasExchange?: boolean;
+  /** Last known stock, used to cap the quantity */
+  stock?: number;
   /** GST rate slab assigned to this product */
   gst_rate_id?: string | null;
   /** @deprecated kept for old localStorage compat */

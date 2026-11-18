@@ -8,7 +8,6 @@
  *   - new payment method   → PAYMENT_OPTIONS + a PaymentId in lib/types.ts
  *   - new time slot        → STANDARD_SLOTS or INSTALLATION_SLOTS, plus a
  *                            SlotId in lib/types.ts
- *   - new promo code       → PROMO_CODES
  *   - new wizard step      → STEPS, plus a step component + render branch in
  *                            ../index.tsx
  */
@@ -64,19 +63,6 @@ export const PAYMENT_OPTIONS: PaymentOption[] = [
 ];
 
 export const STEPS = ["Address", "Delivery", "Payment", "Review"] as const;
-
-/**
- * Promo codes (frontend mockup). Each code applies to the cart subtotal,
- * which then flows into GST and the final total.
- *  - `percent`: % off subtotal
- *  - `flat`:    flat ₹ off subtotal
- * `minSubtotal` lets us gate higher discounts behind a minimum order value.
- */
-export const PROMO_CODES: Promo[] = [
-  { code: "KACHI10", label: "10% off your order", type: "percent", value: 10 },
-  { code: "FLAT500", label: "₹500 off orders above ₹5,000", type: "flat", value: 500, minSubtotal: 5000 },
-  { code: "FESTIVE15", label: "15% off orders above ₹8,000", type: "percent", value: 15, minSubtotal: 8000 },
-];
 
 export const STANDARD_SLOTS: Slot[] = [
   { id: "morning", label: "Morning", window: "8:00 AM – 11:00 AM", notesMin: 0 },
@@ -161,9 +147,6 @@ export const isDateDisabled = (date: Date, d: DeliveryId) => {
   if (d === "installation" && dayStart.getDay() === 0) return true;
   return false;
 };
-
-/** GST applied to the discounted subtotal. Change here to change app-wide. */
-export const TAX_RATE = 0.18;
 
 /** localStorage key + TTL for the in-progress draft. */
 export const DRAFT_KEY = "kachi_checkout_draft_v1";

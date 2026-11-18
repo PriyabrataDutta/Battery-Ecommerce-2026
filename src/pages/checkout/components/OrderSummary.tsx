@@ -10,13 +10,13 @@ import { Switch } from "@/components/ui/switch";
 import { formatINR } from "@/lib/format";
 import { PromoInput } from "./PromoInput";
 import type { DeliveryOption, Promo } from "../lib/types";
-import type { Totals } from "../lib/totals";
 
 export const OrderSummary = ({
   items,
   totals,
   deliveryOption,
   appliedPromo,
+  quoteError,
   promoInput,
   setPromoInput,
   promoError,
@@ -25,9 +25,10 @@ export const OrderSummary = ({
   onRemovePromo,
 }: {
   items: ReturnType<typeof useCart>["items"];
-  totals: Totals;
+  totals: { subtotal: number; discount: number; tax: number; shipping: number; total: number };
   deliveryOption: DeliveryOption;
   appliedPromo: Promo | null;
+  quoteError: string | null;
   promoInput: string;
   setPromoInput: (v: string) => void;
   promoError: string;
@@ -35,7 +36,7 @@ export const OrderSummary = ({
   onApplyPromo: () => void;
   onRemovePromo: () => void;
 }) => {
-  const { subtotal, discount, tax, total } = totals;
+  const { subtotal, discount, tax, shipping, total } = totals;
   const { setExchange } = useCart();
 
   return (
@@ -115,15 +116,9 @@ export const OrderSummary = ({
           </div>
         )}
         <div className="flex justify-between">
-          <span className="text-muted-foreground">
-            GST ({totals.effectiveGstPct}%)
-          </span>
-          <span className="font-semibold">{formatINR(tax)}</span>
-        </div>
-        <div className="flex justify-between">
           <span className="text-muted-foreground">Shipping</span>
-          <span className={deliveryOption.price === 0 ? "text-success font-semibold" : "font-semibold"}>
-            {deliveryOption.price === 0 ? "FREE" : formatINR(deliveryOption.price)}
+          <span className={shipping === 0 ? "text-success font-semibold" : "font-semibold"}>
+            {shipping === 0 ? "FREE" : formatINR(shipping)}
           </span>
         </div>
       </div>
@@ -131,6 +126,12 @@ export const OrderSummary = ({
         <span>Total</span>
         <span>{formatINR(total)}</span>
       </div>
+      <div className="mt-1 text-xs text-muted-foreground text-right">
+        Includes GST of {formatINR(tax)}
+      </div>
+      {quoteError && (
+        <div className="mt-2 text-xs text-destructive font-medium">{quoteError}</div>
+      )}
       {discount > 0 && (
         <div className="mt-1 text-xs text-success font-medium text-right">
           You saved {formatINR(discount)} on this order

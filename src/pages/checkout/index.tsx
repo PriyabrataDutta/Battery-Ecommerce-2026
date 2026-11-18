@@ -8,7 +8,7 @@
  *   - useDefaultAddress(user.id) — prefill (api/addresses.ts via hooks/queries)
  *
  * Data out:
- *   - useCreateOrder()           — writes the order header + items
+ *   - useOrderQuote() / usePlaceOrder() — server prices and places the order
  *                                  (api/orders.ts), then we navigate to
  *                                  /order-confirmation.
  *
@@ -37,10 +37,9 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { lineUnitPrice, useCart } from "@/hooks/useCart";
 import { useDefaultAddress } from "@/hooks/queries/useAddresses";
-import { useCreateOrder } from "@/hooks/queries/useOrders";
+import { useOrderQuote, usePlaceOrder } from "@/hooks/queries/useOrders";
+import { quoteOrder } from "@/api/orders";
 import { formatINR } from "@/lib/format";
-import { useDefaultGstRate, useGstRates } from "@/hooks/useGstSettings";
-import type { LineGst } from "./lib/totals";
 
 import { AddressStep } from "./components/AddressStep";
 import { DeliveryStep } from "./components/DeliveryStep";
@@ -52,13 +51,11 @@ import {
   DELIVERY_OPTIONS,
   EMPTY_ADDRESS,
   PAYMENT_OPTIONS,
-  PROMO_CODES,
   STEPS,
   findSlot,
   isDateDisabled,
   slotsForDelivery,
 } from "./lib/constants";
-import { calcTotals } from "./lib/totals";
 import { validateAddress, validateSchedule } from "./lib/validation";
 import { clearDraft, loadDraft, saveDraft } from "./lib/draft";
 import type {
@@ -76,8 +73,6 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { items, subtotal, clear } = useCart();
-  const defaultTaxRate = useDefaultGstRate();
-  const { data: gstRates } = useGstRates();
   // Hydrate from any non-expired draft synchronously so a page refresh keeps
   // exactly what the user typed. Drafts older than 5 minutes self-destruct.
   const initialDraft = typeof window !== "undefined" ? loadDraft() : null;
@@ -89,7 +84,7 @@ const Checkout = () => {
   const [payment, setPayment] = useState<PaymentId>(initialDraft?.payment ?? "upi");
   const [submitting, setSubmitting] = useState(false);
   const [promoInput, setPromoInput] = useState(initialDraft?.promoInput ?? "");
-  const [appliedPromo, setAppliedPromo] = useState<Promo | null>(null);
+  const [promoCode, setPromoCode] = useState<string | null>(null);
   const [promoError, setPromoError] = useState("");
   const [deliveryDate, setDeliveryDate] = useState<Date | undefined>(
     initialDraft?.deliveryDate ? new Date(initialDraft.deliveryDate) : undefined,
@@ -98,7 +93,7 @@ const Checkout = () => {
   const [scheduleError, setScheduleError] = useState("");
 
   const { data: defaultAddress } = useDefaultAddress(user?.id);
-  const createOrderMutation = useCreateOrder();
+  const placeOrderMutation = usePlaceOrder();
 
   // Persist a draft on every meaningful change. Self-destructs after 5 min via loadDraft().
   useEffect(() => {
@@ -155,58 +150,48 @@ const Checkout = () => {
     [delivery],
   );
 
-  // Build per-line-item GST mapping from the cart items' gst_rate_id
-  const ratesMap = useMemo(() => {
-    const m = new Map<string, number>();
-    (gstRates ?? []).forEach((r) => m.set(r.id, r.rate / 100));
-    return m;
-  }, [gstRates]);
-
-  const lineGstItems: LineGst[] = useMemo(
-    () =>
-      items.map((it) => ({
-        lineTotal: lineUnitPrice(it) * it.qty,
-        rate: it.gst_rate_id ? (ratesMap.get(it.gst_rate_id) ?? defaultTaxRate) : defaultTaxRate,
-      })),
-    [items, ratesMap, defaultTaxRate],
+  // Prices, GST, promo and shipping all come from the server (quote_order).
+  // The browser only says which products, how many, and exchange or not.
+  const cartLines = useMemo(
+    () => items.map((it) => ({ product_id: it.id, qty: it.qty, with_exchange: !!it.withExchange })),
+    [items],
   );
+  const { data: quote, error: quoteError } = useOrderQuote(cartLines, delivery, promoCode);
+  const totals = {
+    subtotal: quote?.subtotal ?? subtotal,
+    discount: quote?.discount ?? 0,
+    tax: quote?.tax ?? 0,
+    shipping: quote?.shipping ?? deliveryOption.price,
+    total: quote?.total ?? subtotal + deliveryOption.price,
+  };
+  const { total } = totals;
+  const appliedPromo: Promo | null = quote?.promo ?? null;
 
-  // Discount applies to subtotal. GST recomputes against the discounted
-  // subtotal so the customer also saves the tax on the discounted amount.
-  const totals = useMemo(
-    () => calcTotals(subtotal, appliedPromo, deliveryOption, lineGstItems, defaultTaxRate),
-    [subtotal, appliedPromo, deliveryOption, lineGstItems, defaultTaxRate],
-  );
-  const { discount, tax, total } = totals;
+  // A promo can stop qualifying after cart edits — drop it and say why.
+  useEffect(() => {
+    if (promoCode && quote?.promo_error) {
+      setPromoError(quote.promo_error);
+      setPromoCode(null);
+    }
+  }, [promoCode, quote?.promo_error]);
 
-  // If cart drops below the promo's minimum after edits, auto-clear it.
-  if (appliedPromo?.minSubtotal && subtotal < appliedPromo.minSubtotal && discount === 0) {
-    queueMicrotask(() => {
-      setAppliedPromo(null);
-      setPromoError(
-        `"${appliedPromo.code}" requires a minimum subtotal of ${formatINR(appliedPromo.minSubtotal!)}.`,
-      );
-    });
-  }
-
-  const applyPromo = () => {
+  const applyPromo = async () => {
     setPromoError("");
     const code = promoInput.trim().toUpperCase();
     if (!code) return setPromoError("Enter a promo code.");
-    const match = PROMO_CODES.find((p) => p.code === code);
-    if (!match) return setPromoError("Invalid promo code.");
-    if (match.minSubtotal && subtotal < match.minSubtotal) {
-      return setPromoError(
-        `This code requires a minimum subtotal of ${formatINR(match.minSubtotal)}.`,
-      );
+    try {
+      const q = await quoteOrder(cartLines, delivery, code);
+      if (q.promo_error || !q.promo) return setPromoError(q.promo_error ?? "Invalid promo code.");
+      setPromoCode(q.promo.code);
+      setPromoInput("");
+      toast.success(`Promo "${q.promo.code}" applied — ${q.promo.label}`);
+    } catch (e) {
+      setPromoError(e instanceof Error ? e.message : "Could not check promo code.");
     }
-    setAppliedPromo(match);
-    setPromoInput("");
-    toast.success(`Promo "${match.code}" applied — ${match.label}`);
   };
 
   const removePromo = () => {
-    setAppliedPromo(null);
+    setPromoCode(null);
     setPromoError("");
     toast.message("Promo code removed");
   };
@@ -282,41 +267,21 @@ const Checkout = () => {
     }
 
     setSubmitting(true);
-    const orderNumber = `KCH-${Date.now().toString().slice(-8)}`;
     const slotMeta = findSlot(slot)!;
     const paymentMeta = PAYMENT_OPTIONS.find((p) => p.id === payment)!;
-    const scheduledDateOnly = format(deliveryDate!, "yyyy-MM-dd");
 
-    // Persist via the orders API layer (header + items in one call).
-    // RLS guarantees user_id = auth.uid().
+    let placed;
     try {
-      await createOrderMutation.mutateAsync({
-        userId: user!.id,
-        orderNumber,
-        customer: { name: ok.fullName, email: ok.email, phone: ok.phone },
+      placed = await placeOrderMutation.mutateAsync({
+        items: cartLines,
+        delivery,
+        promo: promoCode,
+        payment,
         address: JSON.parse(JSON.stringify(ok)),
-        notes: ok.notes || null,
-        subtotal,
-        discount,
-        tax,
-        shipping: deliveryOption.price,
-        total,
-        promoCode: appliedPromo?.code ?? null,
-        promoLabel: appliedPromo?.label ?? null,
-        paymentMethod: paymentMeta.label,
-        deliveryMethod: deliveryOption.id,
-        deliveryLabel: deliveryOption.label,
-        scheduledDate: scheduledDateOnly,
-        scheduledSlot: slot,
-        scheduledSlotLabel: slotMeta.label,
-        scheduledSlotWindow: slotMeta.window,
-        items: items.map((it) => ({
-          product_id: it.id,
-          product_name: it.name + (it.withExchange ? " (with exchange)" : ""),
-          product_sku: it.sku,
-          qty: it.qty,
-          unit_price: lineUnitPrice(it),
-        })),
+        scheduledDate: format(deliveryDate!, "yyyy-MM-dd"),
+        slot,
+        slotLabel: slotMeta.label,
+        slotWindow: slotMeta.window,
       });
     } catch (err) {
       setSubmitting(false);
@@ -326,19 +291,24 @@ const Checkout = () => {
       return;
     }
 
-    // Mirror to sessionStorage so the OrderConfirmation page can render
-    // immediately without re-fetching, and so guests who logged in mid-flow
-    // still see the success screen.
+    // Snapshot for the confirmation page — amounts are the server's, not ours.
+    const byId = new Map(items.map((it) => [it.id, it]));
     const order = {
-      orderNumber,
+      orderNumber: placed.order_number,
       placedAt: new Date().toISOString(),
-      items: items.map((it) => ({
-        ...it,
-        unitPrice: lineUnitPrice(it),
-        lineTotal: lineUnitPrice(it) * it.qty,
+      items: placed.lines.map((l) => ({
+        id: l.product_id,
+        name: l.name,
+        slug: l.slug,
+        sku: l.sku,
+        image: byId.get(l.product_id)?.image ?? null,
+        qty: l.qty,
+        unitPrice: l.unit_price,
+        lineTotal: l.line_total,
+        withExchange: l.with_exchange,
       })),
       address: ok,
-      delivery: deliveryOption,
+      delivery: { ...deliveryOption, price: placed.shipping },
       schedule: {
         date: deliveryDate!.toISOString(),
         dateLabel: format(deliveryDate!, "EEE, dd MMM yyyy"),
@@ -348,14 +318,12 @@ const Checkout = () => {
       },
       payment: paymentMeta,
       totals: {
-        subtotal,
-        discount,
-        promo: appliedPromo
-          ? { code: appliedPromo.code, label: appliedPromo.label }
-          : null,
-        tax,
-        shipping: deliveryOption.price,
-        total,
+        subtotal: placed.subtotal,
+        discount: placed.discount,
+        promo: placed.promo,
+        tax: placed.tax,
+        shipping: placed.shipping,
+        total: placed.total,
       },
     };
     sessionStorage.setItem("kachi_last_order", JSON.stringify(order));
@@ -500,6 +468,7 @@ const Checkout = () => {
           totals={totals}
           deliveryOption={deliveryOption}
           appliedPromo={appliedPromo}
+          quoteError={quoteError instanceof Error ? quoteError.message : null}
           promoInput={promoInput}
           setPromoInput={setPromoInput}
           promoError={promoError}

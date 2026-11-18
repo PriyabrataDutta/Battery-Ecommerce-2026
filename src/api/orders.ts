@@ -1,106 +1,84 @@
 import { supabase } from "./client";
 
-export interface OrderItemInput {
+/** What the server needs to price a cart — never prices. */
+export interface CartLineInput {
   product_id: string;
-  product_name: string;
-  product_sku: string | null;
   qty: number;
-  unit_price: number;
+  with_exchange: boolean;
 }
 
-export interface CreateOrderInput {
-  userId: string;
-  orderNumber: string;
-  customer: { name: string; email: string; phone: string };
-  /** Full address blob — stored as JSON on the order. */
-  address: Record<string, unknown>;
-  notes: string | null;
-
+/** Server-computed pricing (see supabase/migrations/*_server_side_orders.sql). */
+export interface OrderQuote {
+  lines: Array<{
+    product_id: string;
+    name: string;
+    sku: string | null;
+    slug: string;
+    qty: number;
+    with_exchange: boolean;
+    unit_price: number;
+    line_total: number;
+    gst_rate: number;
+    tax: number;
+  }>;
   subtotal: number;
   discount: number;
+  promo: { code: string; label: string } | null;
+  promo_error: string | null;
+  /** GST already included in the prices (not added on top). */
   tax: number;
   shipping: number;
+  delivery: { id: string; label: string };
   total: number;
+}
 
-  promoCode: string | null;
-  promoLabel: string | null;
-  paymentMethod: string;
+export interface PlacedOrder extends OrderQuote {
+  order_id: string;
+  order_number: string;
+  payment_label: string;
+}
 
-  deliveryMethod: string;
-  deliveryLabel: string;
+export async function quoteOrder(
+  items: CartLineInput[],
+  delivery: string,
+  promo: string | null,
+): Promise<OrderQuote> {
+  const { data, error } = await supabase.rpc("quote_order", {
+    p_items: items as never,
+    p_delivery: delivery,
+    p_promo: promo ?? undefined,
+  });
+  if (error) throw error;
+  return data as unknown as OrderQuote;
+}
 
+export interface PlaceOrderInput {
+  items: CartLineInput[];
+  delivery: string;
+  promo: string | null;
+  payment: string;
+  address: Record<string, unknown>;
   scheduledDate: string; // YYYY-MM-DD
-  scheduledSlot: string;
-  scheduledSlotLabel: string;
-  scheduledSlotWindow: string;
-
-  items: OrderItemInput[];
+  slot: string;
+  slotLabel: string;
+  slotWindow: string;
 }
 
-export interface CreatedOrder {
-  id: string;
-  order_number: string | null;
-}
-
-/**
- * Persist an order in two writes (header, then items). RLS enforces that
- * `user_id` matches the authenticated user.
- *
- * Throws on any database error so the caller can surface a toast and stop.
- */
-export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder> {
-  const { data: orderRow, error: orderErr } = await supabase
-    .from("orders")
-    .insert([{
-      user_id: input.userId,
-      order_number: input.orderNumber,
-      status: "pending",
-      customer_name: input.customer.name,
-      customer_email: input.customer.email,
-      customer_phone: input.customer.phone,
-      address: input.address as never,
-      notes: input.notes,
-      subtotal: input.subtotal,
-      discount: input.discount,
-      tax: input.tax,
-      shipping: input.shipping,
-      total: input.total,
-      promo_code: input.promoCode,
-      promo_label: input.promoLabel,
-      payment_method: input.paymentMethod,
-      delivery_method: input.deliveryMethod,
-      delivery_label: input.deliveryLabel,
-      scheduled_date: input.scheduledDate,
-      scheduled_slot: input.scheduledSlot,
-      scheduled_slot_label: input.scheduledSlotLabel,
-      scheduled_slot_window: input.scheduledSlotWindow,
-    }])
-    .select("id, order_number")
-    .single();
-
-  if (orderErr || !orderRow) {
-    throw orderErr ?? new Error("Could not create order");
-  }
-
-  const itemRows = input.items.map((it) => ({
-    order_id: orderRow.id,
-    product_id: it.product_id,
-    product_name: it.product_name,
-    product_sku: it.product_sku,
-    qty: it.qty,
-    unit_price: it.unit_price,
-  }));
-
-  const { error: itemsErr } = await supabase.from("order_items").insert(itemRows);
-  if (itemsErr) {
-    // The header was inserted but items failed — surface this so the UI can
-    // tell the user their order was placed but items didn't save.
-    const e = new Error("Order placed but items failed to save: " + itemsErr.message);
-    (e as Error & { code: string }).code = "ORDER_ITEMS_FAILED";
-    throw e;
-  }
-
-  return orderRow;
+/** Prices, reserves stock and writes the order + items in one transaction. */
+export async function placeOrder(input: PlaceOrderInput): Promise<PlacedOrder> {
+  const { data, error } = await supabase.rpc("place_order", {
+    p_items: input.items as never,
+    p_delivery: input.delivery,
+    p_promo: input.promo ?? "",
+    p_payment: input.payment,
+    p_address: input.address as never,
+    p_scheduled_date: input.scheduledDate,
+    p_slot: input.slot,
+    p_slot_label: input.slotLabel,
+    p_slot_window: input.slotWindow,
+  });
+  if (error) throw error;
+  return data as unknown as PlacedOrder;
 }
 
 export interface OrderListRow {

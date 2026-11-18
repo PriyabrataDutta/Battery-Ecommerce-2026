@@ -51,10 +51,3 @@ export function useGstRates() {
     staleTime: 5 * 60_000,
   });
 }
-
-/** Get the default GST rate (decimal) from the rates table, fallback 0.18 */
-export function useDefaultGstRate(): number {
-  const { data } = useGstRates();
-  const defaultRate = data?.find((r) => r.is_default);
-  return (defaultRate?.rate ?? 18) / 100;
-}

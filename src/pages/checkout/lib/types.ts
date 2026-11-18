@@ -48,12 +48,10 @@ export interface Slot {
   notesHint?: string;
 }
 
+/** An applied promo, as confirmed by the server. */
 export type Promo = {
   code: string;
   label: string;
-  type: "percent" | "flat";
-  value: number;
-  minSubtotal?: number;
 };
 
 export type DeliveryOption = {

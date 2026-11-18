@@ -604,33 +604,42 @@ export type Database = {
       order_items: {
         Row: {
           created_at: string
+          gst_rate: number | null
           id: string
           order_id: string
           product_id: string | null
           product_name: string
           product_sku: string | null
           qty: number
+          tax_amount: number | null
           unit_price: number
+          with_exchange: boolean
         }
         Insert: {
           created_at?: string
+          gst_rate?: number | null
           id?: string
           order_id: string
           product_id?: string | null
           product_name: string
           product_sku?: string | null
           qty: number
+          tax_amount?: number | null
           unit_price: number
+          with_exchange?: boolean
         }
         Update: {
           created_at?: string
+          gst_rate?: number | null
           id?: string
           order_id?: string
           product_id?: string | null
           product_name?: string
           product_sku?: string | null
           qty?: number
+          tax_amount?: number | null
           unit_price?: number
+          with_exchange?: boolean
         }
         Relationships: [
           {
@@ -1323,6 +1332,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      _price_order: {
+        Args: { p_delivery: string; p_items: Json; p_promo: string }
+        Returns: Json
+      }
       admin_create_admin_profile: {
         Args: {
           _email: string
@@ -1406,6 +1419,24 @@ export type Database = {
       is_admin_email: { Args: { _email: string }; Returns: boolean }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
       lookup_email_by_phone: { Args: { _phone: string }; Returns: string }
+      place_order: {
+        Args: {
+          p_address: Json
+          p_delivery: string
+          p_items: Json
+          p_payment: string
+          p_promo: string
+          p_scheduled_date: string
+          p_slot: string
+          p_slot_label: string
+          p_slot_window: string
+        }
+        Returns: Json
+      }
+      quote_order: {
+        Args: { p_delivery?: string; p_items: Json; p_promo?: string }
+        Returns: Json
+      }
       verify_phone_code: { Args: { _code: string }; Returns: boolean }
     }
     Enums: {

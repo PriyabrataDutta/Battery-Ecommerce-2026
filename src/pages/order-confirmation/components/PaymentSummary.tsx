@@ -48,7 +48,6 @@ export function PaymentSummary({
             />
           </>
         )}
-        <Row label="GST (18%)" value={formatINR(totals.tax)} />
         <Row
           label="Shipping"
           value={totals.shipping === 0 ? "FREE" : formatINR(totals.shipping)}
@@ -59,6 +58,9 @@ export function PaymentSummary({
       <div className="border-t border-line mt-4 pt-4 flex justify-between font-display font-bold text-xl">
         <span>Total paid</span>
         <span>{formatINR(totals.total)}</span>
+      </div>
+      <div className="mt-1 text-xs text-muted-foreground text-right">
+        Includes GST of {formatINR(totals.tax)}
       </div>
 
       <p className="text-[11px] text-muted-foreground mt-4">

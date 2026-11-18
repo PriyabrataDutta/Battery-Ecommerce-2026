@@ -94,7 +94,7 @@ export const ProductCard = forwardRef<HTMLAnchorElement, { product: Product }>(f
           )}
         </div>
         <div className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">
-          Without exchange · + GST
+          Without exchange · excl. GST
         </div>
 
         {/* With exchange */}
@@ -105,7 +105,7 @@ export const ProductCard = forwardRef<HTMLAnchorElement, { product: Product }>(f
                 {formatINR(withExchange)}
               </span>
               <span className="text-[10px] uppercase tracking-wider text-primary/80 font-semibold">
-                With exchange · + GST
+                With exchange · excl. GST
               </span>
             </div>
             <div className="text-[10px] text-muted-foreground line-clamp-1">

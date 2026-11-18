@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-import { discountPct, formatINR, withGst } from "@/lib/format";
+import { discountPct, formatINR } from "@/lib/format";
 import { Trust } from "./Trust";
 
 import type { Product } from "@/types/catalog";
@@ -150,9 +150,7 @@ export const ProductInfo = ({
             </div>
           </button>
 
-          <div className="text-[10px] text-muted-foreground">
-            + 18% GST at checkout · {formatINR(withGst(withExchangePrice))} with exchange / {formatINR(withGst(withoutExchangePrice))} without, incl. GST
-          </div>
+          <div className="text-[11px] text-muted-foreground">Prices exclude GST · 18% GST is added in your cart</div>
         </div>
       ) : (
         /* No exchange pricing — show single price */
@@ -175,9 +173,7 @@ export const ProductInfo = ({
               </span>
             )}
           </div>
-          <div className="text-[10px] text-muted-foreground mt-0.5">
-            + 18% GST at checkout · {formatINR(withGst(withoutExchangePrice))} incl. GST
-          </div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">Price excludes GST · 18% GST is added in your cart</div>
         </div>
       )}
 

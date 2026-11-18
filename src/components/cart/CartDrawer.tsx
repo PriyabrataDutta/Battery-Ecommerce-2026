@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useCart, useCartSync, lineUnitPrice, lineKey, hasExchangeOption, maxQty } from "@/hooks/useCart";
-import { formatINR } from "@/lib/format";
+import { formatINR, formatINRExact } from "@/lib/format";
 
 interface CartDrawerProps {
   open: boolean;
@@ -17,7 +17,7 @@ interface CartDrawerProps {
 }
 
 export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
-  const { items, setQty, removeItem, setExchange, subtotal, count } = useCart();
+  const { items, setQty, removeItem, setExchange, subtotal, gst, total, count } = useCart();
   useCartSync();
 
   const close = () => onOpenChange(false);
@@ -157,11 +157,19 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
         {/* Footer */}
         {items.length > 0 && (
           <div className="border-t border-line bg-white px-4 py-3 space-y-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Subtotal (excl. GST)</span>
-              <span className="text-base font-bold text-ink">
-                {formatINR(subtotal)}
-              </span>
+            <div className="space-y-1 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Subtotal (excl. GST)</span>
+                <span className="font-semibold">{formatINRExact(subtotal)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">GST (18%)</span>
+                <span className="font-semibold">{formatINRExact(gst)}</span>
+              </div>
+              <div className="flex items-center justify-between pt-1 border-t border-line">
+                <span className="font-semibold">Total (incl. GST)</span>
+                <span className="text-base font-bold text-ink">{formatINRExact(total)}</span>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <Button asChild variant="outline" onClick={close} className="h-11">

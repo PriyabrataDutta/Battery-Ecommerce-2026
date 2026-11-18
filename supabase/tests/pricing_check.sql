@@ -1,7 +1,7 @@
 -- Self-checking test for _price_order / place_order. Leaves nothing behind.
 -- Run: supabase db query --linked -f supabase/tests/pricing_check.sql
 -- Success = final row says 'pricing ok'; any failed assert raises an error.
--- Prices are stored EXCLUDING GST; checkout adds GST and rounds to the rupee.
+-- Prices are stored EXCLUDING GST; checkout adds GST. Totals are exact (no round-off).
 begin;
 
 -- Amaron 105D31L from the price list: ₹5,635.59 / ₹7,627.12 excl. GST (= ₹6,650 / ₹9,000 incl.)
@@ -22,21 +22,20 @@ begin
   assert (q->>'subtotal')::numeric = 7627.12, q::text;
   assert (q->>'tax')::numeric = 1372.88, q::text;
   assert (q->>'total')::numeric = 9000, q::text;
-  assert (q->>'round_off')::numeric = 0, q::text;
 
   -- With exchange: 5,635.59 + 1,014.41 = 6,650.
   q := public._price_order('[{"product_id":"00000000-0000-0000-0000-00000000c0de","qty":1,"with_exchange":true}]', 'standard', null);
   assert (q->>'total')::numeric = 6650, q::text;
 
-  -- 1-paisa case: 2,711.86 + 488.13 = 3,199.99 → round off +0.01 → 3,200.
+  -- Exact paise, no rounding: 2,711.86 + 488.13 = 3,199.99.
   q := public._price_order('[{"product_id":"00000000-0000-0000-0000-00000000c0df","qty":1,"with_exchange":true}]', 'standard', null);
-  assert (q->>'total')::numeric = 3200, q::text;
-  assert (q->>'round_off')::numeric = 0.01, q::text;
+  assert (q->>'total')::numeric = 3199.99, q::text;
+  assert q->'round_off' is null, q::text;
 
   -- Shipping added after GST, not taxed: 2 × with exchange + express 299.
   q := public._price_order('[{"product_id":"00000000-0000-0000-0000-00000000c0de","qty":2,"with_exchange":true}]', 'express', null);
   assert (q->>'subtotal')::numeric = 11271.18, q::text;
-  assert (q->>'total')::numeric = 13300 + 299, q::text;
+  assert (q->>'total')::numeric = 11271.18 + 2028.81 + 299, q::text;  -- 13,598.99
 
   -- 10% promo on the pre-GST subtotal, GST on the discounted amount.
   q := public._price_order('[{"product_id":"00000000-0000-0000-0000-00000000c0de","qty":1}]', 'standard', 'KACHI10');

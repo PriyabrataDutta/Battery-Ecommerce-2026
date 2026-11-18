@@ -54,14 +54,11 @@ export function PaymentSummary({
           value={totals.shipping === 0 ? "FREE" : formatINRExact(totals.shipping)}
           tone={totals.shipping === 0 ? "success" : undefined}
         />
-        {!!totals.roundOff && (
-          <Row label="Round off" value={`${totals.roundOff > 0 ? "+" : "−"}${formatINRExact(Math.abs(totals.roundOff))}`} />
-        )}
       </div>
 
       <div className="border-t border-line mt-4 pt-4 flex justify-between font-display font-bold text-xl">
         <span>Amount payable</span>
-        <span>{formatINR(totals.total)}</span>
+        <span>{formatINRExact(totals.total)}</span>
       </div>
 
       <p className="text-[11px] text-muted-foreground mt-4">

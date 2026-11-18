@@ -25,7 +25,7 @@ export const OrderSummary = ({
   onRemovePromo,
 }: {
   items: ReturnType<typeof useCart>["items"];
-  totals: { subtotal: number; discount: number; tax: number; shipping: number; roundOff: number; total: number };
+  totals: { subtotal: number; discount: number; tax: number; shipping: number; total: number };
   deliveryOption: DeliveryOption;
   appliedPromo: Promo | null;
   quoteError: string | null;
@@ -36,7 +36,7 @@ export const OrderSummary = ({
   onApplyPromo: () => void;
   onRemovePromo: () => void;
 }) => {
-  const { subtotal, discount, tax, shipping, roundOff, total } = totals;
+  const { subtotal, discount, tax, shipping, total } = totals;
   const { setExchange } = useCart();
 
   return (
@@ -125,16 +125,10 @@ export const OrderSummary = ({
             {shipping === 0 ? "FREE" : formatINRExact(shipping)}
           </span>
         </div>
-        {roundOff !== 0 && (
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Round off</span>
-            <span className="font-semibold">{roundOff > 0 ? "+" : "−"}{formatINRExact(Math.abs(roundOff))}</span>
-          </div>
-        )}
       </div>
       <div className="border-t border-line mt-4 pt-4 flex justify-between font-display font-bold text-xl">
         <span>Total</span>
-        <span>{formatINR(total)}</span>
+        <span>{formatINRExact(total)}</span>
       </div>
       {quoteError && (
         <div className="mt-2 text-xs text-destructive font-medium">{quoteError}</div>

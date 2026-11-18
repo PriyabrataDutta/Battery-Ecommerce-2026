@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { CartItem } from "@/types/catalog";
+import { gstOn } from "@/lib/format";
 import { getCartProducts } from "@/api/products";
 
 const KEY = "kachi_cart";
@@ -109,6 +110,9 @@ export function useCart() {
   const clear = useCallback(() => write([]), []);
 
   const subtotal = items.reduce((s, i) => s + lineUnitPrice(i) * i.qty, 0);
+  // GST is added per line (default 18%), rounded to paise like the server.
+  const gst = items.reduce((s, i) => s + gstOn(lineUnitPrice(i) * i.qty), 0);
+  const total = Math.round((subtotal + gst) * 100) / 100;
   const count = items.reduce((s, i) => s + i.qty, 0);
 
   return {
@@ -119,6 +123,8 @@ export function useCart() {
     setExchange,
     clear,
     subtotal,
+    gst,
+    total,
     count,
     lineKey,
   };

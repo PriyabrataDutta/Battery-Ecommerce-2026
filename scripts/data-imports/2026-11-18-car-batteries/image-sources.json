@@ -1,0 +1,662 @@
+[
+ {
+  "brand": "Amaron",
+  "model": "105D31L",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/NCK01309.jpg",
+  "page_url": "https://www.amaron.com/product/x/103/view",
+  "level": "model",
+  "note": "Amaron GO 00105D31L",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "5551x4517"
+ },
+ {
+  "brand": "Amaron",
+  "model": "105D31R",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/NCK01039_0.jpg",
+  "page_url": "https://www.amaron.com/product/x/90/view",
+  "level": "model",
+  "note": "Amaron GO 00105D31R; same photo file (NCK01039) as 85D23R page - may be a generic shot",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "4915x3939"
+ },
+ {
+  "brand": "Amaron",
+  "model": "38B20L",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/B20-Front_1.png",
+  "page_url": "https://www.amaron.com/product/x/100/view",
+  "level": "model",
+  "note": "Amaron GO 00038B20L",
+  "verified": "HTTP 200 image/png",
+  "pixels": "800x800"
+ },
+ {
+  "brand": "Amaron",
+  "model": "38B20R",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/NCK01076.jpg",
+  "page_url": "https://www.amaron.com/product/x/83/view",
+  "level": "model",
+  "note": "Amaron GO 38B20R",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "4058x4445"
+ },
+ {
+  "brand": "Amaron",
+  "model": "40B20L",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/NCK01372_0.jpg",
+  "page_url": "https://www.amaron.com/product/x/267/view",
+  "level": "model",
+  "note": "Amaron FLO 00040B20L",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "3443x3561"
+ },
+ {
+  "brand": "Amaron",
+  "model": "40B20R",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/NCK01372_0.jpg",
+  "page_url": "https://www.amaron.com/product/x/267/view",
+  "level": "model",
+  "note": "No 40B20R page on amaron.com; using FLO 40B20L photo (L/R variant)",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "3443x3561"
+ },
+ {
+  "brand": "Amaron",
+  "model": "50B24L",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/B24-48-Front_0.png",
+  "page_url": "https://www.amaron.com/product/x/231/view",
+  "level": "model",
+  "note": "Amaron GO 00050B24L",
+  "verified": "HTTP 200 image/png",
+  "pixels": "800x800"
+ },
+ {
+  "brand": "Amaron",
+  "model": "55B24LS",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/NCK01345.jpg",
+  "page_url": "https://www.amaron.com/product/x/105/view",
+  "level": "model",
+  "note": "Amaron PRO 0055B24LS",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "5211x4406"
+ },
+ {
+  "brand": "Amaron",
+  "model": "80D23L",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/Front_0.png",
+  "page_url": "https://www.amaron.com/product/x/113/view",
+  "level": "model",
+  "note": "Amaron FLO 00080D23L",
+  "verified": "HTTP 200 image/png",
+  "pixels": "800x800"
+ },
+ {
+  "brand": "Amaron",
+  "model": "85D23R",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/NCK01039.jpg",
+  "page_url": "https://www.amaron.com/product/x/274/view",
+  "level": "model",
+  "note": "Amaron GO 00085D23R; photo file NCK01039 resembles the 105D31R photo (NCK01039_0) - may not be the actual D23 case",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "4915x3939"
+ },
+ {
+  "brand": "Amaron",
+  "model": "95D26L",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/D26-48-Front_4.png",
+  "page_url": "https://www.amaron.com/product/x/114/view",
+  "level": "model",
+  "note": "Amaron GO 00095D26L",
+  "verified": "HTTP 200 image/png",
+  "pixels": "800x800"
+ },
+ {
+  "brand": "Amaron",
+  "model": "95D26R",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/NCK01204.jpg",
+  "page_url": "https://www.amaron.com/product/x/97/view",
+  "level": "model",
+  "note": "Amaron GO 00095D26R",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "4988x4510"
+ },
+ {
+  "brand": "Amaron",
+  "model": "BH45D20L",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/Automotive-D20%20Bottom%20-%20Front.png",
+  "page_url": "https://www.amaron.com/product/x/107/view",
+  "level": "model",
+  "note": "Amaron FLO 0BH45D20L",
+  "verified": "HTTP 200 image/png",
+  "pixels": "2996x3217"
+ },
+ {
+  "brand": "Amaron",
+  "model": "BH90D23L",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/Front.png",
+  "page_url": "https://www.amaron.com/product/x/106/view",
+  "level": "model",
+  "note": "Amaron FLO 0BH90D23L",
+  "verified": "HTTP 200 image/png",
+  "pixels": "800x800"
+ },
+ {
+  "brand": "Amaron",
+  "model": "DIN100",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/NCK01405.jpg",
+  "page_url": "https://www.amaron.com/product/x/77/view",
+  "level": "model",
+  "note": "Amaron PRO 600109087 (100Ah DIN)",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "6199x3928"
+ },
+ {
+  "brand": "Amaron",
+  "model": "DIN45",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/Automotive-DIN45-T4%20-%20Front.png",
+  "page_url": "https://www.amaron.com/product/x/86/view",
+  "level": "model",
+  "note": "Amaron FLO 545106036 (45Ah DIN)",
+  "verified": "HTTP 200 image/png",
+  "pixels": "2994x2686"
+ },
+ {
+  "brand": "Amaron",
+  "model": "DIN50L",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/NCK01120.jpg",
+  "page_url": "https://www.amaron.com/product/x/88/view",
+  "level": "model",
+  "note": "Amaron FLO 550114042 (50Ah DIN, L layout). Alt: AGM DIN50L page /product/x/540/view (Jade AGM range)",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "5211x4348"
+ },
+ {
+  "brand": "Amaron",
+  "model": "DIN50R",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/NCK01120.jpg",
+  "page_url": "https://www.amaron.com/product/x/88/view",
+  "level": "model",
+  "note": "No explicit DIN50R; both 550114042 and 550113042 pages show L layout; using 550114042 photo (L/R variant)",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "5211x4348"
+ },
+ {
+  "brand": "Amaron",
+  "model": "DIN65",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/NCK01180.jpg",
+  "page_url": "https://www.amaron.com/product/x/230/view",
+  "level": "model",
+  "note": "Amaron FLO 565106590 (65Ah DIN); GO version is /product/x/94/view",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "4841x3229"
+ },
+ {
+  "brand": "Amaron",
+  "model": "DIN66",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/NCK01100.jpg",
+  "page_url": "https://www.amaron.com/product/x/87/view",
+  "level": "model",
+  "note": "Amaron FLO 566112060 (66Ah DIN)",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "5590x4001"
+ },
+ {
+  "brand": "Amaron",
+  "model": "DIN74",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/NCK01432.jpg",
+  "page_url": "https://www.amaron.com/product/x/79/view",
+  "level": "model",
+  "note": "Amaron PRO 574102069 (74Ah DIN)",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "5563x3712"
+ },
+ {
+  "brand": "Amaron",
+  "model": "DIN80",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/NCK01239.jpg",
+  "page_url": "https://www.amaron.com/product/x/78/view",
+  "level": "model",
+  "note": "Amaron FLO 580112073 (80Ah DIN)",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "5892x4092"
+ },
+ {
+  "brand": "Amaron",
+  "model": "Dr Efb 80B24L",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/DURO_80B24L_Front_0.png",
+  "page_url": "https://www.amaron.com/product/x/437/view",
+  "level": "model",
+  "note": "Amaron Duro EFB 80B24L",
+  "verified": "HTTP 200 image/png",
+  "pixels": "4162x3809"
+ },
+ {
+  "brand": "Amaron",
+  "model": "OBH40B20L",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/Automotive-BH20%20Bottom%20-%20Front.png",
+  "page_url": "https://www.amaron.com/product/x/108/view",
+  "level": "model",
+  "note": "Amaron FLO 0BH40B20L",
+  "verified": "HTTP 200 image/png",
+  "pixels": "2996x3217"
+ },
+ {
+  "brand": "Amaron",
+  "model": "OBH80D23L",
+  "image_url": "https://amaron-prod-images.s3.ap-south-1.amazonaws.com/product-front-image/Front.png",
+  "page_url": "https://www.amaron.com/product/x/106/view",
+  "level": "range",
+  "note": "No 0BH80D23L page; using BH90D23L (same D23 BH case, FLO) photo",
+  "verified": "HTTP 200 image/png",
+  "pixels": "800x800"
+ },
+ {
+  "brand": "Exide",
+  "model": "105D31L",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/EY105D31L.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-eezy",
+  "level": "model",
+  "note": "Exide Eezy EY105D31L",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "105D31R",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/EY105D31R.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-eezy",
+  "level": "model",
+  "note": "Exide Eezy EY105D31R",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "38B20L",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/ML38820L.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-mileage",
+  "level": "model",
+  "note": "Exide Mileage ML38B20L (file name typo ML38820L on site)",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "38B20R",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/ML38B20R.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-mileage",
+  "level": "model",
+  "note": "Exide Mileage ML38B20R",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "80D23R",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/EY80D23R_Resized.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-eezy",
+  "level": "model",
+  "note": "Exide Eezy EY80D23R",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "DIN100",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/MTREDDIN100.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-matrix",
+  "level": "model",
+  "note": "Exide Matrix MTREDDIN100 (only DIN100 on exidecare)",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "DIN50L",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/MLDIN50_Resized.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-mileage",
+  "level": "model",
+  "note": "Exide Mileage MLDIN50 (L/R not specified on site)",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "DIN50R",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/MLDIN50_Resized.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-mileage",
+  "level": "model",
+  "note": "Exide Mileage MLDIN50 (L/R not specified on site)",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "DIN60",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/MLDIN60.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-mileage",
+  "level": "model",
+  "note": "Exide Mileage MLDIN60",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "DIN66",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/MLDIN66.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-mileage",
+  "level": "model",
+  "note": "Exide Mileage MLDIN66",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "DIN70L",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/MLDIN70%28ISS%29.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-mileage",
+  "level": "model",
+  "note": "Exide Mileage MLDIN70 (ISS variant - only DIN70 on site)",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "DIN74",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/EPIQDIN74L.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-epiq",
+  "level": "model",
+  "note": "Exide Epiq EPIQDIN74L (only DIN74 on site)",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "DIN80",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/MLDIN80.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-mileage",
+  "level": "model",
+  "note": "Exide Mileage MLDIN80",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "EY700L",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/EY700L.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-eezy",
+  "level": "model",
+  "note": "Exide Eezy EY700L",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "EY700R",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/EY700.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-eezy",
+  "level": "model",
+  "note": "Exide Eezy EY700 (site lists EY700 without suffix; assumed R)",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "Epiq DIN74",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/EPIQDIN74L.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-epiq",
+  "level": "model",
+  "note": "Exide Epiq EPIQDIN74L",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "ML40B20LBH",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/ML40LBH.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-mileage",
+  "level": "model",
+  "note": "Site lists ML40LBH (40B20 BH case); assumed same as ML40B20LBH",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "ML40LBH/RBH",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/ML40LBH.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-mileage",
+  "level": "model",
+  "note": "ML40LBH; RBH photo: https://www.exidecare.com/assets/ProductImages/ML40RBH.jpg",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "ML45D21LBH",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/ML45D21LBH.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-mileage",
+  "level": "model",
+  "note": "Exide Mileage ML45D21LBH",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "ML55D23L",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/ML55D23L.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-mileage",
+  "level": "model",
+  "note": "Exide Mileage ML55D23L",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "ML75D23LBH",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/ML75D23LBH.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-mileage",
+  "level": "model",
+  "note": "Exide Mileage ML75D23LBH",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "MLDIN44LH",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/MLDIN44LH.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-mileage",
+  "level": "model",
+  "note": "Exide Mileage MLDIN44LH",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "MLN55",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/MLN55%28ISS%29.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-mileage",
+  "level": "model",
+  "note": "Exide Mileage MLN55 (ISS)",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "MTRED45L",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/MTRED45L.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-matrix",
+  "level": "model",
+  "note": "Exide Matrix MTRED45L",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Exide",
+  "model": "Mileage Din 80",
+  "image_url": "https://www.exidecare.com/assets/ProductImages/MLDIN80.jpg",
+  "page_url": "https://www.exidecare.com/brand/exide-mileage",
+  "level": "model",
+  "note": "Exide Mileage MLDIN80",
+  "verified": "HTTP 200 image/jpeg",
+  "pixels": "300x300"
+ },
+ {
+  "brand": "Power Zone",
+  "model": "105D31L",
+  "image_url": "https://www.powerzoneworld.com/wp-content/uploads/2025/05/40B20LB.png",
+  "page_url": "https://www.powerzoneworld.com/",
+  "level": "range",
+  "note": "Power Zone site (powerzoneworld.com, linked from amararajaeandm.com) has no image for this model (finder shows placeholder); range-level PowerZone JIS 40B20LB photo from site media library - different case size (D31 vs B20)",
+  "verified": "HTTP 200 image/png",
+  "pixels": "205x205"
+ },
+ {
+  "brand": "Power Zone",
+  "model": "105D31R",
+  "image_url": "https://www.powerzoneworld.com/wp-content/uploads/2025/05/40B20LB.png",
+  "page_url": "https://www.powerzoneworld.com/",
+  "level": "range",
+  "note": "Power Zone site (powerzoneworld.com, linked from amararajaeandm.com) has no image for this model (finder shows placeholder); range-level PowerZone JIS 40B20LB photo from site media library - different case size (D31 vs B20)",
+  "verified": "HTTP 200 image/png",
+  "pixels": "205x205"
+ },
+ {
+  "brand": "Power Zone",
+  "model": "38B20L",
+  "image_url": "https://www.powerzoneworld.com/wp-content/uploads/2025/05/40B20LB.png",
+  "page_url": "https://www.powerzoneworld.com/",
+  "level": "range",
+  "note": "Power Zone site (powerzoneworld.com, linked from amararajaeandm.com) has no image for this model (finder shows placeholder); range-level PowerZone JIS 40B20LB photo from site media library - same B20 case, but BH (bottom-hold) variant",
+  "verified": "HTTP 200 image/png",
+  "pixels": "205x205"
+ },
+ {
+  "brand": "Power Zone",
+  "model": "38B20R",
+  "image_url": "https://www.powerzoneworld.com/wp-content/uploads/2025/05/40B20LB.png",
+  "page_url": "https://www.powerzoneworld.com/",
+  "level": "range",
+  "note": "Power Zone site (powerzoneworld.com, linked from amararajaeandm.com) has no image for this model (finder shows placeholder); range-level PowerZone JIS 40B20LB photo from site media library - same B20 case, but BH variant and L layout",
+  "verified": "HTTP 200 image/png",
+  "pixels": "205x205"
+ },
+ {
+  "brand": "Power Zone",
+  "model": "46B24LS",
+  "image_url": "https://www.powerzoneworld.com/wp-content/uploads/2025/05/40B20LB.png",
+  "page_url": "https://www.powerzoneworld.com/",
+  "level": "range",
+  "note": "Power Zone site (powerzoneworld.com, linked from amararajaeandm.com) has no image for this model (finder shows placeholder); range-level PowerZone JIS 40B20LB photo from site media library - different case size (B24 vs B20)",
+  "verified": "HTTP 200 image/png",
+  "pixels": "205x205"
+ },
+ {
+  "brand": "Power Zone",
+  "model": "95D26L",
+  "image_url": "https://www.powerzoneworld.com/wp-content/uploads/2025/05/40B20LB.png",
+  "page_url": "https://www.powerzoneworld.com/",
+  "level": "range",
+  "note": "Power Zone site (powerzoneworld.com, linked from amararajaeandm.com) has no image for this model (finder shows placeholder); range-level PowerZone JIS 40B20LB photo from site media library - different case size (D26 vs B20); 95D26L not listed on site at all (only 95D26R)",
+  "verified": "HTTP 200 image/png",
+  "pixels": "205x205"
+ },
+ {
+  "brand": "Power Zone",
+  "model": "95D26R",
+  "image_url": "https://www.powerzoneworld.com/wp-content/uploads/2025/05/40B20LB.png",
+  "page_url": "https://www.powerzoneworld.com/",
+  "level": "range",
+  "note": "Power Zone site (powerzoneworld.com, linked from amararajaeandm.com) has no image for this model (finder shows placeholder); range-level PowerZone JIS 40B20LB photo from site media library - different case size (D26 vs B20)",
+  "verified": "HTTP 200 image/png",
+  "pixels": "205x205"
+ },
+ {
+  "brand": "Power Zone",
+  "model": "PZ90D23LB",
+  "image_url": "https://www.powerzoneworld.com/wp-content/uploads/2025/05/40B20LB.png",
+  "page_url": "https://www.powerzoneworld.com/",
+  "level": "range",
+  "note": "Power Zone site (powerzoneworld.com, linked from amararajaeandm.com) has no image for this model (finder shows placeholder); range-level PowerZone JIS 40B20LB photo from site media library - different case size (D23 vs B20), both BH",
+  "verified": "HTTP 200 image/png",
+  "pixels": "205x205"
+ },
+ {
+  "brand": "Power Zone",
+  "model": "DIN100",
+  "image_url": "https://www.powerzoneworld.com/wp-content/uploads/2025/05/PZDIN80.png",
+  "page_url": "https://www.powerzoneworld.com/",
+  "level": "range",
+  "note": "No DIN100 image; using PowerZone PZDIN80 photo (DIN range)",
+  "verified": "HTTP 200 image/png",
+  "pixels": "205x205"
+ },
+ {
+  "brand": "Power Zone",
+  "model": "DIN50L",
+  "image_url": "https://www.powerzoneworld.com/wp-content/uploads/2025/05/PZDIN50.png",
+  "page_url": "https://www.powerzoneworld.com/",
+  "level": "model",
+  "note": "PowerZone PZDIN50 (home page product strip)",
+  "verified": "HTTP 200 image/png",
+  "pixels": "205x205"
+ },
+ {
+  "brand": "Power Zone",
+  "model": "DIN50R",
+  "image_url": "https://www.powerzoneworld.com/wp-content/uploads/2025/05/PZDIN50.png",
+  "page_url": "https://www.powerzoneworld.com/",
+  "level": "model",
+  "note": "PowerZone PZDIN50; R variant shares image",
+  "verified": "HTTP 200 image/png",
+  "pixels": "205x205"
+ },
+ {
+  "brand": "Power Zone",
+  "model": "DIN65",
+  "image_url": "https://www.powerzoneworld.com/wp-content/uploads/2025/05/PZDIN65.png",
+  "page_url": "https://www.powerzoneworld.com/",
+  "level": "model",
+  "note": "PowerZone PZDIN65",
+  "verified": "HTTP 200 image/png",
+  "pixels": "205x205"
+ },
+ {
+  "brand": "Power Zone",
+  "model": "DIN66",
+  "image_url": "https://www.powerzoneworld.com/wp-content/uploads/2025/05/PZDIN65.png",
+  "page_url": "https://www.powerzoneworld.com/",
+  "level": "range",
+  "note": "No DIN66 image; using PowerZone PZDIN65 photo (DIN range)",
+  "verified": "HTTP 200 image/png",
+  "pixels": "205x205"
+ },
+ {
+  "brand": "Power Zone",
+  "model": "DIN80",
+  "image_url": "https://www.powerzoneworld.com/wp-content/uploads/2025/05/PZDIN80.png",
+  "page_url": "https://www.powerzoneworld.com/",
+  "level": "model",
+  "note": "PowerZone PZDIN80",
+  "verified": "HTTP 200 image/png",
+  "pixels": "205x205"
+ },
+ {
+  "brand": "Power Zone",
+  "model": "Din 74",
+  "image_url": "https://www.powerzoneworld.com/wp-content/uploads/2025/05/PZDIN80.png",
+  "page_url": "https://www.powerzoneworld.com/",
+  "level": "range",
+  "note": "No DIN74 image; using PowerZone PZDIN80 photo (DIN range)",
+  "verified": "HTTP 200 image/png",
+  "pixels": "205x205"
+ },
+ {
+  "brand": "Power Zone",
+  "model": "PZDIN45",
+  "image_url": "https://www.powerzoneworld.com/wp-content/uploads/2025/05/PZDIN45.png",
+  "page_url": "https://www.powerzoneworld.com/",
+  "level": "model",
+  "note": "PowerZone PZDIN45",
+  "verified": "HTTP 200 image/png",
+  "pixels": "205x205"
+ }
+]

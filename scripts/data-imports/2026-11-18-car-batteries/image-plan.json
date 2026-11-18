@@ -1,0 +1,398 @@
+[
+ {
+  "name": "Amaron 105D31L Automotive Battery",
+  "model": "105D31L",
+  "level": "model",
+  "hash": "f4b7fdf59284"
+ },
+ {
+  "name": "Amaron 105D31R Automotive Battery",
+  "model": "105D31R",
+  "level": "range",
+  "hash": "f4b7fdf59284"
+ },
+ {
+  "name": "Amaron 38B20L Automotive Battery",
+  "model": "38B20L",
+  "level": "model",
+  "hash": "e4e0ca529a35"
+ },
+ {
+  "name": "Amaron 38B20R Automotive Battery",
+  "model": "38B20R",
+  "level": "model",
+  "hash": "78ebfca16664"
+ },
+ {
+  "name": "Amaron 40B20L Automotive Battery",
+  "model": "40B20L",
+  "level": "model",
+  "hash": "05ab0b0e9b0a"
+ },
+ {
+  "name": "Amaron 40B20R Automotive Battery",
+  "model": "40B20R",
+  "level": "model",
+  "hash": "05ab0b0e9b0a"
+ },
+ {
+  "name": "Amaron 50B24L Automotive Battery",
+  "model": "50B24L",
+  "level": "model",
+  "hash": "09ad77e6e69e"
+ },
+ {
+  "name": "Amaron 55B24LS Automotive Battery",
+  "model": "55B24LS",
+  "level": "model",
+  "hash": "f5154118014f"
+ },
+ {
+  "name": "Amaron 80D23L Automotive Battery",
+  "model": "80D23L",
+  "level": "model",
+  "hash": "8a53f2d09e6e"
+ },
+ {
+  "name": "Amaron 85D23R Automotive Battery",
+  "model": "85D23R",
+  "level": "model",
+  "hash": "7edc24cb87f0"
+ },
+ {
+  "name": "Amaron 95D26L Automotive Battery",
+  "model": "95D26L",
+  "level": "model",
+  "hash": "a73179f99c8a"
+ },
+ {
+  "name": "Amaron 95D26R Automotive Battery",
+  "model": "95D26R",
+  "level": "model",
+  "hash": "7fc613ce099d"
+ },
+ {
+  "name": "Amaron BH45D20L Automotive Battery",
+  "model": "BH45D20L",
+  "level": "model",
+  "hash": "da803f0c2c78"
+ },
+ {
+  "name": "Amaron BH90D23L Automotive Battery",
+  "model": "BH90D23L",
+  "level": "model",
+  "hash": "c89662f0dad0"
+ },
+ {
+  "name": "Amaron DIN100 Automotive Battery",
+  "model": "DIN100",
+  "level": "model",
+  "hash": "1b8d2a4929ca"
+ },
+ {
+  "name": "Amaron DIN45 Automotive Battery",
+  "model": "DIN45",
+  "level": "model",
+  "hash": "bdcc57b47ea1"
+ },
+ {
+  "name": "Amaron DIN50L Automotive Battery",
+  "model": "DIN50L",
+  "level": "model",
+  "hash": "5edd53f9d87d"
+ },
+ {
+  "name": "Amaron DIN50R Automotive Battery",
+  "model": "DIN50R",
+  "level": "model",
+  "hash": "5edd53f9d87d"
+ },
+ {
+  "name": "Amaron DIN65 Automotive Battery",
+  "model": "DIN65",
+  "level": "model",
+  "hash": "03235ebbdea2"
+ },
+ {
+  "name": "Amaron DIN66 Automotive Battery",
+  "model": "DIN66",
+  "level": "model",
+  "hash": "e3df490ae4d2"
+ },
+ {
+  "name": "Amaron DIN74 Automotive Battery",
+  "model": "DIN74",
+  "level": "model",
+  "hash": "bda0d173f7a0"
+ },
+ {
+  "name": "Amaron DIN80 Automotive Battery",
+  "model": "DIN80",
+  "level": "model",
+  "hash": "11b310cb91af"
+ },
+ {
+  "name": "Amaron Dr Efb 80B24L Automotive Battery",
+  "model": "Dr Efb 80B24L",
+  "level": "model",
+  "hash": "1be4e231faa0"
+ },
+ {
+  "name": "Amaron OBH40B20L Automotive Battery",
+  "model": "OBH40B20L",
+  "level": "model",
+  "hash": "15da283423c5"
+ },
+ {
+  "name": "Amaron OBH80D23L Automotive Battery",
+  "model": "OBH80D23L",
+  "level": "range",
+  "hash": "c89662f0dad0"
+ },
+ {
+  "name": "Exide 105D31L Automotive Battery",
+  "model": "105D31L",
+  "level": "model",
+  "hash": "fb60004aa4ef"
+ },
+ {
+  "name": "Exide 105D31R Automotive Battery",
+  "model": "105D31R",
+  "level": "model",
+  "hash": "321845cffbd4"
+ },
+ {
+  "name": "Exide 38B20L Automotive Battery",
+  "model": "38B20L",
+  "level": "model",
+  "hash": "1787e1c9e720"
+ },
+ {
+  "name": "Exide 38B20R Automotive Battery",
+  "model": "38B20R",
+  "level": "model",
+  "hash": "5aef1e3513dc"
+ },
+ {
+  "name": "Exide Epiq DIN74 Automotive Battery",
+  "model": "Epiq DIN74",
+  "level": "model",
+  "hash": "5a5a81954a28"
+ },
+ {
+  "name": "Exide Mileage Din 80 Automotive Battery",
+  "model": "Mileage Din 80",
+  "level": "model",
+  "hash": "4d3c7e1fcf40"
+ },
+ {
+  "name": "Exide 80D23R Automotive Battery",
+  "model": "80D23R",
+  "level": "model",
+  "hash": "bead05e9f89f"
+ },
+ {
+  "name": "Exide ML40LBH/RBH Automotive Battery",
+  "model": "ML40LBH/RBH",
+  "level": "model",
+  "hash": "9d00c73580f4"
+ },
+ {
+  "name": "Exide DIN100 Automotive Battery",
+  "model": "DIN100",
+  "level": "model",
+  "hash": "16ffc6c846b1"
+ },
+ {
+  "name": "Exide DIN50L Automotive Battery",
+  "model": "DIN50L",
+  "level": "model",
+  "hash": "57da5f47aba4"
+ },
+ {
+  "name": "Exide DIN60 Automotive Battery",
+  "model": "DIN60",
+  "level": "model",
+  "hash": "c16390472ea1"
+ },
+ {
+  "name": "Exide DIN66 Automotive Battery",
+  "model": "DIN66",
+  "level": "model",
+  "hash": "4191fe3133d1"
+ },
+ {
+  "name": "Exide DIN70L Automotive Battery",
+  "model": "DIN70L",
+  "level": "model",
+  "hash": "80835615f5d0"
+ },
+ {
+  "name": "Exide DIN74 Automotive Battery",
+  "model": "DIN74",
+  "level": "model",
+  "hash": "5a5a81954a28"
+ },
+ {
+  "name": "Exide DIN80 Automotive Battery",
+  "model": "DIN80",
+  "level": "model",
+  "hash": "4d3c7e1fcf40"
+ },
+ {
+  "name": "Exide EY700L Automotive Battery",
+  "model": "EY700L",
+  "level": "model",
+  "hash": "5b5b78b6ad5e"
+ },
+ {
+  "name": "Exide EY700R Automotive Battery",
+  "model": "EY700R",
+  "level": "model",
+  "hash": "c96d3ade434c"
+ },
+ {
+  "name": "Exide ML40B20LBH Automotive Battery",
+  "model": "ML40B20LBH",
+  "level": "model",
+  "hash": "9d00c73580f4"
+ },
+ {
+  "name": "Exide ML45D21LBH Automotive Battery",
+  "model": "ML45D21LBH",
+  "level": "model",
+  "hash": "db118d6f738a"
+ },
+ {
+  "name": "Exide ML55D23L Automotive Battery",
+  "model": "ML55D23L",
+  "level": "model",
+  "hash": "f3e7d07ac7d9"
+ },
+ {
+  "name": "Exide ML75D23LBH Automotive Battery",
+  "model": "ML75D23LBH",
+  "level": "model",
+  "hash": "571fd4c48b8b"
+ },
+ {
+  "name": "Exide MLDIN44LH Automotive Battery",
+  "model": "MLDIN44LH",
+  "level": "model",
+  "hash": "b8996444f5d2"
+ },
+ {
+  "name": "Exide MLN55 Automotive Battery",
+  "model": "MLN55",
+  "level": "model",
+  "hash": "afa8c1ad8548"
+ },
+ {
+  "name": "Exide MTRED45L Automotive Battery",
+  "model": "MTRED45L",
+  "level": "model",
+  "hash": "3af414e0a926"
+ },
+ {
+  "name": "Power Zone 105D31L Automotive Battery",
+  "model": "105D31L",
+  "level": "range",
+  "hash": "a8b4d78f8c22"
+ },
+ {
+  "name": "Power Zone 105D31R Automotive Battery",
+  "model": "105D31R",
+  "level": "range",
+  "hash": "a8b4d78f8c22"
+ },
+ {
+  "name": "Power Zone 38B20L Automotive Battery",
+  "model": "38B20L",
+  "level": "range",
+  "hash": "a8b4d78f8c22"
+ },
+ {
+  "name": "Power Zone 38B20R Automotive Battery",
+  "model": "38B20R",
+  "level": "range",
+  "hash": "a8b4d78f8c22"
+ },
+ {
+  "name": "Power Zone 46B24LS Automotive Battery",
+  "model": "46B24LS",
+  "level": "range",
+  "hash": "a8b4d78f8c22"
+ },
+ {
+  "name": "Power Zone Din 74 Automotive Battery",
+  "model": "Din 74",
+  "level": "range",
+  "hash": "d7bc0735b480"
+ },
+ {
+  "name": "Power Zone 95D26L Automotive Battery",
+  "model": "95D26L",
+  "level": "range",
+  "hash": "a8b4d78f8c22"
+ },
+ {
+  "name": "Power Zone 95D26R Automotive Battery",
+  "model": "95D26R",
+  "level": "range",
+  "hash": "a8b4d78f8c22"
+ },
+ {
+  "name": "Power Zone DIN100 Automotive Battery",
+  "model": "DIN100",
+  "level": "range",
+  "hash": "d7bc0735b480"
+ },
+ {
+  "name": "Power Zone DIN50L Automotive Battery",
+  "model": "DIN50L",
+  "level": "model",
+  "hash": "9d51658dd8c2"
+ },
+ {
+  "name": "Power Zone DIN50R Automotive Battery",
+  "model": "DIN50R",
+  "level": "model",
+  "hash": "9d51658dd8c2"
+ },
+ {
+  "name": "Power Zone DIN65 Automotive Battery",
+  "model": "DIN65",
+  "level": "model",
+  "hash": "508cb3fd7070"
+ },
+ {
+  "name": "Power Zone DIN66 Automotive Battery",
+  "model": "DIN66",
+  "level": "range",
+  "hash": "508cb3fd7070"
+ },
+ {
+  "name": "Power Zone DIN80 Automotive Battery",
+  "model": "DIN80",
+  "level": "model",
+  "hash": "d7bc0735b480"
+ },
+ {
+  "name": "Power Zone PZ90D23LB Automotive Battery",
+  "model": "PZ90D23LB",
+  "level": "range",
+  "hash": "a8b4d78f8c22"
+ },
+ {
+  "name": "Power Zone PZDIN45 Automotive Battery",
+  "model": "PZDIN45",
+  "level": "model",
+  "hash": "ec14862d8b26"
+ },
+ {
+  "name": "Exide DIN50R Automotive Battery",
+  "model": "DIN50R",
+  "level": "model",
+  "hash": "57da5f47aba4"
+ }
+]

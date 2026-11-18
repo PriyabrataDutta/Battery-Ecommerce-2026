@@ -117,10 +117,10 @@ supabase db push        # applies all 30 files in supabase/migrations, in order
 ```
 
 This applies the schema, roles, database functions, triggers, and security policies.
-The last migration also limits public settings and GST reads, hides media-library
-metadata, and restricts quote-file uploads. The same policy update was applied to
-Lovable Cloud from `drizzle/migrations/`; for the separately purchased project,
-`supabase/migrations/` is the deployable copy. Confirm nothing was skipped:
+Migration `20261118140000_lock_down_settings.sql` limits public settings and GST
+reads, hides media-library metadata, restricts quote-file uploads, and adds the
+write-only `private_settings` table for secrets (SMTP password, Cashfree keys).
+`supabase/migrations/` is the only migration source. Confirm nothing was skipped:
 
 ```sql
 select count(*) from information_schema.tables

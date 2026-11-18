@@ -53,11 +53,12 @@ export function EmailSmtpTab() {
   const saveMut = useMutation({
     mutationFn: async () => {
       const toSave: SmtpConfig = { ...form, password_set: form.password_set || password.length > 0 };
-      await setSetting(SETTING_KEY, toSave);
-      // Password stored separately via edge function that saves to vault
+      // Password goes to private_settings (write-only, admin-only); never back to the browser.
       if (password) {
-        await setSetting("smtp_password", password);
+        const { error } = await supabase.rpc("admin_set_private_setting", { _key: "smtp_password", _value: password });
+        if (error) throw error;
       }
+      await setSetting(SETTING_KEY, toSave);
     },
     onSuccess: () => {
       toast.success("SMTP settings saved");

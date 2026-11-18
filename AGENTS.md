@@ -1,1 +1,1 @@
-Database changes for Lovable Cloud must be recorded as applied Drizzle migrations under drizzle/migrations; preserve the generated migration config and journal so deployed access rules remain reproducible.
+Database changes go in `supabase/migrations/` as new timestamped SQL files and are applied with `supabase db push` to the linked project (kachi-prod). Never edit an already-applied migration; add a new one. After schema changes, regenerate `src/integrations/supabase/types.ts` with `supabase gen types typescript --linked`.

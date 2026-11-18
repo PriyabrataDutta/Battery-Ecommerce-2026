@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.18"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       activity_log: {
@@ -765,6 +790,27 @@ export type Database = {
         }
         Relationships: []
       }
+      private_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       product_fitment: {
         Row: {
           car_model_id: string
@@ -1327,6 +1373,10 @@ export type Database = {
           value: number
         }[]
       }
+      admin_set_private_setting: {
+        Args: { _key: string; _value: Json }
+        Returns: undefined
+      }
       admin_set_user_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1501,6 +1551,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       app_role: ["admin", "staff", "customer"],

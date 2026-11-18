@@ -7,7 +7,7 @@ E-commerce storefront for car batteries (Kachi Battery). Customers search batter
 - **Frontend:** React 18, Vite, TypeScript, Tailwind CSS, shadcn/ui (Radix)
 - **Data:** TanStack React Query, react-hook-form + zod
 - **Backend:** Supabase (Postgres, Auth, Storage, Edge Functions)
-- **Migrations:** SQL in `supabase/migrations`, Drizzle schema in `drizzle/`
+- **Migrations:** SQL in `supabase/migrations` (the only source of truth)
 - **Tests:** Vitest
 
 ## Getting started
@@ -56,7 +56,6 @@ supabase/
   migrations/       database schema (SQL)
   functions/        Edge Functions (bulk imports, phone verification, email…)
   config.toml
-drizzle/            Drizzle schema + migrations
 docs/               developer guide
 scripts/            sitemap generator
 ```

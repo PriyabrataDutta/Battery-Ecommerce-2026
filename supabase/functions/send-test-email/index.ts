@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     const { data: pwRow } = await supabase
-      .from("site_settings")
+      .from("private_settings")
       .select("value")
       .eq("key", "smtp_password")
       .maybeSingle();

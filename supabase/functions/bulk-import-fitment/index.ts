@@ -178,8 +178,9 @@ Deno.serve(async (req) => {
     const productMap = new Map<string, string>();
     for (const p of existingProducts ?? []) productMap.set(p.name.toLowerCase(), p.id);
 
-    const { data: existingFit } = await db.from("product_fitment").select("product_id, car_model_id");
-    const fitSet = new Set((existingFit ?? []).map((f) => `${f.product_id}|${f.car_model_id}`));
+    // Fitment links are collected here and written in a few batches at the end
+    // (was one insert per link). Existing links are skipped by the database.
+    const newFitment = new Map<string, { product_id: string; car_model_id: string }>();
 
     let productsCreated = 0;
     let productsUpdated = 0;
@@ -234,14 +235,18 @@ Deno.serve(async (req) => {
           }
         }
         if (!modelId) continue;
-        const fk = `${productId}|${modelId}`;
-        if (fitSet.has(fk)) continue;
-        const { error } = await db.from("product_fitment").insert({ product_id: productId, car_model_id: modelId });
-        if (!error) {
-          fitSet.add(fk);
-          fitmentsCreated++;
-        }
+        newFitment.set(`${productId}|${modelId}`, { product_id: productId, car_model_id: modelId });
       }
+    }
+
+    const links = [...newFitment.values()];
+    for (let i = 0; i < links.length; i += 500) {
+      const { data: inserted, error } = await db
+        .from("product_fitment")
+        .upsert(links.slice(i, i + 500), { onConflict: "product_id,car_model_id", ignoreDuplicates: true })
+        .select("product_id");
+      if (error) throw error;
+      fitmentsCreated += inserted?.length ?? 0;
     }
 
     const summary = {

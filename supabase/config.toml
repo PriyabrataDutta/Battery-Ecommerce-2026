@@ -12,3 +12,22 @@ verify_jwt = false
 
 [functions.auth-email]
 verify_jwt = false
+
+# Auth/storage values pinned to the live project's settings (as of 2026-11-18),
+# because `supabase config push` sends the WHOLE config and would otherwise
+# reset them to local defaults. Change these deliberately, never by omission.
+[auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = []
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+[auth.email]
+enable_confirmations = true
+max_frequency = "1m0s"
+otp_length = 8
+
+[storage.vector]
+enabled = false

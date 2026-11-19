@@ -62,9 +62,11 @@ export const DeliveryStep = ({
 
   return (
     <div>
-      <div className="flex items-center gap-2">
-        <Truck className="h-5 w-5 text-primary" />
-        <h2 className="font-display-tight text-xl font-bold">Delivery method</h2>
+      <div className="flex items-center gap-3">
+        <span className="grid h-10 w-10 place-items-center rounded-full bg-primary/10">
+          <Truck className="h-5 w-5 text-primary" />
+        </span>
+        <h2 className="font-display-tight text-2xl font-bold text-ink">Delivery method</h2>
       </div>
       <p className="text-sm text-muted-foreground mt-1">
         Choose how you'd like your battery delivered.
@@ -83,18 +85,18 @@ export const DeliveryStep = ({
               key={o.id}
               htmlFor={`del-${o.id}`}
               className={[
-                "flex items-center gap-4 p-4 border cursor-pointer transition-colors",
-                active ? "border-primary bg-primary/5" : "border-line hover:border-ink-soft",
+                "flex items-center gap-4 p-4 sm:p-5 rounded-2xl border-2 cursor-pointer transition-all",
+                active ? "border-primary bg-primary/[0.04] shadow-card" : "border-line bg-card hover:border-ink/30",
               ].join(" ")}
             >
               <RadioGroupItem id={`del-${o.id}`} value={o.id} />
-              <Icon className={`h-6 w-6 ${active ? "text-primary" : "text-ink-soft"}`} />
+              <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${active ? "bg-primary text-white" : "bg-muted text-ink-soft"}`}><Icon className="h-5 w-5" /></span>
               <div className="flex-1 min-w-0">
-                <div className="font-display font-semibold">{o.label}</div>
+                <div className="font-display font-bold text-ink">{o.label}</div>
                 <div className="text-xs text-muted-foreground">{o.eta}</div>
               </div>
-              <div className="text-sm font-bold whitespace-nowrap">
-                {o.price === 0 ? <span className="text-success">FREE</span> : formatINR(o.price)}
+              <div className="font-display text-base font-bold whitespace-nowrap">
+                {o.price === 0 ? <span className="rounded-full bg-success/10 px-2.5 py-1 text-xs text-success">FREE</span> : formatINR(o.price)}
               </div>
             </label>
           );
@@ -103,9 +105,11 @@ export const DeliveryStep = ({
 
       {/* Schedule */}
       <div className="mt-8 border-t border-line pt-6">
-        <div className="flex items-center gap-2">
-          <CalendarIcon className="h-5 w-5 text-primary" />
-          <h3 className="font-display-tight text-lg font-bold">
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-primary/10">
+            <CalendarIcon className="h-5 w-5 text-primary" />
+          </span>
+          <h3 className="font-display-tight text-xl font-bold text-ink">
             {delivery === "installation"
               ? "Schedule your installation"
               : "Schedule your delivery"}
@@ -119,7 +123,7 @@ export const DeliveryStep = ({
 
         <div className="mt-4 grid sm:grid-cols-2 gap-4">
           <div>
-            <Label className="text-xs font-display font-semibold uppercase tracking-wide">
+            <Label className="text-sm font-semibold text-ink">
               Preferred date <span className="text-primary">*</span>
             </Label>
             <Popover>
@@ -127,7 +131,7 @@ export const DeliveryStep = ({
                 <Button
                   variant="outline"
                   className={cn(
-                    "mt-1.5 w-full justify-start text-left font-normal",
+                    "mt-1.5 h-11 w-full justify-start rounded-xl text-left font-normal",
                     !deliveryDate && "text-muted-foreground",
                   )}
                   aria-invalid={!!scheduleError && !deliveryDate}
@@ -151,7 +155,7 @@ export const DeliveryStep = ({
           </div>
 
           <div>
-            <Label className="text-xs font-display font-semibold uppercase tracking-wide">
+            <Label className="text-sm font-semibold text-ink">
               {delivery === "installation"
                 ? "Installation time slot"
                 : "Preferred time slot"}{" "}
@@ -173,19 +177,19 @@ export const DeliveryStep = ({
                     key={s.id}
                     htmlFor={`slot-${s.id}`}
                     className={[
-                      "flex items-start gap-2 p-3 border cursor-pointer transition-colors text-left",
+                      "flex items-start gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all text-left",
                       active
-                        ? "border-primary bg-primary/5"
-                        : "border-line hover:border-ink-soft",
+                        ? "border-primary bg-primary/[0.04]"
+                        : "border-line bg-card hover:border-ink/30",
                     ].join(" ")}
                   >
                     <RadioGroupItem id={`slot-${s.id}`} value={s.id} className="mt-0.5" />
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-display font-semibold flex items-center gap-1.5 flex-wrap">
+                      <div className="text-sm font-display font-bold text-ink flex items-center gap-1.5 flex-wrap">
                         <Clock className="h-3 w-3 text-ink-soft shrink-0" />
                         <span>{s.label}</span>
                         {s.notesMin > 0 && (
-                          <span className="ml-auto text-[10px] font-display font-bold uppercase tracking-wide text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5">
+                          <span className="ml-auto rounded-full text-[10px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5">
                             Notes ≥ {s.notesMin}
                           </span>
                         )}

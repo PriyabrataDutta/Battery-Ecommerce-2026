@@ -22,9 +22,11 @@ export const PaymentStep = ({
   const options = PAYMENT_OPTIONS.filter((p) => available?.includes(p.id));
   return (
     <div>
-      <div className="flex items-center gap-2">
-        <CreditCard className="h-5 w-5 text-primary" />
-        <h2 className="font-display-tight text-xl font-bold">Payment method</h2>
+      <div className="flex items-center gap-3">
+        <span className="grid h-10 w-10 place-items-center rounded-full bg-primary/10">
+          <CreditCard className="h-5 w-5 text-primary" />
+        </span>
+        <h2 className="font-display-tight text-2xl font-bold text-ink">Payment method</h2>
       </div>
       <p className="text-sm text-muted-foreground mt-1">
         {available === undefined
@@ -47,14 +49,14 @@ export const PaymentStep = ({
               key={p.id}
               htmlFor={`pay-${p.id}`}
               className={[
-                "flex items-center gap-4 p-4 border cursor-pointer transition-colors",
-                active ? "border-primary bg-primary/5" : "border-line hover:border-ink-soft",
+                "flex items-center gap-4 p-4 sm:p-5 rounded-2xl border-2 cursor-pointer transition-all",
+                active ? "border-primary bg-primary/[0.04] shadow-card" : "border-line bg-card hover:border-ink/30",
               ].join(" ")}
             >
               <RadioGroupItem id={`pay-${p.id}`} value={p.id} />
-              <Icon className={`h-6 w-6 ${active ? "text-primary" : "text-ink-soft"}`} />
+              <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${active ? "bg-primary text-white" : "bg-muted text-ink-soft"}`}><Icon className="h-5 w-5" /></span>
               <div className="flex-1 min-w-0">
-                <div className="font-display font-semibold">{p.label}</div>
+                <div className="font-display font-bold text-ink">{p.label}</div>
                 <div className="text-xs text-muted-foreground">{p.hint}</div>
               </div>
             </label>

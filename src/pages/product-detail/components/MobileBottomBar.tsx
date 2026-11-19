@@ -19,16 +19,16 @@ export const MobileBottomBar = ({
   stock: number;
   onAdd: () => void;
 }) => (
-  <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-line shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.1)] px-3 py-2 flex items-center gap-2">
+  <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-card/95 backdrop-blur border-t border-line shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.18)] px-4 py-2.5 flex items-center gap-3">
     <div className="flex-1 min-w-0">
-      <div className="text-[10px] uppercase tracking-wider text-muted-foreground leading-none">
+      <div className="text-[11px] font-medium text-muted-foreground leading-none">
         {withExchange ? "With exchange · excl. GST" : "Price · excl. GST"}
       </div>
-      <div className="font-display text-lg font-bold text-ink truncate">
+      <div className="font-display-tight text-xl font-bold text-ink truncate mt-1">
         {formatINR(lineTotal)}
       </div>
     </div>
-    <Button onClick={onAdd} disabled={stock <= 0} className="h-11 px-4 flex-1">
+    <Button onClick={onAdd} disabled={stock <= 0} className="h-12 px-5 flex-1">
       <ShoppingCart className="h-4 w-4 mr-1.5" /> Add to Cart
     </Button>
   </div>

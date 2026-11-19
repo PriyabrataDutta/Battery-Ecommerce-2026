@@ -81,8 +81,8 @@ export function WriteReviewForm({ productId, onClose }: Props) {
   };
 
   return (
-    <div className="border border-line bg-white p-5 space-y-4 mt-4">
-      <h3 className="font-display font-bold text-lg">Write a Review</h3>
+    <div className="surface p-5 sm:p-6 space-y-4 mb-5">
+      <h3 className="font-display-tight font-bold text-xl text-ink">Write a review</h3>
 
       <div>
         <label className="text-sm font-semibold block mb-1">Your Rating *</label>
@@ -115,11 +115,12 @@ export function WriteReviewForm({ productId, onClose }: Props) {
         <label className="text-sm font-semibold block mb-1">Photos (up to 3)</label>
         <div className="flex gap-2 flex-wrap">
           {previews.map((p, i) => (
-            <div key={i} className="relative w-20 h-20 border border-line rounded overflow-hidden">
+            <div key={i} className="relative w-20 h-20 border border-line rounded-xl overflow-hidden">
               <img src={p} alt="" className="w-full h-full object-cover" />
               <button
                 type="button"
                 onClick={() => removeImage(i)}
+                aria-label="Remove photo"
                 className="absolute -top-1 -right-1 h-5 w-5 grid place-items-center bg-destructive text-white rounded-full text-xs"
               >
                 <X className="h-3 w-3" />
@@ -127,7 +128,7 @@ export function WriteReviewForm({ productId, onClose }: Props) {
             </div>
           ))}
           {images.length < 3 && (
-            <label className="w-20 h-20 border border-dashed border-line rounded grid place-items-center cursor-pointer hover:border-primary transition-colors">
+            <label className="w-20 h-20 border border-dashed border-line rounded-xl grid place-items-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors">
               <ImagePlus className="h-5 w-5 text-muted-foreground" />
               <input
                 type="file"
@@ -142,7 +143,7 @@ export function WriteReviewForm({ productId, onClose }: Props) {
 
       <div className="flex gap-2">
         <Button onClick={handleSubmit} disabled={busy}>
-          {busy ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Submitting...</> : "Submit Review"}
+          {busy ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Submitting...</> : "Submit review"}
         </Button>
         <Button variant="outline" onClick={onClose} disabled={busy}>Cancel</Button>
       </div>

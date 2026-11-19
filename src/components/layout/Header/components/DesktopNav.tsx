@@ -16,7 +16,7 @@ export function DesktopNav() {
   const [shopOpen, setShopOpen] = useState(false);
 
   return (
-    <nav className="hidden lg:block border-t border-line bg-white">
+    <nav className="hidden lg:block border-t border-line/70">
       <div className="container-x flex items-center gap-1 h-12">
         {/* First link (Home) */}
         {mainNav.slice(0, 1).map((item) => (
@@ -29,15 +29,15 @@ export function DesktopNav() {
           onMouseEnter={() => setShopOpen(true)}
           onMouseLeave={() => setShopOpen(false)}
         >
-          <button className="px-4 h-12 inline-flex items-center gap-1 text-sm font-medium text-ink hover:text-primary">
+          <button className="px-3.5 h-9 rounded-full inline-flex items-center gap-1 text-sm font-medium text-ink hover:bg-muted transition-colors" aria-expanded={shopOpen}>
             Shop <ChevronDown className="h-3.5 w-3.5" />
           </button>
           {shopOpen && (
-            <div className="absolute left-0 top-full bg-white border border-line shadow-elevated w-[860px] p-6 grid grid-cols-4 gap-6 animate-fade-in z-50">
+            <div className="absolute left-0 top-full pt-2 z-50"><div className="rounded-2xl bg-white border border-line shadow-elevated w-[860px] p-7 grid grid-cols-4 gap-8 animate-fade-in">
               {shopMegaMenu.map((col) => (
                 <MegaCol key={col.title} column={col} />
               ))}
-            </div>
+            </div></div>
           )}
         </div>
 
@@ -48,9 +48,9 @@ export function DesktopNav() {
 
         <NavLink
           to="/category/clearance"
-          className="ml-auto px-4 h-12 inline-flex items-center text-sm font-bold text-primary uppercase tracking-wide"
+          className="ml-auto inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 h-9 text-sm font-semibold text-primary hover:bg-primary/15 transition-colors"
         >
-          Clearance Sale
+          <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden /> Clearance Sale
         </NavLink>
       </div>
     </nav>
@@ -62,8 +62,8 @@ function TopLink({ to, label }: { to: string; label: string }) {
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `px-4 h-12 inline-flex items-center text-sm font-medium hover:text-primary transition-colors ${
-          isActive ? "text-primary" : "text-ink"
+        `px-3.5 h-9 rounded-full inline-flex items-center text-sm font-medium transition-colors ${
+          isActive ? "bg-ink text-white" : "text-ink hover:bg-muted"
         }`
       }
     >
@@ -75,13 +75,13 @@ function TopLink({ to, label }: { to: string; label: string }) {
 function MegaCol({ column }: { column: MegaColumn }) {
   return (
     <div>
-      <h4 className="text-xs font-bold uppercase tracking-wider text-primary mb-3">
+      <h4 className="eyebrow mb-4">
         {column.title}
       </h4>
       <ul className="space-y-2">
         {column.items.map((it) => (
           <li key={it.to + it.label}>
-            <Link to={it.to} className="text-sm text-ink-soft hover:text-primary transition-colors">
+            <Link to={it.to} className="text-sm text-ink-soft hover:text-primary hover:translate-x-0.5 inline-block transition-all">
               {it.label}
             </Link>
           </li>

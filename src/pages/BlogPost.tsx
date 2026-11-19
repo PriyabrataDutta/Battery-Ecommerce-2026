@@ -62,12 +62,13 @@ const BlogPost = () => {
       </Helmet>
 
 
-      <article className="container-x py-12 max-w-3xl">
+      <article className="container-x py-10 sm:py-16 max-w-3xl">
         <Link to="/blog" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary mb-6">
           <ArrowLeft className="h-4 w-4" /> Back to Blog
         </Link>
 
-        <h1 className="font-display-tight text-3xl sm:text-4xl font-bold">{post.title}</h1>
+        <span className="eyebrow">Article</span>
+        <h1 className="mt-3 font-display-tight text-3xl sm:text-5xl font-bold text-balance">{post.title}</h1>
 
         {post.published_at && (
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-3">
@@ -84,11 +85,11 @@ const BlogPost = () => {
           <img
             src={post.cover_url}
             alt={post.title}
-            className="w-full h-auto mt-6 border border-line"
+            className="w-full h-auto mt-8 rounded-2xl shadow-card"
           />
         )}
 
-        <div className="prose prose-sm max-w-none mt-8 text-ink-soft">
+        <div className="prose prose-base sm:prose-lg max-w-none mt-10 text-ink-soft prose-headings:font-display prose-headings:tracking-tight prose-a:text-primary">
           {post.body ? (
             <div dangerouslySetInnerHTML={{ __html: post.body.replace(/\n/g, "<br/>") }} />
           ) : (

@@ -45,7 +45,7 @@ export function Header() {
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-line">
+    <header className="sticky top-0 z-40 border-b border-line/70 bg-white/85 backdrop-blur-xl supports-[backdrop-filter]:bg-white/75">
       <UtilityBar />
 
       <MainBar

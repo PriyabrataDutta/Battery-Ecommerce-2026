@@ -1,8 +1,18 @@
 const SimplePage = ({ title, body }: { title: string; body: React.ReactNode }) => (
-  <div className="container-x py-12 max-w-3xl">
-    <h1 className="font-display-tight text-4xl font-bold">{title}</h1>
-    <div className="prose prose-sm max-w-none mt-6 text-ink-soft">{body}</div>
-  </div>
+  <>
+    <section className="relative overflow-hidden bg-gradient-hero text-white">
+      <div className="absolute inset-0 bg-dots" aria-hidden />
+      <div className="container-x relative py-14 sm:py-20 max-w-3xl">
+        <span className="eyebrow">Kachi Batteries</span>
+        <h1 className="mt-3 font-display-tight text-4xl sm:text-5xl font-bold">{title}</h1>
+      </div>
+    </section>
+    <div className="container-x max-w-3xl py-10 sm:py-14">
+      <div className="surface p-6 sm:p-10 prose prose-sm sm:prose-base max-w-none text-ink-soft prose-headings:font-display prose-headings:tracking-tight prose-h2:text-ink prose-a:text-primary prose-li:my-1">
+        {body}
+      </div>
+    </div>
+  </>
 );
 
 export const About = () => (

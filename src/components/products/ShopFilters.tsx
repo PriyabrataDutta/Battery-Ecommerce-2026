@@ -21,11 +21,13 @@ type Counts = {
 interface Props {
   counts?: Counts;
   priceBounds?: { min: number; max: number };
+  /** Hide car brand / model / fitment sections (inverter shop). */
+  showCar?: boolean;
 }
 
 const ALL = "__all__";
 
-export function ShopFilters({ counts, priceBounds }: Props) {
+export function ShopFilters({ counts, priceBounds, showCar = true }: Props) {
   const [params, setParams] = useSearchParams();
 
   const carBrandSlug = params.get("car_brand") ?? "";
@@ -122,13 +124,14 @@ export function ShopFilters({ counts, priceBounds }: Props) {
     new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
+      {showCar && (<>
       <div>
-        <h3 className="font-display font-bold text-xs uppercase tracking-wider mb-2 text-muted-foreground">
-          Car Brand
+        <h3 className="text-[13px] font-semibold text-ink mb-2.5">
+          Car brand
         </h3>
         <Select value={carBrandSlug || ALL} onValueChange={onCarBrandChange}>
-          <SelectTrigger className="h-10 border-line">
+          <SelectTrigger className="h-10 rounded-full border-line bg-background">
             <SelectValue placeholder="All car brands" />
           </SelectTrigger>
           <SelectContent className="bg-white z-50 max-h-72">
@@ -143,15 +146,15 @@ export function ShopFilters({ counts, priceBounds }: Props) {
       </div>
 
       <div>
-        <h3 className="font-display font-bold text-xs uppercase tracking-wider mb-2 text-muted-foreground">
-          Car Model
+        <h3 className="text-[13px] font-semibold text-ink mb-2.5">
+          Car model
         </h3>
         <Select
           value={carModelSlug || ALL}
           onValueChange={onCarModelChange}
           disabled={!currentCarBrand}
         >
-          <SelectTrigger className="h-10 border-line">
+          <SelectTrigger className="h-10 rounded-full border-line bg-background">
             <SelectValue placeholder={currentCarBrand ? "All models" : "Select a car brand first"} />
           </SelectTrigger>
           <SelectContent className="bg-white z-50 max-h-72">
@@ -165,11 +168,13 @@ export function ShopFilters({ counts, priceBounds }: Props) {
         </Select>
       </div>
 
+      </>)}
+
       {boundsReady && (
         <div>
           <div className="flex items-center justify-between mb-2">
-            <h3 className="font-display font-bold text-xs uppercase tracking-wider text-muted-foreground">
-              Price Range
+            <h3 className="text-[13px] font-semibold text-ink">
+              Price range
             </h3>
             {priceActive && (
               <button
@@ -178,7 +183,7 @@ export function ShopFilters({ counts, priceBounds }: Props) {
                   setHasUserDragged(false);
                   update({ min_price: null, max_price: null });
                 }}
-                className="text-[11px] text-primary hover:underline"
+                className="text-xs font-medium text-primary hover:underline"
               >
                 Reset
               </button>
@@ -206,22 +211,23 @@ export function ShopFilters({ counts, priceBounds }: Props) {
       )}
 
       <div>
-        <h3 className="font-display font-bold text-xs uppercase tracking-wider mb-2 text-muted-foreground">
-          Battery Brand
+        <h3 className="text-[13px] font-semibold text-ink mb-2.5">
+          Battery brand
         </h3>
-        <ul className="space-y-1.5 text-sm">
+        <ul className="flex flex-wrap gap-2 text-sm">
           <li>
             <button
               type="button"
               onClick={() => onBatteryBrandChange(null)}
-              className={`w-full flex items-center justify-between px-3 py-2 border transition-colors ${
+              aria-pressed={!batteryBrandSlug}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 !batteryBrandSlug
-                  ? "border-primary text-primary bg-primary/5"
-                  : "border-line hover:border-primary hover:text-primary"
+                  ? "border-ink bg-ink text-white"
+                  : "border-line bg-background hover:border-ink/40"
               }`}
             >
-              <span>All brands</span>
-              {counts && <span className="text-xs text-muted-foreground">{counts.total}</span>}
+              <span>All</span>
+              {counts && <span className={`text-xs ${!batteryBrandSlug ? "text-white/60" : "text-muted-foreground"}`}>{counts.total}</span>}
             </button>
           </li>
           {batteryBrands.map((b) => {
@@ -234,16 +240,17 @@ export function ShopFilters({ counts, priceBounds }: Props) {
                   type="button"
                   disabled={disabled}
                   onClick={() => onBatteryBrandChange(b.slug)}
-                  className={`w-full flex items-center justify-between px-3 py-2 border transition-colors capitalize ${
+                  aria-pressed={active}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 transition-colors capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                     active
-                      ? "border-primary text-primary bg-primary/5"
+                      ? "border-ink bg-ink text-white"
                       : disabled
                       ? "border-line text-muted-foreground/50 cursor-not-allowed"
-                      : "border-line hover:border-primary hover:text-primary"
+                      : "border-line bg-background hover:border-ink/40"
                   }`}
                 >
                   <span>{b.name}</span>
-                  {counts && <span className="text-xs text-muted-foreground">{count}</span>}
+                  {counts && <span className={`text-xs ${active ? "text-white/60" : "text-muted-foreground"}`}>{count}</span>}
                 </button>
               </li>
             );
@@ -251,16 +258,17 @@ export function ShopFilters({ counts, priceBounds }: Props) {
         </ul>
       </div>
 
+      {showCar && (
       <div>
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-display font-bold text-xs uppercase tracking-wider text-muted-foreground">
-            Car Brand
+          <h3 className="text-[13px] font-semibold text-ink">
+            Fits car brands
           </h3>
           {selectedCarBrands.size > 0 && (
             <button
               type="button"
               onClick={() => update({ car_brands: null })}
-              className="text-[11px] text-primary hover:underline"
+              className="text-xs font-medium text-primary hover:underline"
             >
               Reset
             </button>
@@ -284,7 +292,7 @@ export function ShopFilters({ counts, priceBounds }: Props) {
               const showCount = !carBrandCountsLoading;
               return (
                 <li key={b.id}>
-                  <label className="flex items-center gap-2.5 px-2 py-1.5 cursor-pointer hover:text-primary transition-colors">
+                  <label className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 cursor-pointer hover:bg-muted transition-colors">
                     <Checkbox
                       checked={checked}
                       onCheckedChange={() => toggleCarBrand(b.slug)}
@@ -303,11 +311,12 @@ export function ShopFilters({ counts, priceBounds }: Props) {
           )}
         </ul>
       </div>
+      )}
 
       <Button
         variant="outline"
         size="sm"
-        className="w-full sticky bottom-0"
+        className="w-full"
         disabled={!hasAny}
         onClick={() => {
           // Reset only filter-controlled params; preserve q (search) and type (category)
@@ -318,6 +327,8 @@ export function ShopFilters({ counts, priceBounds }: Props) {
             car_brands: null,
             min_price: null,
             max_price: null,
+            min_capacity: null,
+            kind: null,
           });
           setRange([minBound, maxBound]);
         }}

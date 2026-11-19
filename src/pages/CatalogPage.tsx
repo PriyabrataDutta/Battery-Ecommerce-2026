@@ -25,16 +25,20 @@ const CatalogPage = () => {
         <meta name="description" content="Download battery catalogs, price lists and product datasheets from Kachi Batteries." />
       </Helmet>
 
-      <div className="container-x py-12">
-        <h1 className="font-display-tight text-4xl font-bold">Catalogs & Price Lists</h1>
-        <p className="text-muted-foreground mt-2 max-w-xl">
-          Download product brochures, datasheets and current price lists from our partner brands.
-        </p>
+      <section className="relative overflow-hidden bg-gradient-hero text-white">
+        <div className="absolute inset-0 bg-dots" aria-hidden />
+        <div className="container-x relative py-14 sm:py-20">
+          <span className="eyebrow">Downloads</span>
+          <h1 className="mt-3 font-display-tight text-4xl sm:text-5xl font-bold">Catalogs & Price Lists</h1>
+          <p className="mt-3 max-w-xl text-white/75">Download product brochures, datasheets and current price lists from our partner brands.</p>
+        </div>
+      </section>
+      <div className="container-x py-10 sm:py-12">
 
         {isLoading ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white border border-line p-6 animate-pulse space-y-3">
+              <div key={i} className="surface p-6 animate-pulse space-y-3">
                 <div className="h-10 w-10 bg-muted rounded" />
                 <div className="h-4 bg-muted rounded w-2/3" />
                 <div className="h-3 bg-muted rounded w-full" />
@@ -42,22 +46,22 @@ const CatalogPage = () => {
             ))}
           </div>
         ) : files.length === 0 ? (
-          <div className="mt-12 border border-dashed border-line p-12 text-center text-muted-foreground">
+          <div className="mt-4 rounded-2xl border border-dashed border-line p-12 text-center text-muted-foreground">
             <FolderOpen className="h-10 w-10 mx-auto mb-3 text-muted" />
             No catalogs uploaded yet. Contact us for current price lists.
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
             {files.map((file) => (
-              <div key={file.id} className="bg-white border border-line p-6 flex flex-col">
+              <div key={file.id} className="surface p-6 flex flex-col">
                 <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded bg-primary/10 text-primary grid place-items-center flex-shrink-0">
+                  <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary grid place-items-center flex-shrink-0">
                     <FileText className="h-5 w-5" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <h3 className="font-display font-bold text-sm text-ink truncate">{file.title}</h3>
                     {file.category && (
-                      <span className="inline-block mt-1 text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded">
+                      <span className="inline-block mt-1 text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded">
                         {file.category}
                       </span>
                     )}

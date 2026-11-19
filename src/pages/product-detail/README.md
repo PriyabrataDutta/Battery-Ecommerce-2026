@@ -15,7 +15,7 @@ product-detail/
     ├── ProductGallery.tsx   main image + thumbnails (with GSAP fade)
     ├── ProductInfo.tsx      brand · title · price · CTAs · pincode · trust
     ├── PriceBreakup.tsx     sticky right-column totals card
-    ├── DetailsTabs.tsx      Details / Specs / Warranty / Delivery tabs
+    ├── ProductSections.tsx  Overview / Specs / Compatible cars / Warranty / Reviews
     ├── RelatedProducts.tsx  "you might also like" grid
     ├── MobileBottomBar.tsx  sticky Add-to-Cart bar on small screens
     ├── Trust.tsx            badge cell used in the trust strip

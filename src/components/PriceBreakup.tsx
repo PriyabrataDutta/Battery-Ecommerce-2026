@@ -28,12 +28,12 @@ export function PriceBreakup({
   const row = (label: string, value: React.ReactNode, tone = "", key?: string) => (
     <div key={key} className="flex justify-between gap-3">
       <span className={tone || "text-muted-foreground"}>{label}</span>
-      <span className={`font-semibold text-right ${tone}`}>{value}</span>
+      <span className={`font-medium tabular-nums text-right ${tone || "text-ink"}`}>{value}</span>
     </div>
   );
   return (
     <div className={className}>
-      <div className="space-y-2 text-sm">
+      <div className="space-y-2.5 text-sm">
         {row("Subtotal (excl. GST)", formatINRExact(subtotal))}
         {discount > 0 && row(discountLabel, `−${formatINRExact(discount)}`, "text-success")}
         {discount > 0 && row("Taxable amount", formatINRExact(subtotal - discount))}
@@ -44,9 +44,9 @@ export function PriceBreakup({
           row("Delivery", delivery === 0 ? "FREE" : formatINRExact(delivery), delivery === 0 ? "text-success" : "")}
         {typeof delivery === "string" && row("Delivery", <span className="font-normal text-muted-foreground">{delivery}</span>)}
       </div>
-      <div className="border-t border-line mt-3 pt-3 flex justify-between font-display font-bold text-lg">
-        <span>{totalLabel}</span>
-        <span>{total === undefined ? "…" : formatINRExact(total)}</span>
+      <div className="border-t border-dashed border-line mt-4 pt-4 flex items-baseline justify-between gap-3">
+        <span className="text-sm font-semibold text-ink">{totalLabel}</span>
+        <span className="font-display-tight text-2xl font-bold tabular-nums text-ink">{total === undefined ? "…" : formatINRExact(total)}</span>
       </div>
     </div>
   );

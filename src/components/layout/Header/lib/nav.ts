@@ -40,21 +40,21 @@ export const shopMegaMenu: MegaColumn[] = [
   {
     title: "Car Batteries",
     items: [
-      { label: "All Car Batteries", to: "/category/car-batteries" },
-      { label: "Sedans & SUVs", to: "/shop?type=car-batteries&segment=sedan-suv" },
-      { label: "Hatchbacks", to: "/shop?type=car-batteries&segment=hatchback" },
-      { label: "Diesel Vehicles", to: "/shop?type=car-batteries&fuel=diesel" },
-      { label: "Shop by Car Model", to: "/brands" },
+      { label: "Find by your car", to: "/shop/car-batteries" },
+      { label: "Maruti Suzuki", to: "/shop/car-batteries?car_brand=maruti-suzuki" },
+      { label: "Hyundai", to: "/shop/car-batteries?car_brand=hyundai" },
+      { label: "Tata", to: "/shop/car-batteries?car_brand=tata" },
+      { label: "Mahindra", to: "/shop/car-batteries?car_brand=mahindra" },
     ],
   },
   {
     title: "Inverter Batteries & UPS",
     items: [
-      { label: "All Inverter Batteries", to: "/category/inverter-ups" },
-      { label: "Tubular", to: "/category/tubular" },
-      { label: "SMF / VRLA", to: "/category/smf" },
-      { label: "Lithium", to: "/category/lithium" },
-      { label: "Home UPS", to: "/category/home-ups" },
+      { label: "Backup calculator", to: "/shop/inverter-batteries" },
+      { label: "Tubular", to: "/shop/inverter-batteries?kind=tubular" },
+      { label: "SMF / VRLA", to: "/shop/inverter-batteries?kind=smf" },
+      { label: "Lithium", to: "/shop/inverter-batteries?kind=lithium" },
+      { label: "Inverters & UPS", to: "/shop/inverter-batteries?kind=inverter-ups" },
     ],
   },
   {
@@ -82,7 +82,8 @@ export const shopMegaMenu: MegaColumn[] = [
 /** Items shown in the mobile slide-down drawer (in order). */
 export const mobileNav: (NavItem & { highlight?: boolean })[] = [
   { label: "Home", to: "/" },
-  { label: "Shop", to: "/shop" },
+  { label: "Car batteries", to: "/shop/car-batteries" },
+  { label: "Inverter batteries", to: "/shop/inverter-batteries" },
   { label: "Brands", to: "/brands" },
   { label: "Jump Start", to: "/jump-start" },
   { label: "Blog", to: "/blog" },
@@ -101,5 +102,5 @@ export const contactInfo = {
   storeCity: "Bengaluru, Karnataka",
   mapUrl: "https://maps.app.goo.gl/jFhiV7mrC53UrraL8",
   mapEmbedUrl: "https://www.google.com/maps?q=12.9582934,77.5336018&z=17&output=embed",
-  utilityTagline: "Free shipping & doorstep installation across India",
+  utilityTagline: "Free standard delivery · Doorstep installation available",
 };

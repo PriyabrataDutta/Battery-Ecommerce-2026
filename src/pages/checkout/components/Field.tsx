@@ -23,7 +23,7 @@ export const Field = ({
   help?: string;
 }) => (
   <div className={className}>
-    <Label className="text-xs font-display font-semibold uppercase tracking-wide">
+    <Label className="text-sm font-semibold text-ink">
       {label} {required && <span className="text-primary">*</span>}
     </Label>
     <div className="mt-1.5">{children}</div>

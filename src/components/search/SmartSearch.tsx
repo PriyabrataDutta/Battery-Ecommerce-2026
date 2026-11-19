@@ -237,7 +237,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
           active ? "bg-muted border-primary" : "border-transparent hover:bg-muted/60"
         }`}
       >
-        <span className={`h-8 w-8 grid place-items-center rounded-md flex-shrink-0 ${iconWrap}`}>{icon}</span>
+        <span className={`h-8 w-8 grid place-items-center rounded-lg flex-shrink-0 ${iconWrap}`}>{icon}</span>
         <span className="flex-1 min-w-0">
           <span className="block truncate text-ink font-medium">{s.label}</span>
           {"sublabel" in s && s.sublabel ? (
@@ -252,7 +252,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
   const SectionHeader = ({ icon, label, count }: { icon: React.ReactNode; label: string; count: number }) => (
     <div className="flex items-center gap-2 px-4 pt-3 pb-1.5 bg-muted/30 border-b border-line">
       <span className="text-primary">{icon}</span>
-      <span className="text-[10px] font-bold uppercase tracking-wider text-ink">{label}</span>
+      <span className="text-xs font-semibold text-ink">{label}</span>
       <span className="text-[10px] text-muted-foreground">({count})</span>
     </div>
   );
@@ -267,24 +267,25 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
           onKeyDown={onKey}
           placeholder={placeholder}
           autoFocus={autoFocus}
-          className="h-11 pr-12 border-line focus-visible:ring-primary"
+          aria-label="Search batteries"
+          className="h-11 rounded-full bg-muted/70 border-transparent pl-5 pr-12 focus-visible:bg-white focus-visible:border-line focus-visible:ring-primary"
         />
-        <button type="submit" className="absolute right-0 top-0 h-11 w-11 grid place-items-center text-ink hover:text-primary" aria-label="Search">
-          <Search className="h-5 w-5" />
+        <button type="submit" className="absolute right-1 top-1 h-9 w-9 grid place-items-center rounded-full bg-primary text-primary-foreground hover:bg-primary-hover transition-colors" aria-label="Search">
+          <Search className="h-4 w-4" />
         </button>
       </form>
 
       {showRecents && (
-        <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-line rounded-md shadow-elevated z-50 max-h-[70vh] overflow-auto animate-fade-in">
+        <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-line rounded-2xl shadow-elevated z-50 max-h-[70vh] overflow-auto animate-fade-in">
           <div className="flex items-center justify-between px-4 pt-3 pb-1.5 bg-muted/30 border-b border-line">
             <div className="flex items-center gap-2">
               <Clock className="h-3.5 w-3.5 text-primary" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-ink">Recent Searches</span>
+              <span className="text-xs font-semibold text-ink">Recent searches</span>
             </div>
             <button
               type="button"
               onClick={clearRecent}
-              className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary"
+              className="text-xs font-medium text-muted-foreground hover:text-primary"
             >
               Clear all
             </button>
@@ -302,8 +303,8 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
                   key={t.key}
                   type="button"
                   onClick={() => setRecentFilter(t.key)}
-                  className={`px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-sm transition-colors whitespace-nowrap ${
-                    active ? "bg-primary text-primary-foreground" : "text-ink-soft hover:text-primary"
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-colors whitespace-nowrap ${
+                    active ? "bg-ink text-white" : "bg-muted text-ink-soft hover:text-ink"
                   }`}
                 >
                   {t.label} <span className="opacity-70">({count})</span>
@@ -324,7 +325,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
                   <>
                     {chipItems.length > 0 && (
                       <div className="px-4 pt-3 pb-3">
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pb-2">
+                        <div className="text-xs font-semibold text-muted-foreground pb-2">
                           Tap a car to search again
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -364,7 +365,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
                     {rowItems.length > 0 && (
                       <div className={chipItems.length > 0 ? "border-t border-line pt-1" : ""}>
                         {chipItems.length > 0 && (
-                          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-4 pt-3 pb-1">
+                          <div className="text-xs font-semibold text-muted-foreground px-4 pt-3 pb-1">
                             Other recents
                           </div>
                         )}
@@ -378,7 +379,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
                               onClick={() => { pushRecent(r); go(r.path); }}
                               className="flex items-center gap-3 flex-1 min-w-0 text-left min-h-[44px]"
                             >
-                              <span className="h-9 w-9 grid place-items-center rounded-md flex-shrink-0 bg-muted">
+                              <span className="h-9 w-9 grid place-items-center rounded-lg flex-shrink-0 bg-muted">
                                 <Clock className="h-4 w-4 text-muted-foreground" />
                               </span>
                               <span className="flex-1 min-w-0">
@@ -407,7 +408,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
       )}
 
       {showPanel && (
-        <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-line rounded-md shadow-elevated z-50 max-h-[70vh] overflow-auto animate-fade-in">
+        <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-line rounded-2xl shadow-elevated z-50 max-h-[70vh] overflow-auto animate-fade-in">
           {isFetching && !hasResults && (
             <div className="px-4 py-6 text-sm text-muted-foreground">Searching…</div>
           )}
@@ -419,7 +420,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
 
           {data && data.categories.length > 0 && (
             <div>
-              <SectionHeader icon={<LayoutGrid className="h-3.5 w-3.5" />} label="Battery Category" count={data.categories.length} />
+              <SectionHeader icon={<LayoutGrid className="h-3.5 w-3.5" />} label="Battery category" count={data.categories.length} />
               {data.categories.map((c) =>
                 renderRow(
                   { kind: "category", id: c.id, label: c.name, slug: c.slug },
@@ -431,7 +432,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
           )}
           {data && data.brands.length > 0 && (
             <div>
-              <SectionHeader icon={<BatteryCharging className="h-3.5 w-3.5" />} label="Battery Brand" count={data.brands.length} />
+              <SectionHeader icon={<BatteryCharging className="h-3.5 w-3.5" />} label="Battery brand" count={data.brands.length} />
               {data.brands.map((b) =>
                 renderRow(
                   { kind: "brand", id: b.id, label: b.name, slug: b.slug },
@@ -443,7 +444,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
           )}
           {data && data.carBrands.length > 0 && (
             <div>
-              <SectionHeader icon={<CarFront className="h-3.5 w-3.5" />} label="Car Brand" count={data.carBrands.length} />
+              <SectionHeader icon={<CarFront className="h-3.5 w-3.5" />} label="Car brand" count={data.carBrands.length} />
               {data.carBrands.map((b) =>
                 renderRow(
                   { kind: "car_brand", id: b.id, label: b.name, slug: b.slug },
@@ -456,7 +457,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
           )}
           {data && data.models.length > 0 && (
             <div>
-              <SectionHeader icon={<Car className="h-3.5 w-3.5" />} label="Car Model" count={data.models.length} />
+              <SectionHeader icon={<Car className="h-3.5 w-3.5" />} label="Car model" count={data.models.length} />
               {data.models.map((m) =>
                 renderRow(
                   { kind: "car_model", id: m.id, label: m.name, sublabel: m.car_brands?.name, slug: m.slug },
@@ -487,7 +488,7 @@ export function SmartSearch({ placeholder = "Search batteries, brands, models...
             <button
               type="button"
               onClick={() => go(`/search?q=${encodeURIComponent(term.trim())}`)}
-              className="w-full border-t border-line px-4 py-3 text-sm font-bold text-primary hover:bg-muted text-left"
+              className="w-full border-t border-line px-4 py-3 text-sm font-semibold text-primary hover:bg-muted text-left"
             >
               See all results for "{term.trim()}"
             </button>

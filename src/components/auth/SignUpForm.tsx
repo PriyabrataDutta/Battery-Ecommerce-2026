@@ -96,23 +96,23 @@ export const SignUpForm = () => {
   return (
     <form onSubmit={submit} className="space-y-3 mt-4" noValidate>
       <div>
-        <Input placeholder="Full name" autoComplete="name" maxLength={80} value={values.fullName}
+        <Input aria-label="Full name" placeholder="Full name" autoComplete="name" maxLength={80} value={values.fullName}
           onChange={set("fullName")} onBlur={blur("fullName")} {...aria("fullName")} />
         {fieldError("fullName")}
       </div>
       <div>
-        <Input type="tel" inputMode="tel" placeholder="Mobile number (e.g. 98765 43210)" autoComplete="tel" maxLength={20}
+        <Input type="tel" inputMode="tel" aria-label="Mobile number" placeholder="Mobile number (e.g. 98765 43210)" autoComplete="tel" maxLength={20}
           value={values.phone} onChange={set("phone")} onBlur={blur("phone")} {...aria("phone")} />
         {fieldError("phone")}
       </div>
       <div>
-        <Input type="email" placeholder="Email" autoComplete="email" maxLength={255} value={values.email}
+        <Input type="email" aria-label="Email" placeholder="Email" autoComplete="email" maxLength={255} value={values.email}
           onChange={set("email")} onBlur={blur("email")} {...aria("email")} />
         {fieldError("email")}
       </div>
       <div>
         <div className="relative">
-          <Input type={showPw ? "text" : "password"} placeholder="Password (8+ characters, letters and numbers)"
+          <Input type={showPw ? "text" : "password"} aria-label="Password" placeholder="Password (8+ characters, letters and numbers)"
             autoComplete="new-password" maxLength={72} value={values.password} className="pr-10"
             onChange={set("password")} onBlur={blur("password")} {...aria("password")} />
           <button type="button" onClick={() => setShowPw((s) => !s)} aria-label={showPw ? "Hide password" : "Show password"}
@@ -123,7 +123,7 @@ export const SignUpForm = () => {
         {fieldError("password")}
       </div>
       <div>
-        <Input type={showPw ? "text" : "password"} placeholder="Confirm password" autoComplete="new-password" maxLength={72}
+        <Input type={showPw ? "text" : "password"} aria-label="Confirm password" placeholder="Confirm password" autoComplete="new-password" maxLength={72}
           value={values.confirmPassword} onChange={set("confirmPassword")} onBlur={blur("confirmPassword")}
           {...aria("confirmPassword")} />
         {fieldError("confirmPassword")}

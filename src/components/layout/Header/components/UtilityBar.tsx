@@ -10,7 +10,7 @@ import { contactInfo } from "../lib/nav";
  */
 export function UtilityBar() {
   return (
-    <div className="bg-ink text-white text-xs">
+    <div className="bg-ink text-white/90 text-xs">
       <div className="container-x flex items-center justify-center sm:justify-between h-9 gap-4">
         <div className="flex items-center gap-4 sm:gap-5">
           <a
@@ -30,7 +30,10 @@ export function UtilityBar() {
             <MessageCircle className="h-3 w-3" /> WhatsApp
           </a>
         </div>
-        <div className="hidden md:block text-white/80">{contactInfo.utilityTagline}</div>
+        <div className="hidden md:flex items-center gap-2 text-white/75">
+          <span className="h-1.5 w-1.5 rounded-full bg-volt animate-pulse" aria-hidden />
+          {contactInfo.utilityTagline}
+        </div>
       </div>
     </div>
   );

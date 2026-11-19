@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Loader2, ShoppingCart } from "lucide-react";
+import { Loader2, ShoppingCart, ShieldCheck, Truck, BadgeCheck } from "lucide-react";
 import { safeNext } from "@/lib/safeNext";
 import { clearPendingAdd, hasPendingAdd } from "@/lib/pendingCart";
 
@@ -101,12 +101,28 @@ const Auth = () => {
   };
 
   return (
-    <div className="container-x py-12 max-w-md">
-      <h1 className="font-display-tight text-4xl font-bold text-center">Account</h1>
-      <p className="text-center text-muted-foreground mt-1">Sign in or create an account.</p>
+    <div className="container-x py-10 sm:py-16">
+      <div className="mx-auto grid max-w-5xl overflow-hidden rounded-3xl border border-line bg-card shadow-elevated lg:grid-cols-2">
+      <aside className="relative hidden overflow-hidden bg-gradient-hero p-10 text-white lg:flex lg:flex-col lg:justify-between">
+        <div className="absolute inset-0 bg-dots" aria-hidden />
+        <div className="relative">
+          <span className="eyebrow">Kachi Batteries</span>
+          <h2 className="mt-4 font-display-tight text-4xl font-bold">Power that fits your ride.</h2>
+          <p className="mt-3 max-w-sm text-white/70">Sign in to check out faster, track deliveries and manage warranty claims.</p>
+        </div>
+        <ul className="relative space-y-3 text-sm text-white/85">
+          <li className="flex items-center gap-3"><BadgeCheck className="h-5 w-5 text-volt" /> 100% genuine brands</li>
+          <li className="flex items-center gap-3"><Truck className="h-5 w-5 text-volt" /> Free delivery & installation</li>
+          <li className="flex items-center gap-3"><ShieldCheck className="h-5 w-5 text-volt" /> Secure sign-in & payments</li>
+        </ul>
+      </aside>
+      <div className="p-6 sm:p-10">
+      <span className="eyebrow">Your account</span>
+      <h1 className="mt-2 font-display-tight text-3xl sm:text-4xl font-bold">Welcome</h1>
+      <p className="text-muted-foreground mt-1">Sign in or create an account.</p>
 
       {cartReason && (
-        <div className="mt-6 flex items-start gap-2 border border-primary/30 bg-primary/5 p-3 text-sm">
+        <div className="mt-6 flex items-start gap-2 rounded-xl border border-primary/30 bg-primary/5 p-3 text-sm">
           <ShoppingCart className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
           <div>
             Sign in or create an account and we'll add your battery to the cart.{" "}
@@ -121,7 +137,7 @@ const Auth = () => {
         </div>
       )}
 
-      <div className="mt-8 bg-white border border-line p-6">
+      <div className="mt-6">
         {forgot ? (
           <form onSubmit={handleForgot} className="space-y-3">
             <h2 className="font-display font-bold text-lg">Reset your password</h2>
@@ -157,15 +173,15 @@ const Auth = () => {
                     <span className="w-full border-t border-line" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-2 text-muted-foreground tracking-wider">or</span>
+                    <span className="bg-card px-2 text-muted-foreground tracking-wider">or</span>
                   </div>
                 </div>
               </>
             )}
             <Tabs defaultValue="signin">
-              <TabsList className="grid grid-cols-2 w-full">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsList className="grid grid-cols-2 w-full rounded-full h-11 p-1">
+                <TabsTrigger value="signin" className="rounded-full">Sign In</TabsTrigger>
+                <TabsTrigger value="signup" className="rounded-full">Sign Up</TabsTrigger>
               </TabsList>
 
               <TabsContent value="signin">
@@ -201,9 +217,11 @@ const Auth = () => {
         )}
       </div>
 
-      <p className="text-xs text-muted-foreground text-center mt-4">
+      <p className="text-xs text-muted-foreground text-center mt-6">
         By continuing you agree to our terms. <Link to="/" className="underline">Back to store</Link>
       </p>
+      </div>
+      </div>
     </div>
   );
 };

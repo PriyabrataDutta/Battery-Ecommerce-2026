@@ -18,24 +18,22 @@ export function ProductTabs() {
   const { data: products = [], isLoading } = useProducts(activeTab.opts);
 
   return (
-    <section className="container-x mt-12 sm:mt-20">
+    <section className="container-x mt-16 sm:mt-24">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
         <div>
-          <div className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] sm:tracking-[0.25em] text-primary">
-            Top Picks
-          </div>
-          <h2 className="font-display-tight text-2xl sm:text-3xl lg:text-4xl font-bold mt-1 text-ink">
-            Our Products
+          <div className="eyebrow">Top picks</div>
+          <h2 className="font-display-tight text-3xl sm:text-4xl font-bold mt-2 text-ink">
+            Batteries people trust
           </h2>
         </div>
-        <div className="flex gap-1 bg-muted p-1 rounded-lg self-start">
+        <div className="flex gap-1 rounded-full border border-line bg-white p-1 shadow-card self-start">
           {tabs.map((t) => (
             <button
               key={t.key}
               onClick={() => setActive(t.key)}
-              className={`px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-bold uppercase tracking-wider transition-colors rounded-md ${
+              className={`rounded-full px-3.5 sm:px-5 py-2 text-xs sm:text-sm font-semibold transition-colors ${
                 active === t.key
-                  ? "bg-white text-ink shadow-sm"
+                  ? "bg-ink text-white"
                   : "text-muted-foreground hover:text-ink"
               }`}
             >
@@ -46,15 +44,15 @@ export function ProductTabs() {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-white border border-line animate-pulse h-72 rounded-lg" />
+            <div key={i} className="surface animate-pulse h-80" />
           ))}
         </div>
       ) : products.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-12">No products in this category yet.</p>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
           {products.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}

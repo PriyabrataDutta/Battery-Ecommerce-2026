@@ -118,8 +118,8 @@ export function ActiveFilters({ priceBounds }: Props) {
     });
 
   return (
-    <div className="bg-white border border-line p-3 sm:p-4 mb-4 flex flex-wrap items-center gap-2">
-      <span className="text-[11px] uppercase tracking-wider font-display font-bold text-muted-foreground mr-1">
+    <div className="mb-4 flex flex-wrap items-center gap-2">
+      <span className="text-xs font-medium text-muted-foreground mr-1">
         Active filters
       </span>
       {chips.map((c) => (
@@ -127,17 +127,17 @@ export function ActiveFilters({ priceBounds }: Props) {
           key={c.key}
           type="button"
           onClick={c.remove}
-          className="group inline-flex items-center gap-1.5 px-2.5 py-1 text-xs border border-line bg-muted/40 hover:border-primary hover:text-primary transition-colors"
+          className="group inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1.5 text-xs font-medium text-white hover:bg-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           aria-label={`Remove filter ${c.label}`}
         >
           <span>{c.label}</span>
-          <X className="h-3 w-3 opacity-60 group-hover:opacity-100" />
+          <X className="h-3 w-3 opacity-70 group-hover:opacity-100" />
         </button>
       ))}
       <button
         type="button"
         onClick={clearAll}
-        className="ml-auto text-[11px] text-primary hover:underline font-medium"
+        className="ml-auto text-xs text-primary hover:underline font-medium"
       >
         Clear all
       </button>

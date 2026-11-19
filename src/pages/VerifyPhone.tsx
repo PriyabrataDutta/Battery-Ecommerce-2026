@@ -90,13 +90,14 @@ const VerifyPhone = () => {
   };
 
   return (
-    <div className="container-x py-12 max-w-md">
-      <h1 className="font-display-tight text-4xl font-bold text-center">Verify your mobile</h1>
+    <div className="container-x max-w-md py-12 sm:py-20">
+      <div className="text-center"><span className="eyebrow">Account</span></div>
+      <h1 className="mt-2 font-display-tight text-3xl sm:text-4xl font-bold text-center">Verify your mobile</h1>
       <p className="text-center text-muted-foreground mt-2">
         Enter the 4-digit code we sent to your email.
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-8 bg-white border border-line p-6 space-y-4">
+      <form onSubmit={handleSubmit} className="mt-8 surface p-6 sm:p-8 space-y-4">
         <Input
           inputMode="numeric"
           autoFocus
@@ -109,7 +110,7 @@ const VerifyPhone = () => {
         />
 
         {devCode && (
-          <div className="text-center text-sm border border-dashed border-line bg-muted/40 px-3 py-2 rounded">
+          <div className="text-center text-sm rounded-xl border border-dashed border-line bg-muted/40 px-3 py-2">
             <div className="text-muted-foreground text-xs uppercase tracking-wider">Dev code</div>
             <div className="font-mono text-lg">{devCode}</div>
           </div>

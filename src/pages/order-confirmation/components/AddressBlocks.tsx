@@ -13,7 +13,7 @@ export function AddressBlocks({ address }: { address: SavedOrder["address"] }) {
     <div className="grid sm:grid-cols-2 gap-4">
       <InfoBlock title="Shipping address" icon={MapPin}>
         <div className="text-sm">
-          <div className="font-semibold">{address.fullName}</div>
+          <div className="font-bold text-ink">{address.fullName}</div>
           <div>
             {address.line1}
             {address.line2 ? `, ${address.line2}` : ""}
@@ -52,10 +52,12 @@ function InfoBlock({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white border border-line p-5">
-      <div className="flex items-center gap-2 mb-3">
-        <Icon className="h-4 w-4 text-primary" />
-        <h3 className="font-display font-bold uppercase tracking-wide text-sm">{title}</h3>
+    <div className="surface p-5">
+      <div className="flex items-center gap-2.5 mb-3">
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10">
+          <Icon className="h-4 w-4 text-primary" />
+        </span>
+        <h3 className="font-display font-bold text-base text-ink">{title}</h3>
       </div>
       {children}
     </div>

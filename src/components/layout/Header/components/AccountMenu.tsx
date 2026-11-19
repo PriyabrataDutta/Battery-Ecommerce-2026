@@ -70,7 +70,7 @@ export function AccountMenu() {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full w-56 bg-white border border-line rounded-md shadow-elevated z-50 py-1"
+          className="absolute right-0 top-full mt-1 w-60 overflow-hidden rounded-2xl bg-white border border-line shadow-elevated z-50 py-1.5"
         >
           {/* Hover bridge so the cursor can cross trigger→menu without firing mouseleave */}
           <span className="absolute -top-2 left-0 right-0 h-2" aria-hidden="true" />

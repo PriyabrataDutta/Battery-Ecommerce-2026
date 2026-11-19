@@ -38,7 +38,6 @@ export function FitmentSearch({ embedded = false }: { embedded?: boolean }) {
   const onFind = () => {
     if (tab === "car") {
       const params = new URLSearchParams();
-      params.set("type", "car-batteries");
       if (carBrand) {
         const b = brands.find((b) => b.id === carBrand);
         if (b) params.set("car_brand", b.slug);
@@ -47,11 +46,11 @@ export function FitmentSearch({ embedded = false }: { embedded?: boolean }) {
         const m = models.find((m) => m.id === carModel);
         if (m) params.set("car_model", m.slug);
       }
-      navigate(`/shop?${params.toString()}`);
+      navigate(`/shop/car-batteries${params.size ? `?${params}` : ""}`);
     } else {
-      const params = new URLSearchParams({ type: "inverter-ups" });
+      const params = new URLSearchParams();
       if (capacity) params.set("min_capacity", capacity);
-      navigate(`/shop?${params.toString()}`);
+      navigate(`/shop/inverter-batteries${params.size ? `?${params}` : ""}`);
     }
   };
 
@@ -59,21 +58,21 @@ export function FitmentSearch({ embedded = false }: { embedded?: boolean }) {
 
   return (
     <div className={embedded ? "" : "container-x"}>
-      <div className={embedded ? "" : "bg-white border border-line shadow-elevated rounded-lg overflow-hidden"}>
+      <div className={embedded ? "" : "rounded-3xl border border-line bg-white p-2 shadow-elevated"}>
         {/* Tabs */}
-        <div className={`flex ${embedded ? "border border-line rounded-md overflow-hidden" : "border-b border-line"}`}>
+        <div className={`flex gap-1 ${embedded ? "rounded-full border border-line p-1" : "w-fit rounded-full bg-muted p-1 m-2 sm:m-3"}`}>
           <button
             onClick={() => setTab("car")}
-            className={`flex-1 ${embedded ? "px-2 py-2.5 text-[11px]" : "sm:flex-none px-6 py-3.5 text-sm"} font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors ${
-              tab === "car" ? "bg-primary text-primary-foreground" : "bg-white text-ink hover:text-primary"
+            className={`flex-1 ${embedded ? "px-2 py-2.5 text-[11px]" : "sm:flex-none px-5 py-2 text-sm"} font-semibold rounded-full flex items-center justify-center gap-1.5 transition-colors ${
+              tab === "car" ? "bg-ink text-white shadow-card" : "text-ink/70 hover:text-ink"
             }`}
           >
             <Car className="h-3.5 w-3.5" /> Car
           </button>
           <button
             onClick={() => setTab("inverter")}
-            className={`flex-1 ${embedded ? "px-2 py-2.5 text-[11px]" : "sm:flex-none px-6 py-3.5 text-sm"} font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors ${
-              tab === "inverter" ? "bg-primary text-primary-foreground" : "bg-white text-ink hover:text-primary"
+            className={`flex-1 ${embedded ? "px-2 py-2.5 text-[11px]" : "sm:flex-none px-5 py-2 text-sm"} font-semibold rounded-full flex items-center justify-center gap-1.5 transition-colors ${
+              tab === "inverter" ? "bg-ink text-white shadow-card" : "text-ink/70 hover:text-ink"
             }`}
           >
             <Battery className="h-3.5 w-3.5" /> Inverter
@@ -81,29 +80,29 @@ export function FitmentSearch({ embedded = false }: { embedded?: boolean }) {
         </div>
 
         {/* Fields */}
-        <div className={embedded ? "pt-3" : "p-4 sm:p-5"}>
+        <div className={embedded ? "pt-3" : "px-3 pb-3 sm:px-4 sm:pb-4"}>
           {tab === "car" ? (
             <div className={`grid ${fieldsCols} gap-2.5`}>
               <Select value={carBrand} onValueChange={setCarBrand}>
-                <SelectTrigger className="h-11 border-line"><SelectValue placeholder="Car Brand" /></SelectTrigger>
+                <SelectTrigger className="h-12 rounded-xl border-line bg-muted/40"><SelectValue placeholder="Car Brand" /></SelectTrigger>
                 <SelectContent className="bg-white z-50">
                   {brands.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Select value={carModel} onValueChange={setCarModel} disabled={!carBrand}>
-                <SelectTrigger className="h-11 border-line"><SelectValue placeholder="Car Model" /></SelectTrigger>
+                <SelectTrigger className="h-12 rounded-xl border-line bg-muted/40"><SelectValue placeholder="Car Model" /></SelectTrigger>
                 <SelectContent className="bg-white z-50">
                   {models.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Button onClick={onFind} className="h-11 font-bold uppercase tracking-wider text-xs">
-                <Search className="h-4 w-4 mr-2" /> Find My Battery
+              <Button onClick={onFind} className="h-12">
+                <Search className="h-4 w-4 mr-2" /> Find my battery
               </Button>
             </div>
           ) : (
             <div className={`grid ${fieldsCols} gap-2.5`}>
               <Select value={capacity} onValueChange={setCapacity}>
-                <SelectTrigger className="h-11 border-line"><SelectValue placeholder="Capacity (Ah)" /></SelectTrigger>
+                <SelectTrigger className="h-12 rounded-xl border-line bg-muted/40"><SelectValue placeholder="Capacity (Ah)" /></SelectTrigger>
                 <SelectContent className="bg-white z-50">
                   <SelectItem value="80">Up to 100 Ah</SelectItem>
                   <SelectItem value="100">100 Ah</SelectItem>
@@ -112,15 +111,15 @@ export function FitmentSearch({ embedded = false }: { embedded?: boolean }) {
                 </SelectContent>
               </Select>
               <Select>
-                <SelectTrigger className="h-11 border-line"><SelectValue placeholder="Use case" /></SelectTrigger>
+                <SelectTrigger className="h-12 rounded-xl border-line bg-muted/40"><SelectValue placeholder="Use case" /></SelectTrigger>
                 <SelectContent className="bg-white z-50">
                   <SelectItem value="home">Home (1-2 BHK)</SelectItem>
                   <SelectItem value="big-home">Home (3-4 BHK)</SelectItem>
                   <SelectItem value="shop">Shop / Office</SelectItem>
                 </SelectContent>
               </Select>
-              <Button onClick={onFind} className="h-11 font-bold uppercase tracking-wider text-xs">
-                <Search className="h-4 w-4 mr-2" /> Find Battery
+              <Button onClick={onFind} className="h-12">
+                <Search className="h-4 w-4 mr-2" /> Find battery
               </Button>
             </div>
           )}

@@ -51,12 +51,12 @@ function MobileLink({
       to={to}
       onClick={onClick}
       className={({ isActive }) =>
-        `px-4 py-3 text-sm font-medium border-b border-line ${
+        `mx-3 my-0.5 rounded-xl px-4 py-3 text-[15px] font-medium transition-colors ${
           highlight
-            ? "text-primary uppercase tracking-wide"
+            ? "bg-primary/10 text-primary font-semibold"
             : isActive
-            ? "text-primary"
-            : "text-ink"
+            ? "bg-ink text-white"
+            : "text-ink hover:bg-muted"
         }`
       }
     >

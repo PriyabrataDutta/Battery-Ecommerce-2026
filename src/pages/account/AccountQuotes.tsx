@@ -31,7 +31,7 @@ const AccountQuotes = () => {
   });
 
   return (
-    <section className="bg-white border border-line p-6">
+    <section className="surface p-6">
       <div className="flex items-center gap-3 mb-4">
         <FileText className="h-5 w-5 text-primary" />
         <h2 className="font-display-tight text-2xl font-bold">Quote Requests</h2>

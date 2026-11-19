@@ -87,32 +87,41 @@ const SearchResults = () => {
     : 0;
 
   return (
-    <div className="container-x py-6 md:py-10">
-      <nav className="text-xs text-muted-foreground mb-3">
-        <Link to="/" className="hover:text-primary">Home</Link> / <span className="text-ink">Search</span>
-      </nav>
-
-      <header className="mb-5">
-        <h1 className="font-display-tight text-2xl md:text-3xl font-bold">
-          {q ? <>Results for <span className="text-primary">"{q}"</span></> : "Search"}
-        </h1>
-        {q && !isLoading && (
-          <p className="text-sm text-muted-foreground mt-1">{totalCount} match{totalCount === 1 ? "" : "es"} found</p>
-        )}
+    <div>
+      <header className="relative overflow-hidden bg-gradient-hero text-white">
+        <div className="absolute inset-0 bg-dots" aria-hidden />
+        <div className="container-x relative py-10 sm:py-14">
+          <nav aria-label="Breadcrumb" className="text-xs text-white/60 mb-4">
+            <Link to="/" className="hover:text-white">Home</Link>
+            <span className="mx-1.5">/</span>
+            <span className="text-white">Search</span>
+          </nav>
+          <span className="eyebrow">Search</span>
+          <h1 className="font-display-tight text-3xl sm:text-4xl font-bold mt-2 break-words">
+            {q ? <>Results for <span className="text-volt">"{q}"</span></> : "Search"}
+          </h1>
+          {q && !isLoading && (
+            <p className="mt-4 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs sm:text-sm text-white/85">
+              {totalCount} match{totalCount === 1 ? "" : "es"} found
+            </p>
+          )}
+        </div>
       </header>
+
+      <div className="container-x py-6 md:py-10">
 
       {/* ── Fitment filter bar ── */}
       {q && (
-        <div className="bg-white border border-line rounded-lg p-3 sm:p-4 mb-5">
+        <div className="surface p-4 sm:p-5 mb-6">
           <div className="flex items-center gap-2 mb-2.5">
             <CarFront className="h-4 w-4 text-primary" />
-            <h3 className="font-display font-bold text-xs uppercase tracking-wider text-ink">
-              Filter by Vehicle
-            </h3>
+            <h2 className="font-display font-bold text-sm text-ink">
+              Filter by vehicle
+            </h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
             <Select value={selectedBrandId || ALL} onValueChange={(v) => setSelectedBrandId(v === ALL ? "" : v)}>
-              <SelectTrigger className="h-10 border-line">
+              <SelectTrigger className="h-10 rounded-full border-line bg-background">
                 <SelectValue placeholder="All car brands" />
               </SelectTrigger>
               <SelectContent className="bg-white z-50 max-h-72">
@@ -127,7 +136,7 @@ const SearchResults = () => {
               onValueChange={(v) => setSelectedModelId(v === ALL ? "" : v)}
               disabled={!selectedBrandId}
             >
-              <SelectTrigger className="h-10 border-line">
+              <SelectTrigger className="h-10 rounded-full border-line bg-background">
                 <SelectValue placeholder={selectedBrandId ? "All models" : "Select brand first"} />
               </SelectTrigger>
               <SelectContent className="bg-white z-50 max-h-72">
@@ -141,14 +150,14 @@ const SearchResults = () => {
               <button
                 type="button"
                 onClick={() => { setSelectedBrandId(""); setSelectedModelId(""); }}
-                className="h-10 px-4 text-xs font-semibold uppercase tracking-wider text-primary hover:text-primary/80 border border-primary/20 rounded-md hover:bg-primary/5 transition-colors flex items-center justify-center gap-1.5"
+                className="h-10 px-4 text-sm font-semibold text-primary border border-primary/25 rounded-full hover:bg-primary/5 transition-colors flex items-center justify-center gap-1.5"
               >
-                Clear Vehicle Filter
+                Clear vehicle filter
               </button>
             )}
           </div>
           {useFitment && (
-            <p className="text-[11px] text-muted-foreground mt-2">
+            <p className="text-xs text-muted-foreground mt-3">
               Showing {filteredProducts.length} product{filteredProducts.length !== 1 ? "s" : ""} compatible with{" "}
               <span className="font-semibold text-ink">
                 {selectedBrand?.name}
@@ -160,38 +169,38 @@ const SearchResults = () => {
       )}
 
       {!q && (
-        <div className="bg-white border border-line p-8 text-center">
+        <div className="surface p-10 text-center">
           <p className="text-muted-foreground">Type something to search.</p>
         </div>
       )}
 
       {q && isLoading && (
         <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 bg-muted animate-pulse" />)}
+          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 rounded-2xl bg-muted animate-pulse" />)}
         </div>
       )}
 
       {q && !isLoading && totalCount === 0 && (
-        <div className="bg-white border border-line p-10 text-center">
-          <SearchX className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-          <p className="font-bold text-ink">No results for "{q}"</p>
+        <div className="surface px-6 py-14 text-center">
+          <span className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full bg-muted"><SearchX className="h-6 w-6 text-muted-foreground" /></span>
+          <p className="font-display font-bold text-lg text-ink break-words">No results for "{q}"</p>
           <p className="text-sm text-muted-foreground mt-1">Try a different model, brand, or battery type.</p>
-          <Link to="/shop" className="inline-block mt-4 text-primary font-bold underline">Browse all batteries</Link>
+          <Link to="/shop" className="mt-5 inline-flex h-10 items-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary-hover">Browse all batteries</Link>
         </div>
       )}
 
       {q && !isLoading && data && (
         <div className="space-y-8">
           {!useFitment && data.carBrands.length > 0 && (
-            <Section icon={<CarFront className="h-4 w-4" />} title="Car Brands" tone="bg-blue-500/10 text-blue-600">
+            <Section icon={<CarFront className="h-4 w-4" />} title="Car brands" tone="bg-blue-500/10 text-blue-600">
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                 {data.carBrands.map((b) => (
                   <Link
                     key={b.id}
                     to={`/shop?type=car-batteries&car_brand=${b.slug}`}
-                    className="flex items-center gap-3 bg-white border border-line p-3 hover:border-primary transition-colors"
+                    className="flex items-center gap-3 rounded-xl border border-line bg-card p-3 shadow-card transition-all hover:-translate-y-0.5 hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    <span className="h-9 w-9 grid place-items-center rounded-md bg-blue-500/10 flex-shrink-0">
+                    <span className="h-9 w-9 grid place-items-center rounded-lg bg-blue-500/10 flex-shrink-0">
                       <CarFront className="h-4 w-4 text-blue-600" />
                     </span>
                     <span className="flex-1 min-w-0">
@@ -206,15 +215,15 @@ const SearchResults = () => {
           )}
 
           {!useFitment && data.models.length > 0 && (
-            <Section icon={<Car className="h-4 w-4" />} title="Car Models" tone="bg-amber-500/10 text-amber-600">
+            <Section icon={<Car className="h-4 w-4" />} title="Car models" tone="bg-amber-500/10 text-amber-600">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {data.models.map((m) => (
                   <Link
                     key={m.id}
                     to={`/shop?type=car-batteries&car_model=${m.slug}`}
-                    className="flex items-center gap-3 bg-white border border-line p-3 hover:border-primary transition-colors"
+                    className="flex items-center gap-3 rounded-xl border border-line bg-card p-3 shadow-card transition-all hover:-translate-y-0.5 hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    <span className="h-9 w-9 grid place-items-center rounded-md bg-amber-500/10 flex-shrink-0">
+                    <span className="h-9 w-9 grid place-items-center rounded-lg bg-amber-500/10 flex-shrink-0">
                       <Car className="h-4 w-4 text-amber-600" />
                     </span>
                     <span className="flex-1 min-w-0">
@@ -231,15 +240,15 @@ const SearchResults = () => {
           )}
 
           {!useFitment && data.categories.length > 0 && (
-            <Section icon={<LayoutGrid className="h-4 w-4" />} title="Battery Categories" tone="bg-primary/10 text-primary">
+            <Section icon={<LayoutGrid className="h-4 w-4" />} title="Battery categories" tone="bg-primary/10 text-primary">
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                 {data.categories.map((c) => (
                   <Link
                     key={c.id}
                     to={`/category/${c.slug}`}
-                    className="flex items-center gap-3 bg-white border border-line p-3 hover:border-primary transition-colors"
+                    className="flex items-center gap-3 rounded-xl border border-line bg-card p-3 shadow-card transition-all hover:-translate-y-0.5 hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    <span className="h-9 w-9 grid place-items-center rounded-md bg-primary/10 flex-shrink-0">
+                    <span className="h-9 w-9 grid place-items-center rounded-lg bg-primary/10 flex-shrink-0">
                       <LayoutGrid className="h-4 w-4 text-primary" />
                     </span>
                     <span className="flex-1 font-bold text-sm text-ink truncate">{c.name}</span>
@@ -251,15 +260,15 @@ const SearchResults = () => {
           )}
 
           {!useFitment && data.brands.length > 0 && (
-            <Section icon={<BatteryCharging className="h-4 w-4" />} title="Battery Brands" tone="bg-emerald-500/10 text-emerald-600">
+            <Section icon={<BatteryCharging className="h-4 w-4" />} title="Battery brands" tone="bg-emerald-500/10 text-emerald-600">
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                 {data.brands.map((b) => (
                   <Link
                     key={b.id}
                     to={`/brand/${b.slug}`}
-                    className="flex items-center gap-3 bg-white border border-line p-3 hover:border-primary transition-colors"
+                    className="flex items-center gap-3 rounded-xl border border-line bg-card p-3 shadow-card transition-all hover:-translate-y-0.5 hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    <span className="h-9 w-9 grid place-items-center rounded-md bg-emerald-500/10 flex-shrink-0 overflow-hidden">
+                    <span className="h-9 w-9 grid place-items-center rounded-lg bg-emerald-500/10 flex-shrink-0 overflow-hidden">
                       {b.logo_url
                         ? <img src={b.logo_url} alt="" className="h-7 w-7 object-contain" />
                         : <BatteryCharging className="h-4 w-4 text-emerald-600" />}
@@ -274,13 +283,14 @@ const SearchResults = () => {
 
           {filteredProducts.length > 0 && (
             <Section icon={<Package className="h-4 w-4" />} title="Products" tone="bg-muted text-ink">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
                 {filteredProducts.map((p: any) => <ProductCard key={p.id} product={p} />)}
               </div>
             </Section>
           )}
         </div>
       )}
+      </div>
     </div>
   );
 };
@@ -288,9 +298,9 @@ const SearchResults = () => {
 function Section({ icon, title, tone, children }: { icon: React.ReactNode; title: string; tone: string; children: React.ReactNode }) {
   return (
     <section>
-      <div className="flex items-center gap-2 mb-3">
-        <span className={`h-7 w-7 grid place-items-center rounded-md ${tone}`}>{icon}</span>
-        <h2 className="font-display font-bold text-base uppercase tracking-wider text-ink">{title}</h2>
+      <div className="flex items-center gap-2.5 mb-4">
+        <span className={`h-8 w-8 grid place-items-center rounded-full ${tone}`}>{icon}</span>
+        <h2 className="font-display font-bold text-lg text-ink">{title}</h2>
       </div>
       {children}
     </section>

@@ -28,13 +28,13 @@ export function ProductReviewsSection({ productId }: Props) {
   };
 
   return (
-    <div className="py-6">
+    <div>
       {/* Summary */}
-      <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
+      <div className="surface p-5 sm:p-6 flex items-center justify-between flex-wrap gap-4 mb-5">
         <div className="flex items-center gap-3">
           {stats && stats.count > 0 ? (
             <>
-              <span className="font-display-tight text-3xl font-bold text-ink">
+              <span className="font-display-tight text-5xl font-bold text-ink">
                 {stats.avg.toFixed(1)}
               </span>
               <div>
@@ -52,7 +52,7 @@ export function ProductReviewsSection({ productId }: Props) {
         {!showForm && (
           <Button variant="outline" onClick={handleWriteReview}>
             <MessageSquarePlus className="h-4 w-4 mr-2" />
-            Write a Review
+            Write a review
           </Button>
         )}
       </div>
@@ -65,17 +65,17 @@ export function ProductReviewsSection({ productId }: Props) {
       {isLoading ? (
         <div className="space-y-4">
           {[1, 2].map((i) => (
-            <div key={i} className="h-24 bg-muted animate-pulse rounded" />
+            <div key={i} className="h-28 bg-muted animate-pulse rounded-2xl" />
           ))}
         </div>
       ) : reviews.length === 0 && !showForm ? (
-        <div className="border border-dashed border-line p-8 text-center text-sm text-muted-foreground">
+        <div className="rounded-2xl border border-dashed border-line bg-card/60 p-10 text-center text-sm text-muted-foreground">
           Be the first to review this product!
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2">
           {reviews.map((review) => (
-            <div key={review.id} className="border border-line p-4 bg-white">
+            <div key={review.id} className="surface p-5">
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <StarRating rating={review.rating} size="sm" />
@@ -107,7 +107,7 @@ export function ProductReviewsSection({ productId }: Props) {
                         href={img.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-16 h-16 border border-line rounded overflow-hidden hover:opacity-80 transition-opacity"
+                        className="w-16 h-16 border border-line rounded-xl overflow-hidden hover:opacity-80 transition-opacity"
                       >
                         <img src={img.url} alt="" className="w-full h-full object-cover" />
                       </a>
@@ -115,8 +115,8 @@ export function ProductReviewsSection({ productId }: Props) {
                 </div>
               )}
 
-              <div className="flex items-center gap-1.5 mt-3 text-xs text-muted-foreground">
-                <User className="h-3 w-3" />
+              <div className="flex items-center gap-2 mt-4 pt-3 border-t border-line text-xs font-medium text-muted-foreground">
+                <span className="grid h-6 w-6 place-items-center rounded-full bg-muted"><User className="h-3 w-3" /></span>
                 {(review.profiles as any)?.full_name || "Customer"}
               </div>
             </div>

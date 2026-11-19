@@ -38,18 +38,25 @@ const Quote = () => {
   };
 
   return (
-    <div className="container-x py-12 max-w-3xl">
-      <h1 className="font-display-tight text-4xl font-bold">Request a Quote</h1>
-      <p className="text-muted-foreground mt-2">B2B pricing, bulk orders, BOQ support — we'll get back within 1 business hour.</p>
+    <>
+    <section className="relative overflow-hidden bg-gradient-hero text-white">
+        <div className="absolute inset-0 bg-dots" aria-hidden />
+        <div className="container-x relative py-14 sm:py-20">
+          <span className="eyebrow">B2B & bulk</span>
+          <h1 className="mt-3 font-display-tight text-4xl sm:text-5xl font-bold">Request a Quote</h1>
+          <p className="mt-3 max-w-xl text-white/75">B2B pricing, bulk orders, BOQ support — we'll get back within 1 business hour.</p>
+        </div>
+      </section>
+      <div className="container-x py-10 sm:py-12 max-w-3xl">
 
       {submitted ? (
-        <div className="bg-white border border-line p-10 text-center mt-8">
+        <div className="surface p-10 text-center mt-8">
           <CheckCircle2 className="h-12 w-12 text-success mx-auto" />
           <h2 className="font-display-tight text-2xl font-bold mt-4">Request Received</h2>
           <p className="text-muted-foreground mt-2">Our team will call you back shortly.</p>
         </div>
       ) : (
-        <form onSubmit={onSubmit} className="bg-white border border-line p-6 mt-8 grid gap-4">
+        <form onSubmit={onSubmit} className="surface p-6 mt-8 grid gap-4">
           <div className="grid sm:grid-cols-2 gap-4">
             <Field label="Name *" name="name" required />
             <Field label="Company" name="company" />
@@ -64,6 +71,7 @@ const Quote = () => {
         </form>
       )}
     </div>
+    </>
   );
 };
 

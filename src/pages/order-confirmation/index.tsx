@@ -51,13 +51,13 @@ const OrderConfirmation = () => {
   }
 
   return (
-    <div className="container-x py-10">
+    <div className="container-x py-8 sm:py-12">
       {order.payment.id === "online" && <PaymentStatusBanner orderNumber={order.orderNumber} />}
       <SuccessHeader order={order} />
       <OrderTracker order={order} />
 
-      <div className="grid lg:grid-cols-[1fr_380px] gap-8 mt-8">
-        <section className="space-y-6">
+      <div className="grid lg:grid-cols-[1fr_380px] gap-6 lg:gap-8 mt-6 items-start">
+        <section className="space-y-4">
           <OrderItems items={order.items} />
           <AddressBlocks address={order.address} />
         </section>

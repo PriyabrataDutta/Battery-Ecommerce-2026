@@ -76,10 +76,10 @@ const AccountAddresses = () => {
 
   return (
     <div className="space-y-4">
-      <div className="bg-white border border-line p-5 flex items-center justify-between">
+      <div className="surface p-5 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <MapPin className="h-5 w-5 text-primary" />
-          <h2 className="font-display font-bold uppercase tracking-wide text-sm">Saved addresses</h2>
+          <h2 className="font-display-tight text-xl font-bold">Saved addresses</h2>
         </div>
         {!adding && (
           <Button size="sm" onClick={() => setAdding(true)}>
@@ -89,7 +89,7 @@ const AccountAddresses = () => {
       </div>
 
       {adding && (
-        <div className="bg-white border border-line p-5 space-y-3">
+        <div className="surface p-5 space-y-3">
           <div className="grid sm:grid-cols-2 gap-3">
             <Field label="Label"><Input value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} placeholder="Home / Office" /></Field>
             <Field label="Full name *"><Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></Field>
@@ -114,15 +114,15 @@ const AccountAddresses = () => {
       {isLoading || rows === undefined ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : rows.length === 0 && !adding ? (
-        <p className="text-sm text-muted-foreground bg-white border border-line p-6">No saved addresses yet.</p>
+        <p className="text-sm text-muted-foreground surface p-6">No saved addresses yet.</p>
       ) : (
         <div className="grid sm:grid-cols-2 gap-3">
           {rows.map((a) => (
-            <div key={a.id} className="bg-white border border-line p-4">
+            <div key={a.id} className="surface p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-display font-bold uppercase tracking-wide">{a.label || "Address"}</span>
+                <span className="text-sm font-semibold">{a.label || "Address"}</span>
                 {a.is_default && (
-                  <span className="text-[10px] font-display font-bold uppercase tracking-wider bg-primary/10 text-primary px-1.5 py-0.5">Default</span>
+                  <span className="text-[11px] font-semibold bg-primary/10 text-primary rounded-full px-2 py-0.5">Default</span>
                 )}
               </div>
               <div className="text-sm">
@@ -153,7 +153,7 @@ const AccountAddresses = () => {
 
 const Field = ({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) => (
   <div className={className}>
-    <Label className="text-xs font-display font-semibold uppercase tracking-wide">{label}</Label>
+    <Label className="text-sm font-medium">{label}</Label>
     <div className="mt-1.5">{children}</div>
   </div>
 );

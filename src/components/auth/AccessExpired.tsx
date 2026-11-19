@@ -104,7 +104,7 @@ export function AccessExpired({ cause, loginPath, variant = "page" }: AccessExpi
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center p-4">
-      <Card className="w-full max-w-md p-8 text-center shadow-elevated">
+      <Card className="w-full max-w-md rounded-2xl p-8 text-center shadow-elevated">
         <div className="h-14 w-14 rounded-full bg-amber-500/10 grid place-items-center mx-auto mb-4">
           <Icon className="h-7 w-7 text-amber-600 dark:text-amber-400" />
         </div>

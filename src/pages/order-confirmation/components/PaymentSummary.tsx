@@ -23,10 +23,10 @@ export function PaymentSummary({
   const hasDiscount = !!totals.discount && totals.discount > 0;
 
   return (
-    <aside className="bg-white border border-line p-6 h-fit">
-      <h2 className="font-display font-bold text-lg uppercase tracking-wide">Payment summary</h2>
+    <aside className="surface p-5 sm:p-6 lg:sticky lg:top-32">
+      <h2 className="font-display-tight font-bold text-xl text-ink">Payment summary</h2>
       <div className="mt-3 text-sm">
-        <div className="font-semibold">{payment.label}</div>
+        <div className="font-bold text-ink">{payment.label}</div>
         <div className="text-xs text-muted-foreground">{payment.hint}</div>
       </div>
 
@@ -35,7 +35,7 @@ export function PaymentSummary({
       ) : null}
 
       <PriceBreakup
-        className="border-t border-line mt-4 pt-4"
+        className="mt-4 rounded-2xl bg-muted/60 p-4"
         subtotal={totals.subtotal}
         discount={totals.discount ?? 0}
         discountLabel={`Discount${totals.promo ? ` (${totals.promo.code})` : ""}`}
@@ -45,7 +45,7 @@ export function PaymentSummary({
         totalLabel="Amount payable"
       />
 
-      <p className="text-[11px] text-muted-foreground mt-4">
+      <p className="text-xs text-muted-foreground mt-4">
         Need help? Reach us at{" "}
         <Link to="/contact" className="text-primary hover:underline">
           support
@@ -85,7 +85,7 @@ function PromoCallout({
   subtotal: number;
 }) {
   return (
-    <div className="mt-4 border border-success/30 bg-success/5 p-3">
+    <div className="mt-4 rounded-2xl border border-success/30 bg-success/5 p-4">
       <div className="flex items-start gap-2">
         <Tag className="h-4 w-4 text-success shrink-0 mt-0.5" />
         <div className="min-w-0 flex-1">
@@ -93,7 +93,7 @@ function PromoCallout({
             <span className="font-mono font-bold tracking-wider text-success text-sm">
               {promo.code}
             </span>
-            <span className="text-[10px] font-display font-bold uppercase tracking-wide bg-success/15 text-success px-1.5 py-0.5">
+            <span className="rounded-full text-[10px] font-semibold bg-success/15 text-success px-2 py-0.5">
               Applied
             </span>
           </div>

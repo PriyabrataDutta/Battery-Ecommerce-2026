@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { StoreLayout } from "@/components/layout/StoreLayout";
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
+import ShopEntry from "./pages/shop/ShopEntry";
 import ProductDetail from "./pages/product-detail";
 import Cart from "./pages/Cart";
 import NotFound from "./pages/NotFound";
@@ -91,7 +92,9 @@ const App = () => (
           <Routes>
             <Route element={<StoreLayout />}>
               <Route path="/" element={<Home />} />
-              <Route path="/shop" element={<Shop />} />
+              <Route path="/shop" element={<ShopEntry />} />
+              <Route path="/shop/car-batteries" element={<Shop variant="car" />} />
+              <Route path="/shop/inverter-batteries" element={<Shop variant="inverter" />} />
               <Route path="/search" element={<SearchResults />} />
               <Route path="/category/:slug" element={<CategoryPage />} />
               <Route path="/brand/:slug" element={<BrandPage />} />

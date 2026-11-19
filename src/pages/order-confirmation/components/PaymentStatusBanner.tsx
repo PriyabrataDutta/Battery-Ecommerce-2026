@@ -54,21 +54,21 @@ export const PaymentStatusBanner = ({ orderNumber }: { orderNumber: string }) =>
 
   if (state === "checking") {
     return (
-      <div className="mb-6 flex items-center gap-3 border border-line bg-white p-4 text-sm">
+      <div className="mb-6 flex items-center gap-3 rounded-2xl border border-line bg-card p-4 text-sm">
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /> Confirming your payment with Cashfree…
       </div>
     );
   }
   if (state === "paid") {
     return (
-      <div className="mb-6 flex items-center gap-3 border border-success/30 bg-success/10 p-4 text-sm">
+      <div className="mb-6 flex items-center gap-3 rounded-2xl border border-success/30 bg-success/10 p-4 text-sm">
         <CheckCircle2 className="h-5 w-5 text-success" /> <span className="font-semibold">Payment received.</span> Thank you!
       </div>
     );
   }
   if (state === "closed") {
     return (
-      <div className="mb-6 flex items-center gap-3 border border-destructive/30 bg-destructive/10 p-4 text-sm">
+      <div className="mb-6 flex items-center gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm">
         <XCircle className="h-5 w-5 text-destructive" />
         <span>
           <span className="font-semibold">Payment not completed.</span> The payment window has closed and this order was cancelled. Please place the order again.
@@ -77,7 +77,7 @@ export const PaymentStatusBanner = ({ orderNumber }: { orderNumber: string }) =>
     );
   }
   return (
-    <div className="mb-6 flex flex-col sm:flex-row sm:items-center gap-3 border border-warning/40 bg-warning/10 p-4 text-sm">
+    <div className="mb-6 flex flex-col sm:flex-row sm:items-center gap-3 rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm">
       <Clock className="h-5 w-5 text-warning shrink-0" />
       <span className="flex-1">
         <span className="font-semibold">Payment pending.</span> Your order is saved and stock is held for 30 minutes. Complete the payment to confirm it.

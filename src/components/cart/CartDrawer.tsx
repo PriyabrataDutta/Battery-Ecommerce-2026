@@ -27,12 +27,12 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-md p-0 flex flex-col gap-0 bg-white"
+        className="w-full sm:max-w-md p-0 flex flex-col gap-0 bg-background"
       >
-        <SheetHeader className="px-4 py-4 border-b border-line flex-row items-center justify-between space-y-0">
-          <SheetTitle className="flex items-center gap-2 text-base">
+        <SheetHeader className="px-5 py-4 border-b border-line bg-card flex-row items-center justify-between space-y-0">
+          <SheetTitle className="flex items-center gap-2 font-display-tight text-lg font-bold">
             <ShoppingCart className="h-5 w-5 text-primary" />
-            Your Cart
+            Your cart
             {count > 0 && (
               <span className="ml-1 inline-flex items-center justify-center text-[11px] font-bold bg-primary text-primary-foreground rounded-full h-5 min-w-5 px-1.5">
                 {count}
@@ -45,10 +45,10 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
         <div className="flex-1 overflow-y-auto">
           {items.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center px-6 py-16">
-              <div className="h-16 w-16 rounded-full bg-muted grid place-items-center mb-4">
-                <ShoppingCart className="h-7 w-7 text-muted-foreground" />
+              <div className="h-16 w-16 rounded-full bg-primary/10 grid place-items-center mb-4">
+                <ShoppingCart className="h-7 w-7 text-primary" />
               </div>
-              <p className="text-sm font-semibold text-ink mb-1">Your cart is empty</p>
+              <p className="font-display text-base font-bold text-ink mb-1">Your cart is empty</p>
               <p className="text-xs text-muted-foreground mb-6">
                 Add a battery to get started.
               </p>
@@ -57,18 +57,18 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
               </Button>
             </div>
           ) : (
-            <ul className="divide-y divide-line">
+            <ul className="p-3 space-y-2">
               {items.map((it) => {
                 const key = lineKey(it);
                 const unit = lineUnitPrice(it);
                 const canExchange = hasExchangeOption(it);
                 return (
-                  <li key={key} className="px-4 py-3">
+                  <li key={key} className="surface p-3">
                     <div className="flex gap-3">
                       <Link
                         to={`/product/${it.slug}`}
                         onClick={close}
-                        className="h-16 w-16 flex-shrink-0 rounded-md border border-line bg-muted overflow-hidden"
+                        className="h-16 w-16 flex-shrink-0 rounded-xl bg-muted overflow-hidden p-1"
                       >
                         {it.image ? (
                           <img
@@ -83,16 +83,16 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                         <Link
                           to={`/product/${it.slug}`}
                           onClick={close}
-                          className="text-sm font-semibold text-ink hover:text-primary line-clamp-2"
+                          className="text-sm font-bold text-ink hover:text-primary line-clamp-2"
                         >
                           {it.name}
                         </Link>
                         <div className="flex items-center justify-between mt-auto pt-1">
-                          <div className="inline-flex items-center border border-line rounded-md overflow-hidden">
+                          <div className="inline-flex items-center rounded-full border border-line bg-background p-0.5">
                             <button
                               type="button"
                               onClick={() => setQty(key, it.qty - 1)}
-                              className="h-8 w-8 grid place-items-center text-ink hover:bg-muted"
+                              className="h-8 w-8 grid place-items-center rounded-full text-ink hover:bg-muted"
                               aria-label="Decrease quantity"
                             >
                               <Minus className="h-3.5 w-3.5" />
@@ -104,14 +104,14 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                               type="button"
                               onClick={() => setQty(key, it.qty + 1)}
                               disabled={it.qty >= maxQty(it)}
-                              className="h-8 w-8 grid place-items-center text-ink hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
+                              className="h-8 w-8 grid place-items-center rounded-full text-ink hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
                               aria-label="Increase quantity"
                             >
                               <Plus className="h-3.5 w-3.5" />
                             </button>
                           </div>
                           <div className="text-right">
-                            <div className="text-sm font-bold text-ink">
+                            <div className="font-display text-base font-bold text-ink">
                               {formatINR(unit * it.qty)}
                             </div>
                             {it.qty > 1 && (
@@ -125,7 +125,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
                       <button
                         type="button"
                         onClick={() => removeItem(key)}
-                        className="self-start text-muted-foreground hover:text-primary p-1"
+                        className="self-start grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:bg-primary/10 hover:text-primary"
                         aria-label="Remove item"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -134,7 +134,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
 
                     {/* Exchange toggle */}
                     {canExchange && (
-                      <label className="mt-2 flex items-center gap-2 cursor-pointer select-none pl-[76px]">
+                      <label className="mt-3 pt-3 border-t border-line flex items-center gap-2 cursor-pointer select-none">
                         <Switch
                           checked={!!it.withExchange}
                           onCheckedChange={(v) => setExchange(key, v)}
@@ -157,7 +157,7 @@ export function CartDrawer({ open, onOpenChange }: CartDrawerProps) {
 
         {/* Footer */}
         {items.length > 0 && (
-          <div className="border-t border-line bg-white px-4 py-3 space-y-3">
+          <div className="border-t border-line bg-card px-5 py-4 space-y-4 shadow-[0_-8px_24px_-16px_rgba(0,0,0,0.2)]">
             <PriceBreakup subtotal={subtotal} gst={gst} total={total} />
             <div className="grid grid-cols-2 gap-2">
               <Button asChild variant="outline" onClick={close} className="h-11">

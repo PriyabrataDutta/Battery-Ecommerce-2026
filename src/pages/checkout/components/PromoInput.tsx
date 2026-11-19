@@ -31,13 +31,13 @@ export const PromoInput = ({
     <div className="border-t border-line mt-4 pt-4">
       <div className="flex items-center gap-2 mb-2">
         <Tag className="h-4 w-4 text-primary" />
-        <span className="text-xs font-display font-semibold uppercase tracking-wide">
+        <span className="text-sm font-display font-semibold text-ink">
           Promo code
         </span>
       </div>
 
       {appliedPromo ? (
-        <div className="flex items-center justify-between gap-2 bg-success/10 border border-success/30 px-3 py-2">
+        <div className="flex items-center justify-between gap-2 rounded-xl bg-success/10 border border-success/30 px-3 py-2">
           <div className="min-w-0">
             <div className="text-sm font-mono font-bold tracking-wider text-success">
               {appliedPromo.code}
@@ -49,7 +49,7 @@ export const PromoInput = ({
           <button
             type="button"
             onClick={onRemove}
-            className="text-muted-foreground hover:text-destructive shrink-0"
+            className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive shrink-0"
             aria-label="Remove promo code"
           >
             <X className="h-4 w-4" />
@@ -84,7 +84,7 @@ export const PromoInput = ({
               {promoError}
             </p>
           )}
-          <p className="mt-1.5 text-[11px] text-muted-foreground">
+          <p className="mt-2 text-xs text-muted-foreground">
             Try{" "}
             <button
               type="button"

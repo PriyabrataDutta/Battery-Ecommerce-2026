@@ -1,14 +1,13 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Truck, Wrench, ShieldCheck, IndianRupee, Award, HeadphonesIcon, Package } from "lucide-react";
+import { ArrowRight, Truck, Wrench, ShieldCheck, IndianRupee } from "lucide-react";
 import { FitmentSearch } from "@/components/products/FitmentSearch";
 import { useBatteryBrands } from "@/hooks/queries/useBrands";
-import { useCategories } from "@/hooks/queries/useCategories";
 import { CarBrandGrid } from "@/components/home/CarBrandGrid";
 import { ProductTabs } from "@/components/home/ProductTabs";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
-import { DeliveryCoverage } from "@/components/home/DeliveryCoverage";
+import { ShopByNeed, HowItWorks, ExchangeBand, BatteryHealth, VisitAndDelivery, HomeFaq } from "@/components/home/HomeSections";
 import { MobileStickyBar } from "@/components/home/MobileStickyBar";
 import heroCar from "@/assets/hero-car.jpg";
 import batteryStack from "@/assets/battery-stack.png";
@@ -29,175 +28,151 @@ const Home = () => {
   }, []);
 
   const { data: brands = [] } = useBatteryBrands();
-  const { data: categories = [] } = useCategories();
 
   return (
     <>
       {/* HERO */}
-      <section ref={heroRef} className="relative bg-ink text-white overflow-hidden">
+      <section ref={heroRef} className="relative overflow-hidden bg-gradient-hero text-white">
+        <div className="absolute inset-0 bg-dots opacity-60" aria-hidden />
         <img
           src={heroCar}
           alt=""
-          className="absolute inset-0 w-full h-full object-cover opacity-60"
+          className="absolute inset-0 h-full w-full object-cover opacity-[0.18] mix-blend-luminosity"
           width={1920}
           height={1080}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/70 to-transparent" />
-
-        <div className="container-x relative pt-10 pb-32 sm:pt-16 sm:pb-40 lg:pt-24 lg:pb-52 grid lg:grid-cols-2 gap-8 items-center">
+        <div className="container-x relative grid items-center gap-10 pb-14 pt-12 sm:pb-20 sm:pt-16 lg:grid-cols-[1.1fr_0.9fr] lg:pb-24 lg:pt-20">
           <div>
-            <div className="hero-line text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] sm:tracking-[0.25em] text-primary mb-3 sm:mb-4">
-              India's Trusted Battery Store
+            <div className="hero-line inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/85 backdrop-blur">
+              <span className="h-1.5 w-1.5 rounded-full bg-volt" aria-hidden /> India's trusted battery store
             </div>
-            <h1 className="font-display-tight text-[2.25rem] leading-[1.05] sm:text-5xl sm:leading-[0.95] md:text-6xl lg:text-7xl font-bold">
-              <span className="hero-line block">Best Prices.</span>
-              <span className="hero-line block">Free Shipping.</span>
-              <span className="hero-line block text-primary">Free Installation.</span>
+            <h1 className="mt-5 font-display-tight text-[2.6rem] font-extrabold sm:text-6xl lg:text-7xl">
+              <span className="hero-line block">Power that</span>
+              <span className="hero-line block">
+                starts <span className="bg-gradient-to-r from-primary to-[hsl(14_95%_58%)] bg-clip-text text-transparent">every time.</span>
+              </span>
             </h1>
-            <p className="hero-line mt-4 sm:mt-6 text-sm sm:text-base text-white/80 max-w-md">
-              Genuine car & inverter batteries from Amaron, Exide, Power Zone and more.
-              Same-day dispatch. Doorstep installation in major cities.
+            <p className="hero-line mt-5 max-w-lg text-base text-white/70 sm:text-lg">
+              Genuine car and inverter batteries from Amaron, Exide, Power Zone and more. Free standard delivery,
+              doorstep installation and old battery exchange.
             </p>
-            <div className="mt-6 sm:mt-8 flex flex-wrap gap-2 sm:gap-3">
-              <Button asChild size="lg" className="hero-cta font-bold uppercase tracking-wider w-full sm:w-auto">
-                <Link to="/quote">Request Call Back</Link>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button asChild size="lg" className="hero-cta">
+                <Link to="/shop">Shop batteries <ArrowRight className="h-4 w-4" /></Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="hero-cta bg-transparent text-white border-white/30 hover:bg-white hover:text-ink font-bold uppercase tracking-wider w-full sm:w-auto">
-                <Link to="/shop">Shop Now <ArrowRight className="h-4 w-4 ml-2" /></Link>
+              <Button asChild size="lg" variant="outline" className="hero-cta border-white/25 bg-white/5 text-white backdrop-blur hover:bg-white hover:text-ink">
+                <Link to="/quote">Request a call back</Link>
               </Button>
             </div>
+            <dl className="hero-line mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-white/10 pt-6">
+              {[
+                { k: "Genuine", v: "Top brands only" },
+                { k: "Free", v: "Standard delivery" },
+                { k: "Doorstep", v: "Installation" },
+              ].map(({ k, v }) => (
+                <div key={k}>
+                  <dt className="font-display text-lg font-bold sm:text-xl">{k}</dt>
+                  <dd className="text-xs text-white/55 sm:text-sm">{v}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
-          <div className="hidden lg:flex justify-end">
-            <img src={batteryStack} alt="" className="hero-stack w-[500px] max-w-full object-contain" width={1024} height={1024} />
+          <div className="relative">
+            <img src={batteryStack} alt="" aria-hidden className="hero-stack pointer-events-none absolute -right-10 -top-16 hidden w-[340px] opacity-90 drop-shadow-2xl xl:block" width={1024} height={1024} />
+            <div className="absolute inset-6 rounded-full bg-primary/25 blur-3xl" aria-hidden />
+            <div className="relative rounded-3xl bg-white p-5 text-ink shadow-elevated sm:p-6 lg:mt-24">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="font-display text-lg font-bold">Find your battery</h2>
+                <span className="text-xs text-muted-foreground">Takes 10 seconds</span>
+              </div>
+              <div className="mt-3"><FitmentSearch embedded /></div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* FITMENT SEARCH (overlapping) */}
-      <section className="-mt-20 sm:-mt-24 relative z-10">
-        <FitmentSearch />
-      </section>
-
-      {/* PERKS STRIP */}
-      <section className="container-x mt-8 sm:mt-12 grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+      {/* PERKS */}
+      <section className="container-x relative z-10 -mt-6 grid grid-cols-2 gap-3 sm:-mt-8 sm:gap-4 lg:grid-cols-4">
         {[
-          { Icon: IndianRupee, t: "Best Prices", s: "Genuine MRP discounts" },
-          { Icon: Truck, t: "Free Shipping", s: "Across major cities" },
-          { Icon: Wrench, t: "Free Installation", s: "By trained technicians" },
-          { Icon: ShieldCheck, t: "Genuine Warranty", s: "Direct from brands" },
+          { Icon: IndianRupee, t: "Best prices", s: "Honest discounts on MRP" },
+          { Icon: Truck, t: "Free delivery", s: "Standard, 3–5 business days" },
+          { Icon: Wrench, t: "Doorstep installation", s: "With old battery pickup" },
+          { Icon: ShieldCheck, t: "Genuine warranty", s: "Direct from the brands" },
         ].map(({ Icon, t, s }) => (
-          <div key={t} className="bg-white border border-line rounded-lg p-3 sm:p-4 flex items-center gap-2.5 sm:gap-3">
-            <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-md grid place-items-center bg-primary/10 text-primary flex-shrink-0">
-              <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+          <div key={t} className="surface flex items-center gap-3 p-3.5 sm:p-5">
+            <div className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-xl bg-primary/10 text-primary sm:h-11 sm:w-11">
+              <Icon className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <div className="font-display font-semibold text-[13px] sm:text-sm uppercase tracking-wide truncate">{t}</div>
-              <div className="text-[11px] sm:text-xs text-muted-foreground truncate">{s}</div>
+              <div className="font-display text-[13px] font-bold leading-tight text-ink sm:text-[15px]">{t}</div>
+              <div className="mt-0.5 text-[11px] leading-snug text-muted-foreground sm:text-xs">{s}</div>
             </div>
           </div>
         ))}
       </section>
 
-      {/* SHOP BY CAR BRAND — new logo grid */}
+      {/* SHOP BY NEED: car vs inverter */}
+      <ShopByNeed />
+
+      {/* PRODUCTS first: what most visitors came for */}
+      <Band>
+        <ProductTabs />
+      </Band>
+
+      {/* SHOP BY CAR BRAND */}
       <CarBrandGrid />
 
-      {/* SHOP BY CATEGORY — visual cards with images */}
-      <section className="container-x mt-12 sm:mt-20">
-        <SectionHead eyebrow="Browse" title="Shop by Category" />
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
-          {categories.slice(0, 6).map((c) => (
-            <Link
-              key={c.id}
-              to={`/category/${c.slug}`}
-              className="group relative bg-ink border border-line overflow-hidden min-h-[140px] sm:min-h-[180px] hover-lift"
-            >
-              {c.image_url ? (
-                <img
-                  src={c.image_url}
-                  alt={c.name}
-                  className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-500"
-                  loading="lazy"
-                />
-              ) : null}
-              <div className="absolute inset-0 bg-gradient-fade-bottom" />
-              <div className="relative h-full flex flex-col justify-end p-4 sm:p-6">
-                <div className="font-display font-bold text-lg sm:text-xl text-white">{c.name}</div>
-                {c.description && <p className="mt-1 text-xs sm:text-sm text-white/70 line-clamp-2">{c.description}</p>}
-                <div className="mt-2 sm:mt-3 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-primary">
-                  Explore <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+      <ExchangeBand />
 
       {/* SHOP BY BRAND — marquee */}
-      <section className="mt-12 sm:mt-20 bg-white border-y border-line py-8 sm:py-12 overflow-hidden">
+      <section className="mt-16 overflow-hidden py-4 sm:mt-24">
         <div className="container-x">
-          <SectionHead eyebrow="Trusted Brands" title="Shop by Brand" />
+          <SectionHead eyebrow="Trusted brands" title="Shop by battery brand" link={{ to: "/brands", label: "All brands" }} />
         </div>
-        <div className="mt-8 flex gap-12 marquee whitespace-nowrap">
-          {[...brands, ...brands].map((b, i) => (
-            <Link
-              key={`${b.id}-${i}`}
-              to={`/brand/${b.slug}`}
-              className="flex items-center gap-3 px-8"
-            >
-              {b.logo_url ? (
-                <img src={b.logo_url} alt={b.name} className="h-8 sm:h-10 object-contain" loading="lazy" />
-              ) : (
-                <span className="font-display font-bold text-3xl text-ink-soft hover:text-primary transition-colors">
-                  {b.name.toUpperCase()}
-                </span>
-              )}
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* PRODUCT TABS: Featured / Bestsellers / New */}
-      <ProductTabs />
-
-      {/* DELIVERY COVERAGE */}
-      <DeliveryCoverage />
-
-      {/* TESTIMONIALS */}
-      <TestimonialsSection />
-
-      {/* B2B TRUST */}
-      <section className="mt-12 sm:mt-20 bg-ink text-white py-10 sm:py-16">
-        <div className="container-x">
-          <SectionHead eyebrow="Why Kachi" title="Built for B2B" dark />
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
-            {[
-              { Icon: Award, t: "Genuine Products", s: "100% original, sourced direct from manufacturers" },
-              { Icon: IndianRupee, t: "Competitive Pricing", s: "Bulk discounts & dealer-friendly rates" },
-              { Icon: Package, t: "Fast Dispatch", s: "Same-day shipping for in-stock items" },
-              { Icon: HeadphonesIcon, t: "Technical Support", s: "Expert advice for the right fit" },
-            ].map(({ Icon, t, s }) => (
-              <div key={t} className="text-center">
-                <div className="h-14 w-14 mx-auto grid place-items-center bg-primary text-white">
-                  <Icon className="h-6 w-6" />
-                </div>
-                <div className="font-display font-bold text-lg mt-4">{t}</div>
-                <p className="text-sm text-white/70 mt-1">{s}</p>
-              </div>
+        <div className="relative mt-8 [mask-image:linear-gradient(90deg,transparent,#000_10%,#000_90%,transparent)]">
+          <div className="marquee flex w-max gap-4">
+            {[...brands, ...brands].map((b, i) => (
+              <Link
+                key={`${b.id}-${i}`}
+                to={`/brand/${b.slug}`}
+                className="surface flex h-20 min-w-[180px] items-center justify-center px-8 transition-colors hover:border-ink/20"
+              >
+                {b.logo_url ? (
+                  <img src={b.logo_url} alt={b.name} className="h-9 object-contain sm:h-10" loading="lazy" />
+                ) : (
+                  <span className="font-display text-2xl font-extrabold text-ink-soft">{b.name}</span>
+                )}
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
+      <Band>
+        <HowItWorks />
+      </Band>
+
+      <BatteryHealth />
+
+      {/* TESTIMONIALS */}
+      <TestimonialsSection />
+
+      <Band>
+        <VisitAndDelivery />
+      </Band>
+
+      <HomeFaq />
+
       {/* QUICK QUOTE CTA */}
-      <section className="container-x mt-12 sm:mt-20 mb-20 lg:mb-0">
-        <div className="bg-gradient-red text-white p-6 sm:p-10 lg:p-14 grid lg:grid-cols-[1fr_auto] items-center gap-5 sm:gap-6">
+      <section className="container-x mb-16 mt-16 sm:mt-24 lg:mb-4">
+        <div className="relative grid items-center gap-6 overflow-hidden rounded-[2rem] bg-gradient-hero p-6 text-white sm:p-10 lg:grid-cols-[1fr_auto] lg:p-12">
           <div>
-            <div className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] sm:tracking-[0.25em] mb-2 sm:mb-3">B2B Pricing</div>
-            <h2 className="font-display-tight text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight">Need bulk pricing or custom requirement?</h2>
-            <p className="mt-2 text-sm sm:text-base text-white/85 max-w-xl">Get a personalized quote with dealer rates, BOQ support and dedicated account management.</p>
+            <div className="eyebrow">B2B pricing</div>
+            <h2 className="mt-2 font-display-tight text-2xl font-bold sm:text-3xl lg:text-4xl">Need bulk pricing or a custom requirement?</h2>
+            <p className="mt-2 max-w-xl text-sm text-white/85 sm:text-base">Get a personalised quote with dealer rates, BOQ support and a dedicated account manager.</p>
           </div>
-          <Button asChild size="lg" variant="outline" className="bg-white text-primary border-white hover:bg-ink hover:text-white hover:border-ink font-bold uppercase tracking-wider w-full lg:w-auto">
-            <Link to="/quote">Request a Quote <ArrowRight className="h-4 w-4 ml-2" /></Link>
+          <Button asChild size="lg" className="w-full lg:w-auto">
+            <Link to="/quote">Request a quote <ArrowRight className="h-4 w-4" /></Link>
           </Button>
         </div>
       </section>
@@ -208,13 +183,27 @@ const Home = () => {
   );
 };
 
-function SectionHead({ eyebrow, title, dark }: { eyebrow: string; title: string; dark?: boolean }) {
+/** Full-width white band; child sections drop their own top margin. */
+function Band({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-end justify-between gap-4 flex-wrap">
+    <div className={`mt-16 rounded-none border-y border-line bg-white py-14 sm:mt-24 sm:py-20 [&>section]:mt-0 [&_.surface]:bg-background [&_.surface]:shadow-none`}>
+      {children}
+    </div>
+  );
+}
+
+function SectionHead({ eyebrow, title, dark, link }: { eyebrow: string; title: string; dark?: boolean; link?: { to: string; label: string } }) {
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <div className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] sm:tracking-[0.25em] text-primary">{eyebrow}</div>
-        <h2 className={`font-display-tight text-2xl sm:text-3xl lg:text-4xl font-bold mt-1 ${dark ? "text-white" : "text-ink"}`}>{title}</h2>
+        <div className="eyebrow">{eyebrow}</div>
+        <h2 className={`mt-2 font-display-tight text-3xl font-bold sm:text-4xl ${dark ? "text-white" : "text-ink"}`}>{title}</h2>
       </div>
+      {link && (
+        <Link to={link.to} className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink hover:text-primary">
+          {link.label} <ArrowRight className="h-4 w-4" />
+        </Link>
+      )}
     </div>
   );
 }

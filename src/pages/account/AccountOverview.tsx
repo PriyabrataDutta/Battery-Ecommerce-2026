@@ -28,20 +28,22 @@ const AccountOverview = () => {
             key={t.label}
             type="button"
             onClick={() => setTab(t.tab)}
-            className="bg-white border border-line p-4 hover:border-primary transition-colors group text-left"
+            className="surface p-4 sm:p-5 hover:border-primary/40 transition-colors group text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <t.icon className="h-5 w-5 text-primary" />
-            <div className="mt-3 text-2xl font-display-tight font-bold">{t.value}</div>
-            <div className="text-xs uppercase tracking-wider text-muted-foreground font-display font-semibold">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+              <t.icon className="h-5 w-5" />
+            </span>
+            <div className="mt-4 text-3xl font-display-tight font-bold">{t.value}</div>
+            <div className="text-xs font-medium text-muted-foreground">
               {t.label}
             </div>
           </button>
         ))}
       </div>
 
-      <section className="bg-white border border-line p-5">
+      <section className="surface p-5">
         <div className="flex items-center justify-between">
-          <h2 className="font-display font-bold uppercase tracking-wide text-sm">
+          <h2 className="font-display-tight text-xl font-bold">
             Recent orders
           </h2>
           <Button variant="ghost" size="sm" onClick={() => setTab("orders")}>

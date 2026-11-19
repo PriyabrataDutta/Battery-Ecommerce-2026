@@ -33,6 +33,8 @@ interface SitemapEntry {
 const staticEntries: SitemapEntry[] = [
   { path: "/", changefreq: "weekly", priority: "1.0" },
   { path: "/shop", changefreq: "daily", priority: "0.9" },
+  { path: "/shop/car-batteries", changefreq: "daily", priority: "0.9" },
+  { path: "/shop/inverter-batteries", changefreq: "daily", priority: "0.9" },
   { path: "/brands", changefreq: "weekly", priority: "0.7" },
   { path: "/catalog", changefreq: "monthly", priority: "0.6" },
   { path: "/blog", changefreq: "weekly", priority: "0.7" },
@@ -62,20 +64,16 @@ async function fetchRows(table: string, query: string): Promise<Record<string, s
 }
 
 async function collectEntries(): Promise<SitemapEntry[]> {
-  const [products, categories, brands, posts] = await Promise.all([
+  // Category pages only redirect to /shop/car-batteries or /shop/inverter-batteries,
+  // which are listed in staticEntries, so categories are not listed here.
+  const [products, brands, posts] = await Promise.all([
     fetchRows("products", "select=slug&status=eq.active"),
-    fetchRows("categories", "select=slug"),
     fetchRows("battery_brands", "select=slug"),
     fetchRows("blog_posts", "select=slug&is_published=eq.true"),
   ]);
 
   return [
     ...staticEntries,
-    ...categories.filter((c) => c.slug).map((c) => ({
-      path: `/category/${c.slug}`,
-      changefreq: "weekly" as const,
-      priority: "0.8",
-    })),
     ...brands.filter((b) => b.slug).map((b) => ({
       path: `/brand/${b.slug}`,
       changefreq: "weekly" as const,

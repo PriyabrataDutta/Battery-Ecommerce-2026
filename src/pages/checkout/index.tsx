@@ -386,28 +386,34 @@ const Checkout = () => {
   };
 
   return (
-    <div className="container-x py-10">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-        <Link to="/cart" className="inline-flex items-center gap-1 hover:text-primary">
+    <div className="container-x py-8 sm:py-12">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+        <Link to="/cart" className="inline-flex items-center gap-1 font-medium hover:text-primary">
           <ChevronLeft className="h-4 w-4" /> Back to cart
         </Link>
       </div>
-      <h1 className="font-display-tight text-3xl md:text-4xl font-bold">Checkout</h1>
+      <h1 className="font-display-tight text-3xl sm:text-5xl font-bold text-ink">Checkout</h1>
 
       {/* Stepper */}
-      <ol className="mt-6 grid grid-cols-4 gap-2">
+      <ol className="mt-6 flex gap-2 overflow-x-auto scrollbar-none pb-1">
         {STEPS.map((label, i) => {
           const active = i === step;
           const done = i < step;
           return (
-            <li key={label} className="flex items-center gap-2 min-w-0">
+            <li
+              key={label}
+              className={[
+                "flex items-center gap-2 shrink-0 rounded-full border py-1.5 pl-1.5 pr-4 transition-colors",
+                active ? "border-ink bg-ink" : done ? "border-primary/20 bg-primary/5" : "border-line bg-card",
+              ].join(" ")}
+            >
               <div
                 className={[
-                  "h-8 w-8 rounded-full grid place-items-center text-xs font-semibold shrink-0",
+                  "h-7 w-7 rounded-full grid place-items-center text-xs font-bold shrink-0",
                   done
                     ? "bg-primary text-white"
                     : active
-                    ? "bg-ink text-white"
+                    ? "bg-volt text-ink"
                     : "bg-muted text-ink-soft",
                 ].join(" ")}
                 aria-current={active ? "step" : undefined}
@@ -416,8 +422,8 @@ const Checkout = () => {
               </div>
               <span
                 className={[
-                  "text-xs md:text-sm font-display font-semibold uppercase tracking-wide truncate",
-                  active ? "text-ink" : done ? "text-ink" : "text-muted-foreground",
+                  "text-sm font-display font-semibold whitespace-nowrap",
+                  active ? "text-white" : done ? "text-ink" : "text-muted-foreground",
                 ].join(" ")}
               >
                 {label}
@@ -427,9 +433,9 @@ const Checkout = () => {
         })}
       </ol>
 
-      <div className="grid lg:grid-cols-[1fr_380px] gap-8 mt-8">
+      <div className="grid lg:grid-cols-[1fr_400px] gap-6 lg:gap-8 mt-6 sm:mt-8 items-start">
         {/* Step content */}
-        <section className="bg-white border border-line p-5 md:p-7">
+        <section className="surface p-5 md:p-8">
           {step === 0 && (
             <AddressStep
               address={address}
@@ -495,7 +501,7 @@ const Checkout = () => {
             />
           )}
 
-          <div className="mt-8 flex items-center justify-between gap-3">
+          <div className="mt-8 pt-6 border-t border-line flex items-center justify-between gap-3">
             <Button
               variant="outline"
               onClick={goBack}

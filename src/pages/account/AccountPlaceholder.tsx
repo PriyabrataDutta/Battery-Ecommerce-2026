@@ -7,7 +7,7 @@ interface PlaceholderProps {
 }
 
 const AccountPlaceholder = ({ title, description, icon }: PlaceholderProps) => (
-  <section className="bg-white border border-line p-8">
+  <section className="surface p-8">
     <div className="flex items-center gap-3 mb-2">
       {icon}
       <h2 className="font-display-tight text-2xl font-bold">{title}</h2>

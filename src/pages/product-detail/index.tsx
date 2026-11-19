@@ -29,10 +29,16 @@ import { ProductInfo } from "./components/ProductInfo";
 import { ProductSkeleton } from "./components/ProductSkeleton";
 import { MobileBottomBar } from "./components/MobileBottomBar";
 import { SITE_URL } from "@/lib/site";
+import { FitChecker } from "./components/FitChecker";
+import { ServiceStrip } from "./components/ServiceStrip";
+import { useProductFitment } from "@/hooks/queries/useFitment";
+import { useCarBrands } from "@/hooks/queries/useBrands";
+import { INVERTER_SLUGS } from "@/pages/shop/inverterKinds";
+import { discountPct } from "@/lib/format";
 
 // Lazy-load below-fold sections
-const DetailsTabs = lazy(() =>
-  import("./components/DetailsTabs").then((m) => ({ default: m.DetailsTabs }))
+const ProductSections = lazy(() =>
+  import("./components/ProductSections").then((m) => ({ default: m.ProductSections }))
 );
 const RelatedProducts = lazy(() =>
   import("./components/RelatedProducts").then((m) => ({
@@ -50,6 +56,10 @@ const ProductDetail = () => {
   const { rateOf } = useGstRateOf();
   // This product's GST % from Settings → GST (its own slab, or the default).
   const gstRate = rateOf(product?.gst_rate_id) ?? 0;
+  const isCar = product?.categories?.slug === "car-batteries";
+  const isInverter = (INVERTER_SLUGS as readonly string[]).includes(product?.categories?.slug ?? "");
+  const { data: fitment = [] } = useProductFitment(isCar ? product?.id : undefined);
+  const { data: carBrands = [] } = useCarBrands();
   const { data: related = [] } = useRelatedProducts(
     product?.brand_id,
     product?.id
@@ -163,32 +173,34 @@ const ProductDetail = () => {
       <div className="container-x py-5 sm:py-8 pb-24 lg:pb-8">
         <nav
           aria-label="Breadcrumb"
-          className="text-xs text-muted-foreground mb-4 sm:mb-5 overflow-x-auto whitespace-nowrap scrollbar-none"
+          className="text-xs font-medium text-muted-foreground mb-4 sm:mb-6 overflow-x-auto whitespace-nowrap scrollbar-none"
         >
           <Link to="/" className="hover:text-primary">
             Home
           </Link>
           {" / "}
-          <Link to="/shop" className="hover:text-primary">
-            Shop
+          <Link to={isCar ? "/shop/car-batteries" : isInverter ? "/shop/inverter-batteries" : "/shop"} className="hover:text-primary">
+            {isCar ? "Car batteries" : isInverter ? "Inverter batteries" : "Shop"}
           </Link>
-          {product.categories?.slug && (
+          {isInverter && product.categories?.slug !== "inverter-ups" && product.categories?.name && (
             <>
               {" / "}
-              <Link
-                to={`/category/${product.categories.slug}`}
-                className="hover:text-primary"
-              >
+              <Link to={`/shop/inverter-batteries?kind=${product.categories.slug}`} className="hover:text-primary">
                 {product.categories.name}
               </Link>
             </>
           )}
           {" / "}
-          <span className="text-ink">{product.name}</span>
+          <span className="text-ink font-semibold">{product.name}</span>
         </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10">
-          <div>
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1.05fr_1fr] lg:gap-12">
+          <div className="relative lg:sticky lg:top-40">
+            <div className="pointer-events-none absolute left-4 top-4 z-10 flex flex-wrap gap-1.5">
+              {discountPct(withoutExchange, product.mrp) && <span className="badge-pill bg-primary text-white">{discountPct(withoutExchange, product.mrp)}% off</span>}
+              {product.is_bestseller && <span className="badge-pill bg-ink text-white">Bestseller</span>}
+              {product.is_new && <span className="badge-pill bg-volt text-ink">New</span>}
+            </div>
             <ProductGallery images={allImages} alt={product.name} />
           </div>
 
@@ -205,13 +217,16 @@ const ProductDetail = () => {
               withoutExchangePrice={withoutExchange}
               withExchangePrice={withExchangePrice}
               gstRate={gstRate}
+              fitSlot={isCar && fitment.length > 0 ? <FitChecker fitment={fitment} allBrands={carBrands} /> : undefined}
             />
           </div>
         </div>
 
+        <ServiceStrip />
+
         {/* Below-fold sections — lazy loaded */}
         <Suspense fallback={null}>
-          <DetailsTabs product={product} />
+          <ProductSections product={product} fitment={fitment} />
         </Suspense>
 
         <Suspense fallback={null}>

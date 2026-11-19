@@ -24,9 +24,9 @@ export const ReviewStep = ({
   schedule: { dateLabel: string; slotLabel: string; slotWindow: string } | null;
 }) => {
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="font-display-tight text-xl font-bold">Review & confirm</h2>
+    <div className="space-y-4">
+      <div className="mb-2">
+        <h2 className="font-display-tight text-2xl font-bold text-ink">Review & confirm</h2>
         <p className="text-sm text-muted-foreground mt-1">
           Please double-check everything before placing your order.
         </p>
@@ -34,7 +34,7 @@ export const ReviewStep = ({
 
       <ReviewBlock title="Shipping to" icon={MapPin}>
         <div className="text-sm">
-          <div className="font-semibold">{address.fullName}</div>
+          <div className="font-bold text-ink">{address.fullName}</div>
           <div>
             {address.line1}
             {address.line2 ? `, ${address.line2}` : ""}
@@ -63,7 +63,7 @@ export const ReviewStep = ({
       <ReviewBlock title="Delivery" icon={Truck}>
         <div className="text-sm flex items-center justify-between">
           <div>
-            <div className="font-semibold">{delivery.label}</div>
+            <div className="font-bold text-ink">{delivery.label}</div>
             <div className="text-xs text-muted-foreground">{delivery.eta}</div>
           </div>
           <div className="font-bold">
@@ -87,7 +87,7 @@ export const ReviewStep = ({
 
       <ReviewBlock title="Payment" icon={payment.icon}>
         <div className="text-sm">
-          <div className="font-semibold">{payment.label}</div>
+          <div className="font-bold text-ink">{payment.label}</div>
           <div className="text-xs text-muted-foreground">{payment.hint}</div>
         </div>
       </ReviewBlock>
@@ -100,13 +100,13 @@ export const ReviewStep = ({
             return (
               <li key={k} className="py-2 flex justify-between gap-4 text-sm">
                 <div className="min-w-0">
-                  <div className="font-display font-semibold line-clamp-1">{it.name}</div>
+                  <div className="font-display font-bold text-ink line-clamp-1">{it.name}</div>
                   <div className="text-xs text-muted-foreground">
                     Qty {it.qty} × {formatINR(unit)}
                     {it.withExchange ? " · with exchange" : ""}
                   </div>
                 </div>
-                <div className="font-semibold whitespace-nowrap">
+                <div className="font-bold text-ink whitespace-nowrap tabular-nums">
                   {formatINR(unit * it.qty)}
                 </div>
               </li>

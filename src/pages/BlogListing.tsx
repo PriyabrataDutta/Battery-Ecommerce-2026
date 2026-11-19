@@ -18,16 +18,20 @@ const BlogListing = () => {
         <meta name="description" content="Battery guides, tips, and industry insights from Kachi Batteries." />
       </Helmet>
 
-      <div className="container-x py-12">
-        <h1 className="font-display-tight text-4xl font-bold">Blog & Resources</h1>
-        <p className="text-muted-foreground mt-2 max-w-xl">
-          Guides, tips and industry insights to help you make the right battery choice.
-        </p>
+      <section className="relative overflow-hidden bg-gradient-hero text-white">
+        <div className="absolute inset-0 bg-dots" aria-hidden />
+        <div className="container-x relative py-14 sm:py-20">
+          <span className="eyebrow">Blog</span>
+          <h1 className="mt-3 font-display-tight text-4xl sm:text-5xl font-bold">Blog & Resources</h1>
+          <p className="mt-3 max-w-xl text-white/75">Guides, tips and industry insights to help you make the right battery choice.</p>
+        </div>
+      </section>
+      <div className="container-x py-10 sm:py-12">
 
         {isLoading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white border border-line animate-pulse">
+              <div key={i} className="surface animate-pulse">
                 <div className="h-48 bg-muted" />
                 <div className="p-5 space-y-3">
                   <div className="h-4 bg-muted rounded w-3/4" />
@@ -38,7 +42,7 @@ const BlogListing = () => {
             ))}
           </div>
         ) : posts.length === 0 ? (
-          <div className="mt-12 border border-dashed border-line p-12 text-center text-muted-foreground">
+          <div className="mt-4 rounded-2xl border border-dashed border-line p-12 text-center text-muted-foreground">
             No articles published yet. Check back soon!
           </div>
         ) : (
@@ -47,7 +51,7 @@ const BlogListing = () => {
               <Link
                 key={post.id}
                 to={`/blog/${post.slug}`}
-                className="group bg-white border border-line hover:border-ink transition-colors overflow-hidden"
+                className="group surface hover-lift overflow-hidden"
               >
                 {post.cover_url ? (
                   <img

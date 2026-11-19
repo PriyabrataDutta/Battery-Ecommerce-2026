@@ -29,3 +29,26 @@ export async function getCarBrandProductCounts(
   if (error) throw error;
   return Object.fromEntries((data ?? []).map((r) => [r.slug, Number(r.product_count)]));
 }
+
+export interface ProductFitment {
+  id: string;
+  name: string;
+  slug: string;
+  years: string | null;
+  brand: { name: string; slug: string; logo_url: string | null };
+}
+
+/** Car models a product fits, with their brand, sorted by brand then model. */
+export async function getFitmentForProduct(productId: string): Promise<ProductFitment[]> {
+  const { data, error } = await supabase
+    .from("product_fitment")
+    .select("car_models(id, name, slug, years, car_brands(name, slug, logo_url))")
+    .eq("product_id", productId);
+  if (error) throw error;
+  type Row = { car_models: (Omit<ProductFitment, "brand"> & { car_brands: ProductFitment["brand"] | null }) | null };
+  return ((data ?? []) as unknown as Row[])
+    .map((r) => r.car_models)
+    .filter((m): m is NonNullable<Row["car_models"]> => !!m && !!m.car_brands)
+    .map(({ car_brands, ...m }) => ({ ...m, brand: car_brands! }))
+    .sort((a, b) => a.brand.name.localeCompare(b.brand.name) || a.name.localeCompare(b.name));
+}

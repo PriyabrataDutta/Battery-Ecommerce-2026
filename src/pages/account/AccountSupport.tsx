@@ -50,7 +50,7 @@ const AccountSupport = () => {
   const isLoading = loadingMsgs || loadingCbs;
 
   return (
-    <section className="bg-white border border-line p-6">
+    <section className="surface p-6">
       <div className="flex items-center gap-3 mb-4">
         <MessageSquare className="h-5 w-5 text-primary" />
         <h2 className="font-display-tight text-2xl font-bold">Support</h2>
@@ -71,7 +71,7 @@ const AccountSupport = () => {
         <div className="space-y-4">
           {messages.length > 0 && (
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+              <h3 className="text-xs font-semibold text-muted-foreground mb-2">
                 Contact Messages
               </h3>
               <div className="space-y-2">

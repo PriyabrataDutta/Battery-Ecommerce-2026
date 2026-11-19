@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getProductIdsByModelIds, getCarBrandProductCounts } from "@/api/productFitment";
+import { getProductIdsByModelIds, getCarBrandProductCounts, getFitmentForProduct } from "@/api/productFitment";
 import { qk } from "./keys";
 
 export const useProductIdsByModelIds = (modelIds: string[] | undefined) =>
@@ -16,4 +16,12 @@ export const useCarBrandProductCounts = (inStockOnly = true) =>
     queryKey: qk.fitment.carBrandCounts(inStockOnly),
     queryFn: () => getCarBrandProductCounts(inStockOnly),
     staleTime: 5 * 60_000,
+  });
+
+export const useProductFitment = (productId: string | undefined) =>
+  useQuery({
+    queryKey: qk.fitment.byProduct(productId),
+    queryFn: () => getFitmentForProduct(productId!),
+    enabled: !!productId,
+    staleTime: 5 * 60 * 1000,
   });

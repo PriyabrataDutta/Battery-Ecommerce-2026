@@ -7,10 +7,10 @@ const columns = [
   {
     title: "Shop",
     links: [
-      { to: "/category/car-batteries", label: "Car Batteries" },
-      { to: "/category/inverter-ups", label: "Inverter & UPS" },
-      { to: "/category/tubular", label: "Tubular" },
-      { to: "/category/lithium", label: "Lithium" },
+      { to: "/shop/car-batteries", label: "Car Batteries" },
+      { to: "/shop/inverter-batteries", label: "Inverter Batteries" },
+      { to: "/shop/inverter-batteries?kind=tubular", label: "Tubular" },
+      { to: "/shop/inverter-batteries?kind=lithium", label: "Lithium" },
       { to: "/category/clearance", label: "Clearance Sale" },
       { to: "/brands", label: "All Brands" },
     ],
@@ -45,19 +45,19 @@ const promises = [
 
 export function Footer() {
   return (
-    <footer className="mt-20 bg-ink text-white">
+    <footer className="mt-24 bg-ink text-white">
       {/* Help strip */}
-      <div className="bg-gradient-red">
-        <div className="container-x py-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="container-x -translate-y-1/2">
+        <div className="flex flex-col justify-between gap-4 rounded-3xl bg-gradient-red p-6 shadow-red sm:p-8 md:flex-row md:items-center">
           <div>
-            <p className="font-display text-xl font-semibold uppercase tracking-wide">Not sure which battery fits?</p>
+            <p className="font-display text-xl font-bold sm:text-2xl">Not sure which battery fits?</p>
             <p className="text-sm text-white/85">Tell us your vehicle or inverter. We'll suggest the right one in minutes.</p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <a href={c.phoneTel} className="inline-flex items-center gap-2 rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-primary hover:bg-white/90">
+            <a href={c.phoneTel} className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-primary hover:bg-white/90">
               <Phone className="h-4 w-4" /> {c.phoneDisplay}
             </a>
-            <a href={c.whatsappUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-md border border-white/70 px-4 py-2.5 text-sm font-semibold hover:bg-white/10">
+            <a href={c.whatsappUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full border border-white/60 px-5 py-3 text-sm font-semibold hover:bg-white/10">
               <MessageCircle className="h-4 w-4" /> WhatsApp us
             </a>
           </div>
@@ -66,7 +66,7 @@ export function Footer() {
 
       {/* Promises */}
       <div className="border-b border-white/10">
-        <ul className="container-x grid grid-cols-2 lg:grid-cols-4 gap-4 py-6 text-sm text-white/80">
+        <ul className="container-x -mt-4 grid grid-cols-2 gap-4 pb-8 text-sm text-white/80 lg:grid-cols-4">
           {promises.map(({ Icon, label }) => (
             <li key={label} className="flex items-center gap-2">
               <Icon className="h-5 w-5 shrink-0 text-primary" /> {label}
@@ -78,7 +78,7 @@ export function Footer() {
       {/* Links */}
       <div className="container-x py-12 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-10">
         <div className="col-span-2 md:col-span-4 lg:col-span-3">
-          <img src={logo} alt="Kachi Batteries" className="h-14 w-auto rounded-md bg-white p-2" />
+          <img src={logo} alt="Kachi Batteries" className="h-14 w-auto rounded-xl bg-white p-2" />
           <p className="mt-4 max-w-sm text-sm text-white/70">
             Genuine car, inverter and UPS batteries from Amaron, Exide, Power Zone and Elito, delivered and installed
             at your doorstep.
@@ -108,7 +108,7 @@ export function Footer() {
 
         {columns.map((col) => (
           <nav key={col.title} aria-label={col.title}>
-            <h4 className="mb-4 font-display text-sm font-semibold uppercase tracking-wider">{col.title}</h4>
+            <h4 className="mb-4 font-display text-sm font-bold text-white">{col.title}</h4>
             <ul className="space-y-2">
               {col.links.map((l) => (
                 <li key={l.to}>

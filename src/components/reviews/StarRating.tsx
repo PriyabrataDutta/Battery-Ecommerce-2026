@@ -16,12 +16,13 @@ export function StarRating({ rating, onChange, size = "sm", interactive = false 
           key={i}
           type="button"
           disabled={!interactive}
+          aria-label={interactive ? `${i} star${i > 1 ? "s" : ""}` : undefined}
           onClick={() => onChange?.(i)}
           className={interactive ? "cursor-pointer hover:scale-110 transition-transform" : "cursor-default"}
         >
           <Star
             className={`${px} transition-colors ${
-              i <= rating ? "text-warning fill-warning" : "text-muted"
+              i <= rating ? "text-volt fill-volt" : "text-line fill-line"
             }`}
           />
         </button>

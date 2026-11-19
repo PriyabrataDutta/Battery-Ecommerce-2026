@@ -10,7 +10,7 @@ export function FloatingCTAs() {
         target="_blank"
         rel="noopener"
         aria-label="WhatsApp"
-        className="fixed bottom-5 right-5 z-40 h-14 w-14 rounded-full bg-whatsapp text-white grid place-items-center shadow-elevated hover:scale-105 transition-transform"
+        className="fixed bottom-20 right-4 lg:bottom-5 lg:right-5 z-40 h-14 w-14 rounded-full bg-whatsapp text-white grid place-items-center shadow-elevated hover:scale-105 transition-transform"
       >
         <MessageCircle className="h-7 w-7" />
       </a>

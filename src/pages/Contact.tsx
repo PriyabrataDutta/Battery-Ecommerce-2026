@@ -49,9 +49,10 @@ const Contact = () => {
   return (
     <div>
       {/* Hero */}
-      <section className="bg-gradient-hero text-white">
-        <div className="container-x py-14 md:py-20">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">Contact</p>
+      <section className="relative overflow-hidden bg-gradient-hero text-white">
+        <div className="absolute inset-0 bg-dots" aria-hidden />
+        <div className="container-x relative py-14 md:py-20 pb-20 md:pb-24">
+          <span className="eyebrow">Contact</span>
           <h1 className="mt-3 font-display-tight text-4xl md:text-5xl font-bold">We're here to help</h1>
           <p className="mt-3 max-w-xl text-white/75">
             Choosing a battery, tracking an order or need help after installation? Reach us the way that suits you.
@@ -60,15 +61,15 @@ const Contact = () => {
       </section>
 
       {/* Channels */}
-      <section className="container-x -mt-8 grid gap-4 md:grid-cols-3">
+      <section className="container-x relative -mt-10 grid gap-4 md:grid-cols-3">
         {channels.map(({ Icon, title, value, href, note, external }) => (
           <a
             key={title}
             href={href}
             {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-            className="group flex items-start gap-4 rounded-lg border border-line bg-card p-5 shadow-card transition-shadow hover:shadow-elevated"
+            className="group flex items-start gap-4 surface p-5 hover-lift"
           >
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
               <Icon className="h-5 w-5" />
             </span>
             <span className="min-w-0">
@@ -86,14 +87,14 @@ const Contact = () => {
           <h2 className="font-display-tight text-2xl font-bold">Send us a message</h2>
           <p className="mt-1 text-sm text-muted-foreground">Fields marked * are required.</p>
           {done ? (
-            <div className="mt-6 rounded-lg border border-line bg-card p-10 text-center">
+            <div className="mt-6 surface p-10 text-center">
               <CheckCircle2 className="mx-auto h-12 w-12 text-success" />
               <h3 className="mt-4 font-display-tight text-2xl font-bold">Message sent</h3>
               <p className="mt-2 text-muted-foreground">Thanks! We'll get back to you within 1 working day.</p>
               <Button variant="outline" className="mt-6" onClick={() => setDone(false)}>Send another message</Button>
             </div>
           ) : (
-            <form onSubmit={onSubmit} className="mt-6 grid gap-4 rounded-lg border border-line bg-card p-6 sm:grid-cols-2">
+            <form onSubmit={onSubmit} className="mt-6 grid gap-4 surface p-6 sm:grid-cols-2">
               <div className="grid gap-1.5">
                 <Label htmlFor="c-name">Name *</Label>
                 <Input id="c-name" name="name" autoComplete="name" required />
@@ -122,7 +123,7 @@ const Contact = () => {
         </div>
 
         <aside className="lg:col-span-2 space-y-6">
-          <div className="overflow-hidden rounded-lg border border-line bg-card">
+          <div className="overflow-hidden surface">
             <iframe
               title={`${c.storeName} on Google Maps`}
               src={c.mapEmbedUrl}
@@ -143,7 +144,7 @@ const Contact = () => {
             </div>
           </div>
 
-          <div className="rounded-lg border border-line bg-card p-5">
+          <div className="surface p-5">
             <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Quick help</p>
             <ul className="mt-3 divide-y divide-line">
               {quickHelp.map(({ Icon, label, to }) => (

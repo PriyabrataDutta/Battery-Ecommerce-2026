@@ -13,49 +13,55 @@ const Brands = () => {
         <meta name="description" content="Shop genuine batteries from India's most trusted brands — Amaron, Exide, Power Zone, Elito and more." />
       </Helmet>
 
-      <div className="container-x py-12">
-        <h1 className="font-display-tight text-4xl font-bold">Battery Brands</h1>
-        <p className="text-muted-foreground mt-2 max-w-xl">
-          Genuine batteries from India's most trusted manufacturers. Every product carries full manufacturer warranty.
-        </p>
+      <section className="relative overflow-hidden bg-gradient-hero text-white">
+        <div className="absolute inset-0 bg-dots" aria-hidden />
+        <div className="container-x relative py-12 sm:py-16">
+          <span className="eyebrow">Brands</span>
+          <h1 className="font-display-tight text-3xl sm:text-4xl lg:text-5xl font-bold mt-2">Battery brands</h1>
+          <p className="text-white/70 mt-3 max-w-xl text-sm sm:text-base">
+            Genuine batteries from India's most trusted manufacturers. Every product carries full manufacturer warranty.
+          </p>
+        </div>
+      </section>
 
+      <div className="container-x py-8 sm:py-12">
         {isLoading ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white border border-line p-8 animate-pulse space-y-3">
-                <div className="h-16 w-16 bg-muted rounded mx-auto" />
+              <div key={i} className="surface p-8 animate-pulse space-y-3">
+                <div className="h-16 w-16 bg-muted rounded-xl mx-auto" />
                 <div className="h-4 bg-muted rounded w-1/2 mx-auto" />
               </div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
             {brands.map((b) => (
               <Link
                 key={b.id}
                 to={`/brand/${b.slug}`}
-                className="group bg-white border border-line p-6 sm:p-8 text-center hover-lift hover:border-ink transition-colors flex flex-col items-center"
+                className="group surface p-5 sm:p-8 text-center hover-lift flex flex-col items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                {b.logo_url ? (
-                  <img
-                    src={b.logo_url}
-                    alt={b.name}
-                    className="h-16 sm:h-20 w-auto object-contain mb-4 group-hover:scale-105 transition-transform"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="h-16 sm:h-20 flex items-center justify-center mb-4">
-                    <span className="font-display font-bold text-3xl text-ink group-hover:text-primary transition-colors">
+                <div className="grid h-20 sm:h-24 w-full place-items-center rounded-xl bg-muted/60 mb-4">
+                  {b.logo_url ? (
+                    <img
+                      src={b.logo_url}
+                      alt={b.name}
+                      className="h-12 sm:h-16 w-auto max-w-[80%] object-contain group-hover:scale-105 transition-transform"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span className="font-display font-bold text-2xl text-ink group-hover:text-primary transition-colors">
                       {b.name}
                     </span>
-                  </div>
-                )}
-                <div className="font-display font-bold text-lg text-ink">{b.name}</div>
+                  )}
+                </div>
+                <div className="font-display font-bold text-base sm:text-lg text-ink">{b.name}</div>
                 {b.description && (
                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{b.description}</p>
                 )}
-                <div className="mt-3 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                  View Products <ArrowRight className="h-3.5 w-3.5" />
+                <div className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary">
+                  View products <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                 </div>
               </Link>
             ))}

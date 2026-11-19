@@ -24,7 +24,7 @@ const values = [
   { Icon: ShieldCheck, title: "100% Genuine", desc: "Every battery is sourced directly from manufacturers with full traceability." },
   { Icon: IndianRupee, title: "Best Prices", desc: "Direct partnerships mean no middlemen. You get MRP discounts every day." },
   { Icon: Truck, title: "Free Shipping", desc: "Pan-India delivery with same-day dispatch for orders before 2 PM." },
-  { Icon: Wrench, title: "Free Installation", desc: "Trained technicians install at your doorstep in 30+ major cities." },
+  { Icon: Wrench, title: "Doorstep Installation", desc: "Trained technicians fit your battery at home and take the old one away." },
   { Icon: Award, title: "Full Warranty", desc: "Manufacturer warranty honored at authorized service centers across India." },
   { Icon: HeadphonesIcon, title: "Expert Support", desc: "Our battery specialists help you find the perfect fit for any vehicle." },
 ];
@@ -37,9 +37,10 @@ const About = () => (
     </Helmet>
 
     {/* Hero */}
-    <section className="bg-ink text-white">
-      <div className="container-x py-16 sm:py-24 max-w-3xl">
-        <div className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.25em] text-primary mb-3">
+    <section className="relative overflow-hidden bg-gradient-hero text-white">
+      <div className="absolute inset-0 bg-dots" aria-hidden />
+      <div className="container-x relative pt-16 pb-28 sm:pt-24 sm:pb-36 max-w-3xl">
+        <div className="eyebrow mb-3">
           About Us
         </div>
         <h1 className="font-display-tight text-3xl sm:text-5xl font-bold leading-tight">
@@ -56,12 +57,12 @@ const About = () => (
     </section>
 
     {/* Stats Strip */}
-    <section className="-mt-1 bg-primary text-white py-8">
-      <div className="container-x grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+    <section className="container-x relative -mt-16 sm:-mt-20">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-px overflow-hidden rounded-2xl bg-line shadow-elevated text-center">
         {stats.map((s) => (
-          <div key={s.label}>
-            <div className="font-display-tight text-3xl sm:text-4xl font-bold">{s.value}</div>
-            <div className="text-xs uppercase tracking-wider text-white/80 mt-1">{s.label}</div>
+          <div key={s.label} className="bg-card p-5 sm:p-7">
+            <div className="font-display-tight text-3xl sm:text-4xl font-bold text-primary">{s.value}</div>
+            <div className="text-xs font-medium text-muted-foreground mt-1">{s.label}</div>
           </div>
         ))}
       </div>
@@ -69,7 +70,7 @@ const About = () => (
 
     {/* Mission */}
     <section className="container-x py-14 sm:py-20 max-w-3xl text-center">
-      <div className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.25em] text-primary mb-2">
+      <div className="eyebrow mb-2">
         Our Mission
       </div>
       <h2 className="font-display-tight text-2xl sm:text-3xl font-bold text-ink">
@@ -83,10 +84,10 @@ const About = () => (
     </section>
 
     {/* Why Choose Us */}
-    <section className="bg-muted/50 border-y border-line py-14 sm:py-20">
+    <section className="bg-muted/60 py-14 sm:py-20">
       <div className="container-x">
         <div className="text-center mb-10">
-          <div className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.25em] text-primary">
+          <div className="eyebrow">
             Why Choose Kachi
           </div>
           <h2 className="font-display-tight text-2xl sm:text-3xl font-bold text-ink mt-1">
@@ -95,8 +96,8 @@ const About = () => (
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {values.map(({ Icon, title, desc }) => (
-            <div key={title} className="bg-white border border-line p-6">
-              <div className="h-11 w-11 rounded-md bg-primary/10 text-primary grid place-items-center">
+            <div key={title} className="surface p-6">
+              <div className="h-11 w-11 rounded-xl bg-primary/10 text-primary grid place-items-center">
                 <Icon className="h-5 w-5" />
               </div>
               <h3 className="font-display font-bold text-ink mt-4">{title}</h3>
@@ -110,7 +111,7 @@ const About = () => (
     {/* Who We Serve */}
     <section className="container-x py-14 sm:py-20">
       <div className="text-center mb-10">
-        <div className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.25em] text-primary">
+        <div className="eyebrow">
           Who We Serve
         </div>
         <h2 className="font-display-tight text-2xl sm:text-3xl font-bold text-ink mt-1">
@@ -119,12 +120,12 @@ const About = () => (
       </div>
       <div className="grid sm:grid-cols-3 gap-6 text-center">
         {[
-          { Icon: Users, title: "Individual Customers", desc: "Car owners, homeowners — find the right battery at the best price with free installation." },
+          { Icon: Users, title: "Individual Customers", desc: "Car owners, homeowners — find the right battery at the best price, delivered free." },
           { Icon: Package, title: "B2B & Fleet", desc: "Bulk pricing, BOQ support and dedicated account management for businesses and fleet operators." },
           { Icon: MapPin, title: "Dealers & Distributors", desc: "Competitive dealer rates, reliable supply chain and marketing support for retail partners." },
         ].map(({ Icon, title, desc }) => (
-          <div key={title} className="bg-white border border-line p-6">
-            <div className="h-14 w-14 mx-auto rounded-md bg-primary/10 text-primary grid place-items-center">
+          <div key={title} className="surface p-6">
+            <div className="h-14 w-14 mx-auto rounded-xl bg-primary/10 text-primary grid place-items-center">
               <Icon className="h-6 w-6" />
             </div>
             <h3 className="font-display font-bold text-ink mt-4">{title}</h3>
@@ -136,7 +137,9 @@ const About = () => (
 
     {/* CTA */}
     <section className="container-x mb-16">
-      <div className="bg-ink text-white p-8 sm:p-12 text-center">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-hero text-white p-8 sm:p-14 text-center">
+        <div className="absolute inset-0 bg-dots" aria-hidden />
+        <div className="relative">
         <h2 className="font-display-tight text-2xl sm:text-3xl font-bold">Ready to Get Started?</h2>
         <p className="text-white/80 mt-2 text-sm sm:text-base max-w-lg mx-auto">
           Whether you need a single battery or a bulk order, we're here to help.
@@ -145,9 +148,10 @@ const About = () => (
           <Button asChild size="lg" className="font-bold uppercase tracking-wider">
             <Link to="/shop">Shop Now</Link>
           </Button>
-          <Button asChild size="lg" variant="outline" className="bg-transparent text-white border-white/30 hover:bg-white hover:text-ink font-bold uppercase tracking-wider">
+          <Button asChild size="lg" variant="outline" className="bg-transparent text-white border-white/30 hover:bg-white hover:text-ink">
             <Link to="/quote">Request a Quote</Link>
           </Button>
+        </div>
         </div>
       </div>
     </section>

@@ -3,6 +3,8 @@ import type { Product } from "@/types/catalog";
 
 export interface ListProductsOptions {
   categorySlug?: string;
+  /** Products in any of these categories (inner join, like categorySlug). */
+  categorySlugs?: string[];
   brandId?: string;
   status?: string;
   isFeatured?: boolean;
@@ -17,11 +19,13 @@ export interface ListProductsOptions {
  * so only products in that category are returned.
  */
 export async function listProducts(opts: ListProductsOptions = {}): Promise<Product[]> {
-  const select = opts.categorySlug
-    ? "*, battery_brands(*), categories!inner(slug)"
-    : "*, battery_brands(*)";
+  const byCategory = opts.categorySlug || opts.categorySlugs?.length;
+  const select = byCategory
+    ? "*, battery_brands(*), categories!inner(slug, name)"
+    : "*, battery_brands(*), categories(slug, name)";
   let q = supabase.from("products").select(select).eq("status", opts.status ?? "active");
   if (opts.categorySlug) q = q.eq("categories.slug", opts.categorySlug);
+  if (opts.categorySlugs?.length) q = q.in("categories.slug", opts.categorySlugs);
   if (opts.brandId) q = q.eq("brand_id", opts.brandId);
   if (opts.isFeatured) q = q.eq("is_featured", true);
   if (opts.isBestseller) q = q.eq("is_bestseller", true);

@@ -1,4 +1,4 @@
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link, useLocation } from "react-router-dom";
 import { useMemo, useEffect, useRef } from "react";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ShopFilters } from "@/components/products/ShopFilters";
@@ -26,6 +26,13 @@ import {
   useCarBrandIdsBySlugs,
 } from "@/hooks/queries/useBrands";
 import { useProductIdsByModelIds } from "@/hooks/queries/useFitment";
+import { useCarBrands, useCarModelsByBrandId } from "@/hooks/queries/useBrands";
+import { CarShopHero } from "./shop/CarShopHero";
+import { InverterShopHero } from "./shop/InverterShopHero";
+import { InverterFilters } from "./shop/InverterFilters";
+import { INVERTER_SLUGS } from "./shop/inverterKinds";
+
+export type ShopVariant = "all" | "car" | "inverter";
 
 type SortKey = "relevance" | "popularity" | "price_asc" | "price_desc" | "newest";
 
@@ -52,8 +59,9 @@ function buildPageNumbers(current: number, total: number): (number | "ellipsis")
   return pages;
 }
 
-const Shop = () => {
+const Shop = ({ variant = "all" }: { variant?: ShopVariant }) => {
   const [params, setParams] = useSearchParams();
+  const { pathname } = useLocation();
   const sort = (params.get("sort") as SortKey) || "relevance";
   const view: "grid" | "list" = params.get("view") === "list" ? "list" : "grid";
   const page = Math.max(1, Number(params.get("page")) || 1);
@@ -81,6 +89,8 @@ const Shop = () => {
   const minPriceParam = params.get("min_price");
   const maxPriceParam = params.get("max_price");
   const carBrandsCsv = params.get("car_brands") ?? "";
+  const kind = variant === "inverter" ? params.get("kind") : null;
+  const minCapacity = Number(params.get("min_capacity")) || 0;
 
   const carBrandSlugs = useMemo(
     () => carBrandsCsv.split(",").map((s) => s.trim()).filter(Boolean),
@@ -106,9 +116,13 @@ const Shop = () => {
 
   const { data: carModelIdFromSlug } = useCarModelIdBySlug(carModelSlug ?? undefined);
 
-  const { data: products = [], isLoading } = useProducts({
-    categorySlug: type ?? undefined,
-  });
+  const { data: products = [], isLoading } = useProducts(
+    variant === "car"
+      ? { categorySlugs: ["car-batteries"] }
+      : variant === "inverter"
+        ? { categorySlugs: INVERTER_SLUGS }
+        : { categorySlug: type ?? undefined },
+  );
 
   const textFiltered = useMemo(() => {
     if (!q || qResolved.brandSlug || qResolved.carModelId) return products;
@@ -167,8 +181,23 @@ const Shop = () => {
       const v = Number(p.price) || 0;
       return v >= minPrice && v <= maxPrice;
     });
+    if (kind) list = list.filter((p) => p.categories?.slug === kind);
+    if (minCapacity) list = list.filter((p) => (p.capacity_ah ?? 0) >= minCapacity);
     return list;
-  }, [textFiltered, carModelSlug, qResolved.carModelId, carBrandSlug, fitmentProductIds, minPrice, maxPrice, carBrandSlugs, carBrandsProductIds]);
+  }, [textFiltered, carModelSlug, qResolved.carModelId, carBrandSlug, fitmentProductIds, minPrice, maxPrice, carBrandSlugs, carBrandsProductIds, kind, minCapacity]);
+
+  // "Maruti Suzuki Swift" for the fit badge on car-shop cards
+  const { data: allCarBrands = [] } = useCarBrands();
+  const fitBrand = variant === "car" ? allCarBrands.find((b) => b.slug === carBrandSlug) : undefined;
+  const { data: fitModels = [] } = useCarModelsByBrandId(fitBrand?.id);
+  const fitLabel = fitBrand
+    ? [fitBrand.name, fitModels.find((m) => m.slug === carModelSlug)?.name].filter(Boolean).join(" ")
+    : undefined;
+
+  const capacities = useMemo(
+    () => [...new Set(textFiltered.map((p) => p.capacity_ah).filter((c): c is number => !!c))].sort((a, b) => a - b),
+    [textFiltered],
+  );
 
   const filtered = useMemo(() => {
     if (!effectiveBrand) return preBrandFiltered;
@@ -239,61 +268,72 @@ const Shop = () => {
   }, [preBrandFiltered]);
 
   return (
-    <div className="container-x py-6 sm:py-10">
-      <nav className="text-xs text-muted-foreground mb-3 sm:mb-4">
-        <Link to="/" className="hover:text-primary">Home</Link> /{" "}
-        {type ? (
-          <>
-            <Link to="/shop" className="hover:text-primary">Shop</Link> /{" "}
-            <span className="text-ink">{typeCategory?.name ?? type}</span>
-          </>
-        ) : (
-          <span className="text-ink">Shop</span>
-        )}
-      </nav>
-      <h1 className="font-display-tight text-2xl sm:text-3xl lg:text-4xl font-bold">
-        {type ? (typeCategory?.name ?? "Shop") : "Shop Batteries"}
-      </h1>
-      {type && typeCategory?.description && (
-        <p className="text-muted-foreground mt-2 max-w-2xl text-sm sm:text-base">{typeCategory.description}</p>
+    <div>
+      {variant === "car" ? (
+        <CarShopHero count={filtered.length} />
+      ) : variant === "inverter" ? (
+        <InverterShopHero count={filtered.length} />
+      ) : (
+      <section className="relative overflow-hidden bg-gradient-hero text-white">
+        <div className="absolute inset-0 bg-dots" aria-hidden />
+        <div className="container-x relative py-10 sm:py-14">
+          <nav aria-label="Breadcrumb" className="text-xs text-white/60 mb-4">
+            <Link to="/" className="hover:text-white">Home</Link>
+            <span className="mx-1.5">/</span>
+            {type ? (
+              <>
+                <Link to="/shop" className="hover:text-white">Shop</Link>
+                <span className="mx-1.5">/</span>
+                <span className="text-white">{typeCategory?.name ?? type}</span>
+              </>
+            ) : (
+              <span className="text-white">Shop</span>
+            )}
+          </nav>
+          <span className="eyebrow">Shop</span>
+          <h1 className="font-display-tight text-3xl sm:text-4xl lg:text-5xl font-bold mt-2">
+            {type ? (typeCategory?.name ?? "Shop") : "Shop batteries"}
+          </h1>
+          {type && typeCategory?.description && (
+            <p className="text-white/70 mt-3 max-w-2xl text-sm sm:text-base">{typeCategory.description}</p>
+          )}
+          <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs sm:text-sm text-white/85">
+            {filtered.length} product{filtered.length !== 1 ? "s" : ""}
+            {totalPages > 1 && <span>· Page {safePage} of {totalPages}</span>}
+          </p>
+        </div>
+      </section>
       )}
-      <p className="text-muted-foreground mt-1 text-sm">
-        {filtered.length} product{filtered.length !== 1 ? "s" : ""}
-        {totalPages > 1 && (
-          <span className="ml-1">
-            · Page {safePage} of {totalPages}
-          </span>
-        )}
-      </p>
 
-      <div className="grid lg:grid-cols-[280px_1fr] gap-6 sm:gap-8 mt-6 sm:mt-8">
-        <aside className="space-y-4 sm:space-y-6">
-          <details className="lg:hidden bg-white border border-line group" open={false}>
-            <summary className="cursor-pointer list-none flex items-center justify-between p-4 font-display font-bold text-sm uppercase tracking-wider">
+      <div className="container-x py-6 sm:py-10">
+      <div className="grid lg:grid-cols-[280px_1fr] gap-6 sm:gap-8">
+        <aside className="min-w-0">
+          <details className="lg:hidden surface group" open={false}>
+            <summary className="cursor-pointer list-none flex items-center justify-between px-5 py-4 font-display font-bold text-sm">
               <span>Filters</span>
-              <span className="text-primary text-base group-open:rotate-45 transition-transform">+</span>
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-muted text-primary text-base group-open:rotate-45 transition-transform">+</span>
             </summary>
-            <div className="px-4 pb-4">
-              <ShopFilters counts={counts} priceBounds={priceBounds} />
+            <div className="px-5 pb-5">
+              {variant === "inverter" && <div className="mb-6"><InverterFilters capacities={capacities} /></div>}
+              <ShopFilters counts={counts} priceBounds={priceBounds} showCar={variant !== "inverter"} />
             </div>
           </details>
 
-          <div className="hidden lg:block bg-white border border-line p-5">
-            <h3 className="font-display font-bold text-sm uppercase tracking-wider mb-4">Filters</h3>
-            <ShopFilters counts={counts} priceBounds={priceBounds} />
+          <div className="hidden lg:block surface p-6 lg:sticky lg:top-40">
+            <h2 className="font-display font-bold text-base mb-4">Filters</h2>
+            {variant === "inverter" && <div className="mb-6"><InverterFilters capacities={capacities} /></div>}
+            <ShopFilters counts={counts} priceBounds={priceBounds} showCar={variant !== "inverter"} />
           </div>
         </aside>
-        <div ref={gridRef}>
+        <div ref={gridRef} id="shop-results" className="min-w-0 scroll-mt-40">
           <ActiveFilters priceBounds={priceBounds} />
 
           {/* Toolbar: sort + view toggle */}
-          <div className="flex items-center justify-between gap-3 mb-4 bg-white border border-line p-3 sm:p-5">
+          <div className="surface flex items-center justify-between gap-3 mb-5 px-3 py-2.5 sm:px-4 sm:py-3">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <h3 className="font-display font-bold text-xs sm:text-sm uppercase tracking-wider text-muted-foreground">
-                Sort
-              </h3>
+              <span className="text-xs sm:text-sm font-medium text-muted-foreground">Sort by</span>
               <Select value={sort} onValueChange={(v) => setParam("sort", v === "relevance" ? null : v)}>
-                <SelectTrigger className="h-9 sm:h-10 w-[150px] sm:w-[220px] border-line text-xs sm:text-sm">
+                <SelectTrigger aria-label="Sort products" className="h-9 sm:h-10 w-[150px] sm:w-[220px] rounded-full border-line text-xs sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-white z-50">
@@ -305,16 +345,14 @@ const Shop = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center border border-line shrink-0">
+            <div className="flex items-center gap-1 rounded-full bg-muted p-1 shrink-0">
               <button
                 type="button"
                 aria-label="Grid view"
                 aria-pressed={view === "grid"}
                 onClick={() => setParam("view", null)}
-                className={`p-1.5 sm:p-2 transition-colors ${
-                  view === "grid"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-white text-ink hover:text-primary"
+                className={`rounded-full p-1.5 sm:p-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  view === "grid" ? "bg-white text-primary shadow-card" : "text-muted-foreground hover:text-ink"
                 }`}
               >
                 <LayoutGrid className="h-4 w-4" />
@@ -324,10 +362,8 @@ const Shop = () => {
                 aria-label="List view"
                 aria-pressed={view === "list"}
                 onClick={() => setParam("view", "list")}
-                className={`p-1.5 sm:p-2 border-l border-line transition-colors ${
-                  view === "list"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-white text-ink hover:text-primary"
+                className={`rounded-full p-1.5 sm:p-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  view === "list" ? "bg-white text-primary shadow-card" : "text-muted-foreground hover:text-ink"
                 }`}
               >
                 <List className="h-4 w-4" />
@@ -336,34 +372,37 @@ const Shop = () => {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {Array.from({ length: 6 }).map((_, i) => <div key={i} className="aspect-[3/4] bg-muted animate-pulse" />)}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
+              {Array.from({ length: 6 }).map((_, i) => <div key={i} className="aspect-[3/4] rounded-2xl bg-muted animate-pulse" />)}
             </div>
           ) : sorted.length === 0 ? (
-            <div className="text-center py-16 sm:py-20 bg-white border border-line">
-              <p className="text-muted-foreground">No products match your filters.</p>
-              <Link to="/shop" className="text-primary font-bold underline mt-2 inline-block">Clear filters</Link>
+            <div className="surface text-center px-6 py-16 sm:py-20">
+              <p className="font-display font-bold text-lg">No products match your filters</p>
+              <p className="text-muted-foreground text-sm mt-1">Try removing a filter or widening the price range.</p>
+              <Link to={pathname} className="mt-5 inline-flex h-10 items-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground hover:bg-primary-hover">
+                Clear filters
+              </Link>
             </div>
           ) : (
             <>
               <div
                 className={
                   view === "list"
-                    ? "grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4"
-                    : "grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4"
+                    ? "grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5"
+                    : "grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5"
                 }
               >
-                {paged.map((p) => <ProductCard key={p.id} product={p} />)}
+                {paged.map((p) => <ProductCard key={p.id} product={p} showSpecs={variant === "inverter"} fitLabel={fitLabel} />)}
               </div>
 
               {/* Pagination controls */}
               {totalPages > 1 && (
-                <Pagination className="mt-6 sm:mt-8">
+                <Pagination className="mt-8 sm:mt-10">
                   <PaginationContent className="flex-wrap gap-1">
                     <PaginationItem>
                       <PaginationPrevious
                         onClick={() => safePage > 1 && goToPage(safePage - 1)}
-                        className={safePage <= 1 ? "pointer-events-none opacity-40" : "cursor-pointer"}
+                        className={`rounded-full ${safePage <= 1 ? "pointer-events-none opacity-40" : "cursor-pointer"}`}
                       />
                     </PaginationItem>
 
@@ -377,7 +416,7 @@ const Shop = () => {
                           <PaginationLink
                             isActive={n === safePage}
                             onClick={() => goToPage(n)}
-                            className="cursor-pointer"
+                            className="cursor-pointer rounded-full"
                           >
                             {n}
                           </PaginationLink>
@@ -388,7 +427,7 @@ const Shop = () => {
                     <PaginationItem>
                       <PaginationNext
                         onClick={() => safePage < totalPages && goToPage(safePage + 1)}
-                        className={safePage >= totalPages ? "pointer-events-none opacity-40" : "cursor-pointer"}
+                        className={`rounded-full ${safePage >= totalPages ? "pointer-events-none opacity-40" : "cursor-pointer"}`}
                       />
                     </PaginationItem>
                   </PaginationContent>
@@ -397,6 +436,7 @@ const Shop = () => {
             </>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

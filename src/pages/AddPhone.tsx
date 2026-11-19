@@ -48,13 +48,14 @@ const AddPhone = () => {
   };
 
   return (
-    <div className="container-x py-12 max-w-md">
-      <h1 className="font-display-tight text-4xl font-bold text-center">Add your mobile</h1>
+    <div className="container-x max-w-md py-12 sm:py-20">
+      <div className="text-center"><span className="eyebrow">Account</span></div>
+      <h1 className="mt-2 font-display-tight text-3xl sm:text-4xl font-bold text-center">Add your mobile</h1>
       <p className="text-center text-muted-foreground mt-2">
         We need your mobile number to confirm orders and send delivery updates.
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-8 bg-white border border-line p-6 space-y-4">
+      <form onSubmit={handleSubmit} className="mt-8 surface p-6 sm:p-8 space-y-4">
         <Input
           name="phone"
           type="tel"

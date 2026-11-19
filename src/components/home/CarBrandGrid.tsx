@@ -9,14 +9,14 @@ export function CarBrandGrid() {
   if (displayed.length === 0) return null;
 
   return (
-    <section className="container-x mt-12 sm:mt-20">
-      <SectionHeadInline eyebrow="Find Your Fit" title="Shop by Car Brand" />
+    <section className="container-x mt-16 sm:mt-24">
+      <SectionHeadInline eyebrow="Find your fit" title="Shop by car brand" />
       <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 mt-8">
         {displayed.map((b) => (
           <Link
             key={b.id}
-            to={`/shop?car_brand=${b.slug}`}
-            className="group bg-white border border-line hover:border-primary/40 hover:shadow-card p-4 sm:p-5 flex flex-col items-center gap-2 transition-all hover-lift"
+            to={`/shop/car-batteries?car_brand=${b.slug}`}
+            className="group surface flex flex-col items-center gap-3 p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 hover:border-ink/15 hover:shadow-elevated"
           >
             {b.logo_url ? (
               <img
@@ -26,11 +26,11 @@ export function CarBrandGrid() {
                 loading="lazy"
               />
             ) : (
-              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-md bg-muted grid place-items-center text-muted-foreground">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-muted grid place-items-center text-muted-foreground">
                 <Car className="h-5 w-5" />
               </div>
             )}
-            <span className="font-display text-xs sm:text-sm font-semibold uppercase tracking-wide text-ink text-center leading-tight">
+            <span className="font-display text-xs sm:text-sm font-semibold text-ink text-center leading-tight">
               {b.name}
             </span>
           </Link>
@@ -43,8 +43,8 @@ export function CarBrandGrid() {
 function SectionHeadInline({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
     <div>
-      <div className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] sm:tracking-[0.25em] text-primary">{eyebrow}</div>
-      <h2 className="font-display-tight text-2xl sm:text-3xl lg:text-4xl font-bold mt-1 text-ink">{title}</h2>
+      <div className="eyebrow">{eyebrow}</div>
+      <h2 className="font-display-tight text-3xl sm:text-4xl font-bold mt-2 text-ink">{title}</h2>
     </div>
   );
 }

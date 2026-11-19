@@ -58,9 +58,10 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="container-x py-12 max-w-md">
-      <h1 className="font-display-tight text-4xl font-bold text-center">Set a new password</h1>
-      <div className="mt-8 bg-white border border-line p-6">
+    <div className="container-x max-w-md py-12 sm:py-20">
+      <div className="text-center"><span className="eyebrow">Account</span></div>
+      <h1 className="mt-2 font-display-tight text-3xl sm:text-4xl font-bold text-center">Set a new password</h1>
+      <div className="mt-8 surface p-6 sm:p-8">
         {!ready ? (
           <p className="text-sm text-muted-foreground text-center">
             Verifying reset link…

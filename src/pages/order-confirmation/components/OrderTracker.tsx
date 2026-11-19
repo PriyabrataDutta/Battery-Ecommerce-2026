@@ -15,8 +15,8 @@ export function OrderTracker({ order }: { order: SavedOrder }) {
 
   return (
     <>
-      <div className="mt-8 bg-white border border-line p-5 md:p-7">
-        <h2 className="font-display font-bold uppercase tracking-wide text-sm mb-5">
+      <div className="mt-6 surface p-5 md:p-7">
+        <h2 className="font-display-tight font-bold text-xl text-ink mb-5">
           What happens next
         </h2>
         <ol className="grid md:grid-cols-3 gap-4">
@@ -49,10 +49,10 @@ export function OrderTracker({ order }: { order: SavedOrder }) {
       </div>
 
       {order.schedule && (
-        <div className="mt-6 bg-primary/5 border border-primary/30 p-4 flex items-start gap-3">
+        <div className="mt-6 rounded-2xl bg-primary/5 border border-primary/20 p-4 flex items-start gap-3">
           <CalendarClock className="h-5 w-5 text-primary shrink-0 mt-0.5" />
           <div className="text-sm">
-            <div className="font-display font-bold uppercase tracking-wide">Delivery scheduled</div>
+            <div className="font-display font-bold text-ink">Delivery scheduled</div>
             <div className="text-muted-foreground">
               We'll deliver on{" "}
               <span className="font-semibold text-ink">{order.schedule.dateLabel}</span> between{" "}
@@ -83,7 +83,7 @@ function Step({
     upcoming: "bg-muted text-ink-soft border-line",
   }[state];
   return (
-    <li className={`border p-4 flex gap-3 items-start ${styles}`}>
+    <li className={`rounded-2xl border p-4 flex gap-3 items-start ${styles}`}>
       <Icon className="h-5 w-5 shrink-0 mt-0.5" />
       <div className="min-w-0">
         <div className="font-display font-semibold text-ink">{title}</div>

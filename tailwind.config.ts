@@ -12,7 +12,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['Oswald', 'sans-serif'],
+        display: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
@@ -25,6 +25,7 @@ export default {
         "ink-soft": "hsl(var(--ink-soft))",
         line: "hsl(var(--line))",
         whatsapp: "hsl(var(--whatsapp))",
+        volt: "hsl(var(--volt))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",

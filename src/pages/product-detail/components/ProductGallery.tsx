@@ -29,34 +29,36 @@ export const ProductGallery = ({
 
   return (
     <>
-      <div className="bg-white border border-line aspect-square overflow-hidden rounded-md">
+      <div className="relative aspect-square overflow-hidden rounded-3xl border border-line bg-[radial-gradient(circle_at_50%_40%,hsl(var(--card))_0%,hsl(var(--muted))_100%)] shadow-card">
         {active && (
           <img
             key={fadeKey}
             src={active}
             alt={alt}
-            className="w-full h-full object-contain p-4 animate-fade-in"
+            className="w-full h-full object-contain p-6 sm:p-10 animate-fade-in"
             fetchPriority="high"
           />
         )}
       </div>
       {images.length > 1 && (
-        <div className="mt-3 grid grid-cols-5 gap-2">
+        <div className="mt-3 grid grid-cols-5 gap-2 sm:gap-3">
           {images.slice(0, 5).map((url) => (
             <button
               key={url}
               onClick={() => handleSelect(url)}
-              className={`bg-white border aspect-square overflow-hidden rounded ${
+              aria-label="Show image"
+              aria-pressed={active === url}
+              className={`bg-card border aspect-square overflow-hidden rounded-xl transition-all ${
                 active === url
-                  ? "border-primary ring-1 ring-primary"
-                  : "border-line"
+                  ? "border-primary ring-2 ring-primary/30"
+                  : "border-line hover:border-ink/30"
               }`}
             >
               <img
                 src={url}
                 alt=""
                 loading="lazy"
-                className="w-full h-full object-contain p-1"
+                className="w-full h-full object-contain p-1.5"
               />
             </button>
           ))}

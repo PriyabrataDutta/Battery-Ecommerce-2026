@@ -26,10 +26,10 @@ const AccountOrders = () => {
   };
 
   return (
-    <div className="bg-white border border-line">
+    <div className="surface">
       <div className="p-5 border-b border-line flex items-center gap-2">
         <Package className="h-5 w-5 text-primary" />
-        <h2 className="font-display font-bold uppercase tracking-wide text-sm">Order history</h2>
+        <h2 className="font-display-tight text-xl font-bold">Order history</h2>
       </div>
 
       {isLoading || !orders ? (
@@ -49,11 +49,11 @@ const AccountOrders = () => {
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-mono font-bold">{o.order_number ?? o.id.slice(0, 8)}</span>
-                  <span className="text-[10px] uppercase tracking-wider font-display font-bold bg-muted px-1.5 py-0.5">
+                  <span className="text-[11px] font-semibold bg-muted rounded-full px-2 py-0.5">
                     {o.status}
                   </span>
                   {o.promo_code && (
-                    <span className="text-[10px] uppercase tracking-wider font-display font-bold bg-success/10 text-success px-1.5 py-0.5">
+                    <span className="text-[11px] font-semibold bg-success/10 text-success rounded-full px-2 py-0.5">
                       {o.promo_code}
                     </span>
                   )}

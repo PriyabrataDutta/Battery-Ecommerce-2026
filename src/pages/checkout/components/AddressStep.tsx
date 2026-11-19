@@ -56,9 +56,11 @@ export const AddressStep = ({
 
   return (
     <div>
-      <div className="flex items-center gap-2">
-        <MapPin className="h-5 w-5 text-primary" />
-        <h2 className="font-display-tight text-xl font-bold">Shipping address</h2>
+      <div className="flex items-center gap-3">
+        <span className="grid h-10 w-10 place-items-center rounded-full bg-primary/10">
+          <MapPin className="h-5 w-5 text-primary" />
+        </span>
+        <h2 className="font-display-tight text-2xl font-bold text-ink">Shipping address</h2>
       </div>
       <p className="text-sm text-muted-foreground mt-1">
         We'll deliver (and install, if chosen) your battery at this address. Fields marked{" "}
@@ -66,7 +68,7 @@ export const AddressStep = ({
       </p>
 
       {problems.length > 0 && (
-        <div role="alert" className="mt-4 flex gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+        <div role="alert" className="mt-5 flex gap-2 rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm">
           <AlertCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
           <div>
             <div className="font-semibold text-destructive">Please fix {problems.length} field{problems.length > 1 ? "s" : ""} to continue:</div>
@@ -84,7 +86,7 @@ export const AddressStep = ({
         </div>
       )}
 
-      <div className="mt-6 grid sm:grid-cols-2 gap-4">
+      <div className="mt-6 grid sm:grid-cols-2 gap-x-4 gap-y-5">
         <Field label="Full name" required error={errors.fullName} help="Name of the person receiving the battery.">
           <Input {...props("fullName")} placeholder="e.g. Ravi Kumar" maxLength={80} autoComplete="name" />
         </Field>

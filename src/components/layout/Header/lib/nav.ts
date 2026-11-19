@@ -32,10 +32,9 @@ export const mainNav: NavItem[] = [
 
 /** Items shown in the mobile slide-down drawer (in order). */
 export const mobileNav: (NavItem & { highlight?: boolean })[] = [
+  // Car / inverter shops are tiles at the top of the drawer, so not listed here.
   { label: "Home", to: "/" },
-  { label: "Car batteries", to: "/shop/car-batteries" },
-  { label: "Inverter batteries", to: "/shop/inverter-batteries" },
-  { label: "Brands", to: "/brands" },
+  { label: "Battery brands", to: "/brands" },
   { label: "Jump Start", to: "/jump-start" },
   { label: "Blog", to: "/blog" },
   { label: "About", to: "/about" },

@@ -20,7 +20,7 @@ import { MobileSearchOverlay } from "./components/MobileSearchOverlay";
  *     UtilityBar.tsx           ← top dark strip (phone, WhatsApp)
  *     MainBar.tsx              ← logo, search, cart, account
  *     DesktopNav.tsx           ← lower nav + Shop mega menu (≥lg)
- *     MobileDrawer.tsx         ← slide-down nav (<lg)
+ *     MobileDrawer.tsx         ← left side panel nav (<lg), closes on outside tap
  *     MobileSearchOverlay.tsx  ← full-screen mobile search
  *     CartButton.tsx           ← cart icon + count badge
  *     AccountMenu.tsx          ← signed-in dropdown / login CTA

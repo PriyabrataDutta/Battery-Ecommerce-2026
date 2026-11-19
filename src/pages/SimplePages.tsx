@@ -38,7 +38,7 @@ export const PrivacyPolicy = () => (
   <SimplePage title="Privacy Policy" body={
     <>
       <p><em>Last updated: {UPDATED}</em></p>
-      <p>This policy explains how Manjunatha Batteries, trading as Kachi Batteries ("we", "us"), collects, uses and protects your personal data when you use www.kachibatteries.com, in line with the Digital Personal Data Protection Act, 2023 and the Information Technology Act, 2000.</p>
+      <p>This policy explains how Kachi Batteries, a sister concern of Manjunatha Batteries, Bengaluru ("we", "us"), collects, uses and protects your personal data when you use www.kachibatteries.com, in line with the Digital Personal Data Protection Act, 2023 and the Information Technology Act, 2000.</p>
 
       <h2>Data we collect</h2>
       <ul>
@@ -90,7 +90,7 @@ export const RefundPolicy = () => (
     <>
       <p><em>Last updated: {UPDATED}</em></p>
 
-      <p>This policy applies to orders placed on www.kachibatteries.com, operated by Manjunatha Batteries, trading as Kachi Batteries.</p>
+      <p>This policy applies to orders placed on www.kachibatteries.com, operated by Kachi Batteries, a sister concern of Manjunatha Batteries, Bengaluru (<a href="https://maps.app.goo.gl/jFhiV7mrC53UrraL8" target="_blank" rel="noopener noreferrer" className="text-primary font-semibold">store location</a>).</p>
 
       <h2>Cancellations</h2>
       <ul>

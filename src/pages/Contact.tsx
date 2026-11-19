@@ -39,7 +39,7 @@ const Contact = () => {
         <div className="mt-8 space-y-4 text-sm">
           <div className="flex items-center gap-3"><Phone className="h-5 w-5 text-primary" /> +91 81975 68707</div>
           <div className="flex items-center gap-3"><Mail className="h-5 w-5 text-primary" /> kachibatteries@gmail.com</div>
-          <div className="flex items-start gap-3"><MapPin className="h-5 w-5 text-primary mt-0.5" /> Mumbai · Pune · Bangalore · Delhi</div>
+          <div className="flex items-start gap-3"><MapPin className="h-5 w-5 text-primary mt-0.5" /> <span>Visit our store: Manjunatha Batteries, Bengaluru (sister concern of Kachi Batteries) · <a href="https://maps.app.goo.gl/jFhiV7mrC53UrraL8" target="_blank" rel="noopener noreferrer" className="text-primary font-semibold">Open in Google Maps</a></span></div>
         </div>
       </div>
       {done ? (

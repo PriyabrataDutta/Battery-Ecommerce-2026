@@ -19,9 +19,9 @@ export function Footer() {
             <a href="mailto:kachibatteries@gmail.com" className="flex items-center gap-2 hover:text-white">
               <Mail className="h-4 w-4 text-primary" /> kachibatteries@gmail.com
             </a>
-            <div className="flex items-start gap-2">
-              <MapPin className="h-4 w-4 text-primary mt-0.5" /> Mumbai · Pune · Bangalore · Delhi
-            </div>
+            <a href="https://maps.app.goo.gl/jFhiV7mrC53UrraL8" target="_blank" rel="noopener noreferrer" className="flex items-start gap-2 hover:text-white">
+              <MapPin className="h-4 w-4 text-primary mt-0.5" /> Manjunatha Batteries, Bengaluru (view on map)
+            </a>
           </div>
         </div>
 
@@ -63,7 +63,7 @@ export function Footer() {
 
       <div className="border-t border-white/10">
         <div className="container-x py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/50">
-          <div>© {new Date().getFullYear()} Kachi Batteries (Manjunatha Batteries). All rights reserved. Designed & Developed by PDUTTA</div>
+          <div>© {new Date().getFullYear()} Kachi Batteries, a sister concern of Manjunatha Batteries. All rights reserved. Designed & Developed by PDUTTA</div>
           <div className="flex items-center gap-4">
             <Link to="/privacy-policy" className="hover:text-white">Privacy Policy</Link>
             <Link to="/refund-policy" className="hover:text-white">Return & Refund Policy</Link>

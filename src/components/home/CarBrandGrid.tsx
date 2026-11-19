@@ -22,7 +22,7 @@ export function CarBrandGrid() {
               <img
                 src={b.logo_url}
                 alt={b.name}
-                className="h-10 w-10 sm:h-12 sm:w-12 object-contain grayscale group-hover:grayscale-0 transition-all"
+                className="h-10 w-14 sm:h-12 sm:w-16 object-contain transition-transform group-hover:scale-110"
                 loading="lazy"
               />
             ) : (

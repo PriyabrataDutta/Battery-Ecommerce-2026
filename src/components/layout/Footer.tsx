@@ -63,7 +63,7 @@ export function Footer() {
 
       <div className="border-t border-white/10">
         <div className="container-x py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/50">
-          <div>© {new Date().getFullYear()} Kachi Batteries. All rights reserved. Designed & Developed by PDUTTA</div>
+          <div>© {new Date().getFullYear()} Kachi Batteries (Manjunatha Batteries). All rights reserved. Designed & Developed by PDUTTA</div>
           <div className="flex items-center gap-4">
             <Link to="/privacy-policy" className="hover:text-white">Privacy Policy</Link>
             <Link to="/refund-policy" className="hover:text-white">Return & Refund Policy</Link>

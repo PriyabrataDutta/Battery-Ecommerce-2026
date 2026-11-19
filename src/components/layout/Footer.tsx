@@ -55,6 +55,8 @@ export function Footer() {
             { to: "/jump-start", label: "Jump Start" },
             { to: "/catalog", label: "Catalogs" },
             { to: "/blog", label: "Blog" },
+            { to: "/privacy-policy", label: "Privacy Policy" },
+            { to: "/refund-policy", label: "Return & Refund Policy" },
           ]}
         />
       </div>

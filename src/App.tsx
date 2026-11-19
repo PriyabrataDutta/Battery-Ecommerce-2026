@@ -48,6 +48,8 @@ const Quote = lazy(storePages.Quote);
 const Contact = lazy(storePages.Contact);
 const About = lazy(storePages.About);
 const JumpStart = lazy(() => storePages.SimplePages().then((m) => ({ default: m.JumpStart })));
+const PrivacyPolicy = lazy(() => storePages.SimplePages().then((m) => ({ default: m.PrivacyPolicy })));
+const RefundPolicy = lazy(() => storePages.SimplePages().then((m) => ({ default: m.RefundPolicy })));
 const Catalog = lazy(storePages.Catalog);
 const BlogListing = lazy(storePages.BlogListing);
 const BlogPost = lazy(storePages.BlogPost);
@@ -107,6 +109,8 @@ const App = () => (
               <Route path="/about" element={<About />} />
               <Route path="/jump-start" element={<JumpStart />} />
               <Route path="/catalog" element={<Catalog />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/refund-policy" element={<RefundPolicy />} />
               <Route path="/blog" element={<BlogListing />} />
               <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/auth" element={<Auth />} />

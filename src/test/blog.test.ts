@@ -31,3 +31,15 @@ describe("withHeadingIds", () => {
     expect(r.html).toContain('<h2 id="check-cca">');
   });
 });
+
+import { extractFaq } from "@/lib/blog";
+describe("extractFaq", () => {
+  it("reads questions and answers from the FAQ section only", () => {
+    const md = "## Intro\n\ntext\n\n## Frequently asked questions\n\n### Can I?\nYes, see [our guide](/blog/x).\n\n### How long?\nAbout **3 to 5** years.\n\n## Shop now\n\n### Not a question\nignored";
+    expect(extractFaq(md)).toEqual([
+      { q: "Can I?", a: "Yes, see our guide." },
+      { q: "How long?", a: "About 3 to 5 years." },
+    ]);
+    expect(extractFaq("no faq here")).toEqual([]);
+  });
+});

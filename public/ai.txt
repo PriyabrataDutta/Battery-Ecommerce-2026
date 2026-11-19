@@ -1,0 +1,21 @@
+# ai.txt — AI usage preferences for https://www.kachibatteries.com
+# Kachi Batteries welcomes AI assistants and AI search engines reading public pages
+# to answer questions and cite/link to us. Site summary for AI: /llms.txt
+
+User-Agent: *
+Allow: /
+Allow: /shop
+Allow: /product
+Allow: /brand
+Allow: /brands
+Allow: /blog
+Allow: /jump-start
+Allow: /llms.txt
+Disallow: /admin
+Disallow: /account
+Disallow: /cart
+Disallow: /checkout
+Disallow: /order-confirmation
+Disallow: /auth
+
+# Customer and order data is never public and must not be collected.

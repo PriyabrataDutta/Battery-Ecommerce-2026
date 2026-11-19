@@ -21,7 +21,7 @@ export function CarBrandGrid() {
             {b.logo_url ? (
               <img
                 src={b.logo_url}
-                alt={b.name}
+                alt=""
                 className="h-10 w-14 sm:h-12 sm:w-16 object-contain transition-transform group-hover:scale-110"
                 loading="lazy"
               />

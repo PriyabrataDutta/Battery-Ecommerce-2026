@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Truck, Wrench, ShieldCheck, IndianRupee } from "lucide-react";
@@ -7,28 +6,14 @@ import { useBatteryBrands } from "@/hooks/queries/useBrands";
 import { CarBrandGrid } from "@/components/home/CarBrandGrid";
 import { ProductTabs } from "@/components/home/ProductTabs";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
-import { ShopByNeed, HowItWorks, ExchangeBand, BatteryHealth, VisitAndDelivery, HomeFaq } from "@/components/home/HomeSections";
+import { ShopByNeed, HowItWorks, ExchangeBand, BatteryHealth, VisitAndDelivery, HomeFaq, HOME_FAQ } from "@/components/home/HomeSections";
+import { faqJsonLd } from "@/lib/faq";
 import { MobileStickyBar } from "@/components/home/MobileStickyBar";
-import heroCar from "@/assets/hero-car.jpg";
-import batteryStack from "@/assets/battery-stack.png";
-import { gsap } from "gsap";
+import batteryStack from "@/assets/battery-stack.webp";
 import { Seo } from "@/components/Seo";
 import { SITE_URL } from "@/lib/site";
 
 const Home = () => {
-  const heroRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!heroRef.current) return;
-    const ctx = gsap.context(() => {
-      gsap.from(".hero-line", { y: 30, opacity: 0, duration: 0.8, stagger: 0.12, ease: "power3.out" });
-      gsap.from(".hero-cta", { y: 20, opacity: 0, duration: 0.6, delay: 0.6, stagger: 0.1, ease: "power2.out" });
-      gsap.from(".hero-stack", { x: 60, opacity: 0, duration: 1.0, delay: 0.3, ease: "power3.out" });
-      gsap.to(".hero-stack", { y: -10, duration: 3, repeat: -1, yoyo: true, ease: "sine.inOut" });
-    }, heroRef);
-    return () => ctx.revert();
-  }, []);
-
   const { data: brands = [] } = useBatteryBrands();
 
   return (
@@ -37,7 +22,7 @@ const Home = () => {
         title="Buy Car & Inverter Batteries Online in India"
         description="Genuine Amaron, Exide, Power Zone and Elito car and inverter batteries. Find the battery that fits your car, free standard delivery, doorstep installation and old battery exchange."
         path="/"
-        jsonLd={{
+        jsonLd={[{
             "@context": "https://schema.org",
             "@type": ["LocalBusiness", "AutoPartsStore"],
             "@id": `${SITE_URL}/#store`,
@@ -54,14 +39,16 @@ const Home = () => {
             hasMap: "https://maps.app.goo.gl/jFhiV7mrC53UrraL8",
             areaServed: "IN",
             paymentAccepted: "Cash, UPI, Credit Card, Debit Card, Net Banking",
-          }}
+          }, faqJsonLd(HOME_FAQ)]}
       />
       {/* HERO */}
-      <section ref={heroRef} className="relative overflow-hidden bg-gradient-hero text-white">
+      <section className="relative overflow-hidden bg-gradient-hero text-white">
         <div className="absolute inset-0 bg-dots opacity-60" aria-hidden />
         <img
-          src={heroCar}
+          src="/hero-car.webp"
           alt=""
+          fetchPriority="high"
+          decoding="async"
           className="absolute inset-0 h-full w-full object-cover opacity-[0.18] mix-blend-luminosity"
           width={1920}
           height={1080}
@@ -103,7 +90,7 @@ const Home = () => {
             </dl>
           </div>
           <div className="relative">
-            <img src={batteryStack} alt="" aria-hidden className="hero-stack pointer-events-none absolute -right-10 -top-16 hidden w-[340px] opacity-90 drop-shadow-2xl xl:block" width={1024} height={1024} />
+            <img src={batteryStack} alt="" aria-hidden loading="lazy" decoding="async" className="hero-stack pointer-events-none absolute -right-10 -top-16 hidden w-[340px] opacity-90 drop-shadow-2xl xl:block" width={720} height={720} />
             <div className="absolute inset-6 rounded-full bg-primary/25 blur-3xl" aria-hidden />
             <div className="relative rounded-3xl bg-white p-5 text-ink shadow-elevated sm:p-6 lg:mt-24">
               <div className="flex items-center justify-between gap-3">
@@ -163,7 +150,7 @@ const Home = () => {
                 className="surface flex h-20 min-w-[180px] items-center justify-center px-8 transition-colors hover:border-ink/20"
               >
                 {b.logo_url ? (
-                  <img src={b.logo_url} alt={b.name} className="h-9 object-contain sm:h-10" loading="lazy" />
+                  <img src={b.logo_url} alt={b.name} width={140} height={40} className="h-9 w-auto object-contain sm:h-10" loading="lazy" />
                 ) : (
                   <span className="font-display text-2xl font-extrabold text-ink-soft">{b.name}</span>
                 )}

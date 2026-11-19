@@ -5,7 +5,8 @@ import { useMemo, useState } from "react";
 import { getPostBySlug, listPublishedPosts } from "@/api/blog";
 import { ArrowRight, Check, Link2, MessageCircle } from "lucide-react";
 import { SITE_URL } from "@/lib/site";
-import { formatPostDate, readingMinutes, renderMarkdown, topicOf, withHeadingIds } from "@/lib/blog";
+import { faqJsonLd } from "@/lib/faq";
+import { extractFaq, formatPostDate, readingMinutes, renderMarkdown, topicOf, withHeadingIds } from "@/lib/blog";
 import { BlogNav } from "@/components/blog/BlogNav";
 import { BlogSidebar } from "@/components/blog/BlogSidebar";
 
@@ -58,7 +59,10 @@ const BlogPost = () => {
     ...(post.excerpt ? { description: post.excerpt } : {}),
     ...(post.cover_url ? { image: [post.cover_url] } : {}),
     datePublished: post.published_at ?? post.created_at,
-    dateModified: post.published_at ?? post.created_at,
+    dateModified: post.updated_at ?? post.published_at ?? post.created_at,
+    articleSection: topicOf(post),
+    inLanguage: "en-IN",
+    wordCount: (post.body ?? "").split(/\s+/).filter(Boolean).length,
     mainEntityOfPage: { "@type": "WebPage", "@id": canonicalUrl },
     author: { "@type": "Organization", name: "Kachi Batteries", url: SITE_URL },
     publisher: { "@type": "Organization", name: "Kachi Batteries", logo: { "@type": "ImageObject", url: `${SITE_URL}/og-default.jpg` } },
@@ -73,7 +77,7 @@ const BlogPost = () => {
         image={post.cover_url}
         type="article"
         breadcrumbs={[{ name: "Blog", path: "/blog" }, { name: post.title, path: `/blog/${post.slug}` }]}
-        jsonLd={articleJsonLd}
+        jsonLd={extractFaq(post.body).length ? [articleJsonLd, faqJsonLd(extractFaq(post.body))] : articleJsonLd}
       />
 
 

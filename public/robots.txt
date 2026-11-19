@@ -1,6 +1,8 @@
+# Kachi Batteries — https://www.kachibatteries.com
+# Search engines and AI assistants are welcome to index and cite public pages.
+
 User-agent: *
 Allow: /
-Disallow: /admin
 Disallow: /account
 Disallow: /cart
 Disallow: /checkout

@@ -40,7 +40,7 @@ export function TestimonialsSection() {
             className={`relative flex flex-col overflow-hidden rounded-[2rem] p-6 sm:p-7 ${i === 1 ? "bg-ink text-white" : "surface"}`}
           >
             <Quote className={`h-10 w-10 ${i === 1 ? "text-volt" : "text-primary"} fill-current opacity-90`} aria-hidden />
-            <div className="mt-4 flex gap-0.5" aria-label={`${t.rating} out of 5 stars`}>
+            <div className="mt-4 flex gap-0.5" role="img" aria-label={`${t.rating} out of 5 stars`}>
               {Array.from({ length: 5 }).map((_, k) => (
                 <Star key={k} className={`h-4 w-4 ${k < t.rating ? "fill-volt text-volt" : i === 1 ? "text-white/20" : "text-line"}`} />
               ))}

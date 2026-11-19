@@ -54,7 +54,7 @@ State that affects multiple siblings (`mobileOpen`, `mobileSearchOpen`,
 | Add an entry inside the account dropdown | `components/AccountMenu.tsx` |
 | Gate something behind admin role | use `isStaff` from `useAuth()` (see AccountMenu) |
 | Tweak header height or spacing | `components/MainBar.tsx` |
-| Replace the logo | swap `src/assets/kachi-logo.png` (used by `MainBar`) |
+| Replace the logo | swap `src/assets/kachi-logo.webp` (used by `MainBar`) |
 | Change cart-drawer breakpoint | `components/CartButton.tsx` (currently `< 1024px`) |
 
 ## Conventions

@@ -4,7 +4,7 @@ import { ArrowRight, BatteryCharging, Calculator, Car, MessageCircle, PhoneCall 
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { useCarBrands } from "@/hooks/queries/useBrands";
 import { INVERTER_KINDS } from "@/pages/shop/inverterKinds";
-import logo from "@/assets/kachi-logo.png";
+import logo from "@/assets/kachi-logo.webp";
 import { contactInfo, mobileNav } from "../lib/nav";
 
 /**
@@ -28,7 +28,7 @@ export function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => 
         <SheetDescription className="sr-only">Shop batteries and browse Kachi Batteries</SheetDescription>
 
         <div className="flex items-center border-b border-line px-5 py-4">
-          <Link to="/" onClick={onClose}><img src={logo} alt="Kachi Batteries" className="h-9 w-auto" /></Link>
+          <Link to="/" onClick={onClose}><img src={logo} alt="Kachi Batteries" width={317} height={128} className="h-9 w-auto" /></Link>
         </div>
 
         <div className="flex-1 overflow-y-auto overscroll-contain px-4 py-5">

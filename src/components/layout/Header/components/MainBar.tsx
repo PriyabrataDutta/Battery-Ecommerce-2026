@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Menu, X, Search } from "lucide-react";
-import logo from "@/assets/kachi-logo.png";
+import logo from "@/assets/kachi-logo.webp";
 import { Button } from "@/components/ui/button";
 import { SmartSearch } from "@/components/search/SmartSearch";
 import { CartButton } from "./CartButton";
@@ -40,7 +40,7 @@ export function MainBar({
       </Button>
 
       <Link to="/" className="flex-shrink-0 flex items-center">
-        <img src={logo} alt="Kachi Batteries" className="h-9 sm:h-11 lg:h-12 w-auto" />
+        <img src={logo} alt="Kachi Batteries" width={317} height={128} className="h-9 sm:h-11 lg:h-12 w-auto" />
       </Link>
 
       <SmartSearch className="hidden md:flex flex-1 min-w-0 items-center" />

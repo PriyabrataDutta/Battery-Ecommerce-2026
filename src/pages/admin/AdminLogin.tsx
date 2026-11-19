@@ -14,6 +14,7 @@ import { AccessExpired, isAccessExpiredCause } from "@/components/auth/AccessExp
 import { useCaptcha } from "@/components/auth/Captcha";
 import { TotpQr } from "@/components/auth/TotpQr";
 import { safeNext } from "@/lib/safeNext";
+import { Helmet } from "react-helmet-async";
 
 const AdminLogin = () => {
   const { user, isStaff, loading, signIn, resetPassword } = useAuth();
@@ -191,6 +192,7 @@ const AdminLogin = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-muted/40 via-background to-muted/40 p-4">
+      <Helmet><title>Sign in</title><meta name="robots" content="noindex, nofollow, noarchive" /></Helmet>
       <Card className="w-full max-w-md p-8 shadow-elevated">
         <div className="flex flex-col items-center text-center mb-6">
           <div className="h-14 w-14 rounded-full bg-primary/10 grid place-items-center mb-3">

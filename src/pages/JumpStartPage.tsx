@@ -8,6 +8,7 @@ import {
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { contactInfo as c } from "@/components/layout/Header/lib/nav";
 import { SITE_URL } from "@/lib/site";
+import { faqJsonLd } from "@/lib/faq";
 
 const IMG = "https://uzpzqkzkdkeboplmgowy.supabase.co/storage/v1/object/public/media/jump-start";
 const WA = `${c.whatsappUrl}?text=${encodeURIComponent("Hi Kachi Batteries, I need a jump start in Bengaluru. My location: ")}`;
@@ -82,7 +83,7 @@ const JumpStartPage = () => {
         path="/jump-start"
         image={`${IMG}/hero.jpg`}
         breadcrumbs={[{ name: "Jump start", path: "/jump-start" }]}
-        jsonLd={jsonLd}
+        jsonLd={[jsonLd, faqJsonLd(FAQ)]}
       />
 
       {/* Hero */}

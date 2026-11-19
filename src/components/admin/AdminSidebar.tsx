@@ -11,7 +11,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import logo from "@/assets/kachi-logo.png";
+import logo from "@/assets/kachi-logo.webp";
 import { useAdminTab } from "@/stores/dashboardTabs";
 import { ADMIN_TAB_DEFS, SIDEBAR_SECTIONS } from "@/pages/admin/_lib/tabs";
 import { useMyPermissions } from "@/hooks/usePermissions";

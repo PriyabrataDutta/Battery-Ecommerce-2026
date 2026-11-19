@@ -25,6 +25,7 @@ import {
 import { performAdminLogout } from "@/components/auth/PostLogoutRedirect";
 import { useAdminTab, isAdminTab, type AdminTab } from "@/stores/dashboardTabs";
 import { TAB_MAP } from "@/pages/admin/_lib/tabs";
+import { Helmet } from "react-helmet-async";
 
 const PanelLoader = () => (
   <div className="flex items-center justify-center py-20 text-muted-foreground">Loading panel…</div>
@@ -88,6 +89,7 @@ const AdminLayout = () => {
 
   return (
     <RequireStaff>
+      <Helmet><title>Admin</title><meta name="robots" content="noindex, nofollow, noarchive" /></Helmet>
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-muted/40">
           <AdminSidebar />

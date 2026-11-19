@@ -1,0 +1,49 @@
+# Kachi Batteries
+
+> Online store for genuine car and inverter batteries (Amaron, Exide, Power Zone, Elito) in India, run from Bengaluru by Kachi Batteries, a sister concern of Manjunatha Batteries. Customers can find a battery by car make and model, size an inverter battery with a backup calculator, pay online or cash on delivery, and get free standard delivery.
+
+## Key facts
+
+- Products: car batteries, inverter batteries (tubular, SMF/VRLA, lithium), inverters and UPS.
+- Brands: Amaron, Exide, Power Zone, Elito.
+- Prices on the site exclude GST; GST is added per product in the cart and at checkout.
+- Old battery exchange: choose the exchange price and hand over the old battery at delivery or installation.
+- Delivery: standard delivery free (3–5 business days); express ₹299 (1–2 business days); doorstep installation with old battery pickup ₹499.
+- Payment: online (UPI, cards, net banking via Cashfree) or cash on delivery.
+- Returns: unused, uninstalled batteries within 7 days of delivery; transit damage reported within 48 hours.
+- Warranty: manufacturer warranty as shown on each product page; claims via the brand's authorised service centres.
+- Jump start service: Bengaluru only, during store hours, usually 30–60 minutes; price on call.
+- Store: Manjunatha Batteries, Bengaluru, Karnataka. Phone/WhatsApp +91 81975 68707, email kachibatteries@gmail.com.
+
+## Shop
+
+- [Car batteries by vehicle](https://www.kachibatteries.com/shop/car-batteries): pick car brand and model to see batteries that fit.
+- [Inverter batteries](https://www.kachibatteries.com/shop/inverter-batteries): tubular, SMF and lithium, with a backup calculator.
+- [All brands](https://www.kachibatteries.com/brands)
+- [Amaron batteries](https://www.kachibatteries.com/brand/amaron)
+- [Exide batteries](https://www.kachibatteries.com/brand/exide)
+- [Power Zone batteries](https://www.kachibatteries.com/brand/power-zone)
+- [Elito batteries](https://www.kachibatteries.com/brand/elito)
+- [Clearance sale](https://www.kachibatteries.com/category/clearance)
+
+## Guides
+
+- [Car Battery Maintenance: 9 Tips to Make It Last Longer](https://www.kachibatteries.com/blog/car-battery-maintenance-tips): Drive regularly, keep terminals clean and tight, park in the shade and test after 3 years. Nine habits that make a car battery last longer.
+- [What Size Inverter Battery Do I Need? Ah and VA Explained](https://www.kachibatteries.com/blog/inverter-battery-capacity-guide): Watts × backup hours ÷ 9 gives the Ah for a 12V battery. Worked examples, inverter VA sizing and when you need two batteries.
+- [How Long Does a Car Battery Last in India? 7 Signs It Needs Replacing](https://www.kachibatteries.com/blog/how-long-does-a-car-battery-last): Most car batteries in India last about 3 to 5 years. Learn the 7 warning signs it needs replacing and how to make yours last longer.
+- [How to Choose the Right Car Battery in India (2026 Guide)](https://www.kachibatteries.com/blog/how-to-choose-car-battery): Match your car's battery size, terminal layout, Ah and CCA, then pick a trusted brand with a long free-replacement warranty. A step-by-step guide.
+- [Tubular vs SMF Inverter Batteries: Which Is Right for Your Home?](https://www.kachibatteries.com/blog/tubular-vs-smf): Tubular lasts longest and suits frequent power cuts; SMF is sealed and maintenance-free for lighter backup. Compare both, plus lithium.
+- [How to Jump Start a Car Safely: Step-by-Step Guide](https://www.kachibatteries.com/blog/jump-start-guide): Red to dead +, red to donor +, black to donor −, last clamp to bare metal. Safe step-by-step jump start, mistakes to avoid and what to do after.
+
+## Services and policies
+
+- [Car jump start service, Bengaluru](https://www.kachibatteries.com/jump-start)
+- [Bulk / B2B quote](https://www.kachibatteries.com/quote)
+- [Contact](https://www.kachibatteries.com/contact)
+- [Return & refund policy](https://www.kachibatteries.com/refund-policy)
+- [Privacy policy](https://www.kachibatteries.com/privacy-policy)
+
+## Optional
+
+- [Sitemap](https://www.kachibatteries.com/sitemap.xml)
+- [About](https://www.kachibatteries.com/about)

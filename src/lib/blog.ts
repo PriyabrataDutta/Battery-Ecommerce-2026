@@ -45,3 +45,24 @@ export function withHeadingIds(html: string): { html: string; toc: { id: string;
   });
   return { html: out, toc };
 }
+
+/**
+ * Question/answer pairs from a "## Frequently asked questions" (or "## FAQ")
+ * section: each "### question" followed by its answer text. Used for FAQPage JSON-LD.
+ */
+export function extractFaq(body: string | null): { q: string; a: string }[] {
+  const md = normalizeBody(body);
+  const start = md.search(/^##\s+(frequently asked questions|faqs?)\s*$/im);
+  if (start < 0) return [];
+  const rest = md.slice(start).split("\n").slice(1).join("\n");
+  const section = rest.split(/^##\s/m)[0];
+  return section
+    .split(/^###\s+/m)
+    .slice(1)
+    .map((chunk) => {
+      const [q, ...a] = chunk.split("\n");
+      const answer = a.join(" ").replace(/\[([^\]]+)\]\([^)]*\)/g, "$1").replace(/[*_`>]/g, "").replace(/\s+/g, " ").trim();
+      return { q: q.trim(), a: answer };
+    })
+    .filter((x) => x.q && x.a);
+}

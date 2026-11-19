@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Mail, Phone, MapPin, MessageCircle, ShieldCheck, Truck, Wrench, BadgeCheck } from "lucide-react";
-import logo from "@/assets/kachi-logo.png";
+import logo from "@/assets/kachi-logo.webp";
 import { contactInfo as c } from "./Header/lib/nav";
 
 const columns = [
@@ -78,7 +78,7 @@ export function Footer() {
       {/* Links */}
       <div className="container-x py-12 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-10">
         <div className="col-span-2 md:col-span-4 lg:col-span-3">
-          <img src={logo} alt="Kachi Batteries" className="h-14 w-auto rounded-xl bg-white p-2" />
+          <img src={logo} alt="Kachi Batteries" width={317} height={128} loading="lazy" className="h-14 w-auto rounded-xl bg-white p-2" />
           <p className="mt-4 max-w-sm text-sm text-white/70">
             Genuine car, inverter and UPS batteries from Amaron, Exide, Power Zone and Elito, delivered and installed
             at your doorstep.
@@ -108,7 +108,7 @@ export function Footer() {
 
         {columns.map((col) => (
           <nav key={col.title} aria-label={col.title}>
-            <h4 className="mb-4 font-display text-sm font-bold text-white">{col.title}</h4>
+            <h2 className="mb-4 font-display text-sm font-bold text-white">{col.title}</h2>
             <ul className="space-y-2">
               {col.links.map((l) => (
                 <li key={l.to}>

@@ -111,7 +111,7 @@ export const ProductCard = forwardRef<HTMLAnchorElement, { product: Product; sho
           <div className="mt-3 rounded-xl bg-primary/[0.06] px-3 py-2">
             <div className="flex flex-wrap items-baseline gap-x-2">
               <span className="font-display text-base font-bold text-primary">{formatINR(withExchange)}</span>
-              <span className="text-[11px] font-medium text-primary/80">with exchange · excl. GST</span>
+              <span className="text-[11px] font-semibold text-primary">with exchange · excl. GST</span>
             </div>
             <div className="text-[11px] text-ink-soft/80 line-clamp-1">
               Save {formatINR(withoutExchange - withExchange)} on old battery return
@@ -136,7 +136,7 @@ export const ProductCard = forwardRef<HTMLAnchorElement, { product: Product; sho
             className="h-10 sm:h-11 w-full min-w-0 px-2.5 sm:px-4 text-[13px] sm:text-sm"
             onClick={handleBuyNow}
             disabled={product.stock <= 0}
-            aria-label={`Buy ${product.name} now`}
+            aria-label={`Buy Now: ${product.name}`}
           >
             <Zap className="hidden sm:block h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="truncate">{product.stock <= 0 ? "Out of stock" : "Buy Now"}</span>

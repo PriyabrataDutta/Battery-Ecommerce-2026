@@ -234,7 +234,7 @@ export function VisitAndDelivery() {
   );
 }
 
-const FAQ = [
+export const HOME_FAQ = [
   { q: "Are your prices inclusive of GST?", a: "Prices on the site exclude GST. The GST for each product is added in your cart and at checkout, so you see the full amount before you pay." },
   { q: "How does the old battery exchange work?", a: "Choose the exchange price on the product page and hand over your old battery when the new one is delivered or installed. Old batteries are recycled as required by the Battery Waste Management Rules, 2022." },
   { q: "Is installation included?", a: "Standard delivery is free. Doorstep installation, including old battery pickup, can be chosen at checkout for ₹499. Express delivery (1–2 business days) is ₹299." },
@@ -269,7 +269,7 @@ export function HomeFaq() {
           </div>
         </div>
         <Accordion type="single" collapsible defaultValue="q0" className="space-y-3">
-          {FAQ.map(({ q, a }, i) => (
+          {HOME_FAQ.map(({ q, a }, i) => (
             <AccordionItem key={q} value={`q${i}`} className="surface border-b-0 px-5 transition-shadow data-[state=open]:shadow-elevated sm:px-6">
               <AccordionTrigger className="gap-4 py-5 text-left font-display text-base font-semibold text-ink hover:no-underline [&>svg]:h-8 [&>svg]:w-8 [&>svg]:rounded-full [&>svg]:bg-muted [&>svg]:p-2 [&[data-state=open]>svg]:bg-ink [&[data-state=open]>svg]:text-white">
                 {q}

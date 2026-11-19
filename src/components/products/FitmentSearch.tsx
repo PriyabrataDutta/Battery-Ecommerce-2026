@@ -84,13 +84,13 @@ export function FitmentSearch({ embedded = false }: { embedded?: boolean }) {
           {tab === "car" ? (
             <div className={`grid ${fieldsCols} gap-2.5`}>
               <Select value={carBrand} onValueChange={setCarBrand}>
-                <SelectTrigger className="h-12 rounded-xl border-line bg-muted/40"><SelectValue placeholder="Car Brand" /></SelectTrigger>
+                <SelectTrigger aria-label="Car brand" className="h-12 rounded-xl border-line bg-muted/40"><SelectValue placeholder="Car Brand" /></SelectTrigger>
                 <SelectContent className="bg-white z-50">
                   {brands.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Select value={carModel} onValueChange={setCarModel} disabled={!carBrand}>
-                <SelectTrigger className="h-12 rounded-xl border-line bg-muted/40"><SelectValue placeholder="Car Model" /></SelectTrigger>
+                <SelectTrigger aria-label="Car model" className="h-12 rounded-xl border-line bg-muted/40"><SelectValue placeholder="Car Model" /></SelectTrigger>
                 <SelectContent className="bg-white z-50">
                   {models.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
                 </SelectContent>
@@ -102,7 +102,7 @@ export function FitmentSearch({ embedded = false }: { embedded?: boolean }) {
           ) : (
             <div className={`grid ${fieldsCols} gap-2.5`}>
               <Select value={capacity} onValueChange={setCapacity}>
-                <SelectTrigger className="h-12 rounded-xl border-line bg-muted/40"><SelectValue placeholder="Capacity (Ah)" /></SelectTrigger>
+                <SelectTrigger aria-label="Capacity (Ah)" className="h-12 rounded-xl border-line bg-muted/40"><SelectValue placeholder="Capacity (Ah)" /></SelectTrigger>
                 <SelectContent className="bg-white z-50">
                   <SelectItem value="80">Up to 100 Ah</SelectItem>
                   <SelectItem value="100">100 Ah</SelectItem>
@@ -111,7 +111,7 @@ export function FitmentSearch({ embedded = false }: { embedded?: boolean }) {
                 </SelectContent>
               </Select>
               <Select>
-                <SelectTrigger className="h-12 rounded-xl border-line bg-muted/40"><SelectValue placeholder="Use case" /></SelectTrigger>
+                <SelectTrigger aria-label="Use case" className="h-12 rounded-xl border-line bg-muted/40"><SelectValue placeholder="Use case" /></SelectTrigger>
                 <SelectContent className="bg-white z-50">
                   <SelectItem value="home">Home (1-2 BHK)</SelectItem>
                   <SelectItem value="big-home">Home (3-4 BHK)</SelectItem>

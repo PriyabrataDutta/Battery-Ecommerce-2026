@@ -220,19 +220,25 @@ export default async function middleware(request: Request) {
     const url = new URL(request.url);
     if (PASS.some((r) => r.test(url.pathname))) return next();
 
-    const shellRes = await fetch(new URL("/index.html", url));
-    if (!shellRes.ok) return next();
+    // Forward preview-protection credentials (no effect in production).
+    const fwd = new Headers();
+    for (const h of ["cookie", "authorization", "x-vercel-protection-bypass"]) {
+      const v = request.headers.get(h);
+      if (v) fwd.set(h, v);
+    }
+    const shellRes = await fetch(new URL("/index.html", url), { headers: fwd });
+    if (!shellRes.ok) return next({ headers: { "x-seo-mw": `shell-${shellRes.status}` } });
     const shell = await shellRes.text();
-    if (!shell.includes("<!--seo:start-->")) return next();
+    if (!shell.includes("<!--seo:start-->")) return next({ headers: { "x-seo-mw": "no-markers" } });
 
     const page = await pageFor(url);
-    const headers = { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=0, must-revalidate" };
+    const headers = { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=0, must-revalidate", "x-seo-mw": "rendered" };
     if (!page) {
       const notFound: Page = { title: "Page Not Found", description: "This page doesn't exist. Browse car and inverter batteries at Kachi Batteries.", path: url.pathname, noindex: true, body: `<h1>Page not found</h1><p>${link("/", "Go to the home page")}</p>` };
       return new Response(render(shell, notFound), { status: 404, headers: { ...headers, "x-robots-tag": "noindex" } });
     }
     return new Response(render(shell, page), { status: page.status ?? 200, headers });
   } catch {
-    return next();
+    return next({ headers: { "x-seo-mw": "error" } });
   }
 }

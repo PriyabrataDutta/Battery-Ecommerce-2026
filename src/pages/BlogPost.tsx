@@ -3,9 +3,10 @@ import { Helmet } from "react-helmet-async";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { getPostBySlug, listPublishedPosts } from "@/api/blog";
-import { ArrowLeft, ArrowRight, BatteryCharging, Car, Check, Clock, Link2, MessageCircle } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Check, Link2, MessageCircle } from "lucide-react";
 import { SITE_URL } from "@/lib/site";
-import { formatPostDate, readingMinutes, renderMarkdown, topicOf } from "@/lib/blog";
+import { formatPostDate, readingMinutes, renderMarkdown, topicOf, withHeadingIds } from "@/lib/blog";
+import { BlogNav } from "@/components/blog/BlogNav";
 import { contactInfo } from "@/components/layout/Header/lib/nav";
 
 const BlogPost = () => {
@@ -17,7 +18,15 @@ const BlogPost = () => {
     staleTime: 5 * 60_000,
   });
   const { data: all = [] } = useQuery({ queryKey: ["blog-posts"], queryFn: listPublishedPosts, staleTime: 5 * 60_000 });
-  const html = useMemo(() => renderMarkdown(post?.body ?? null), [post?.body]);
+  const { html, toc } = useMemo(() => {
+    const r = withHeadingIds(renderMarkdown(post?.body ?? null));
+    // Posts often open with a heading that repeats the title; the page already shows it.
+    const first = r.toc[0];
+    if (first && post && first.text.trim().toLowerCase() === post.title.trim().toLowerCase()) {
+      return { html: r.html.replace(new RegExp(`<h2 id="${first.id}">[\\s\\S]*?</h2>`), ""), toc: r.toc.slice(1) };
+    }
+    return r;
+  }, [post]);
   const [copied, setCopied] = useState(false);
 
   if (isLoading) {
@@ -68,106 +77,107 @@ const BlogPost = () => {
       </Helmet>
 
 
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-ink text-white">
-        {post.cover_url && <img src={post.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-40" />}
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/30" aria-hidden />
-        <div className="container-x relative pb-14 pt-10 sm:pb-20 sm:pt-14">
-          <Link to="/blog" className="inline-flex items-center gap-1.5 text-sm text-white/70 hover:text-white">
-            <ArrowLeft className="h-4 w-4" /> All articles
-          </Link>
-          <div className="mt-8"><span className="rounded-full bg-volt px-3 py-1 text-xs font-bold text-ink">{topicOf(post)}</span></div>
-          <h1 className="mt-4 max-w-4xl font-display-tight text-4xl font-bold text-balance sm:text-6xl">{post.title}</h1>
-          {post.excerpt && <p className="mt-4 max-w-2xl text-lg text-white/75">{post.excerpt}</p>}
-          <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/70">
-            <span>Kachi Batteries</span>
-            <span aria-hidden>·</span>
-            <span>{formatPostDate(post.published_at, "long")}</span>
-            <span aria-hidden>·</span>
-            <span className="inline-flex items-center gap-1"><Clock className="h-4 w-4" /> {readingMinutes(post.body)} min read</span>
-          </div>
-        </div>
-      </section>
+      <div className="bg-white">
+        <BlogNav />
 
-      <div className="container-x grid gap-10 py-10 sm:py-14 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-14">
-        <article className="min-w-0">
-          {post.body ? (
-            <div
-              className="prose prose-base max-w-none text-ink-soft sm:prose-lg prose-headings:font-display prose-headings:tracking-tight prose-headings:text-ink prose-a:text-primary prose-strong:text-ink prose-li:marker:text-primary"
-              dangerouslySetInnerHTML={{ __html: html }}
-            />
-          ) : (
-            <p className="text-muted-foreground">No content yet.</p>
-          )}
-
-          {/* Share */}
-          <div className="mt-10 flex flex-wrap items-center gap-2 border-t border-line pt-6">
-            <span className="mr-1 text-sm font-semibold text-ink">Share this guide</span>
-            <a
-              href={`https://wa.me/?text=${encodeURIComponent(`${post.title} ${canonicalUrl}`)}`}
-              target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-full bg-whatsapp px-4 py-2 text-sm font-semibold text-white"
-            >
-              <MessageCircle className="h-4 w-4" /> WhatsApp
-            </a>
-            <button
-              type="button"
-              onClick={() => navigator.clipboard?.writeText(canonicalUrl).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); })}
-              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink hover:border-ink"
-            >
-              {copied ? <Check className="h-4 w-4 text-success" /> : <Link2 className="h-4 w-4" />} {copied ? "Copied" : "Copy link"}
-            </button>
-          </div>
-        </article>
-
-        <aside className="space-y-4 lg:sticky lg:top-44 lg:self-start">
-          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-hero p-6 text-white">
-            <div className="absolute inset-0 bg-dots opacity-60" aria-hidden />
-            <div className="relative">
-              <div className="font-display text-lg font-bold">Ready to buy?</div>
-              <p className="mt-1 text-sm text-white/65">Genuine batteries, free standard delivery.</p>
-              <div className="mt-4 space-y-2">
-                <Link to="/shop/car-batteries" className="flex items-center gap-3 rounded-2xl bg-white/10 p-3 text-sm font-semibold hover:bg-white/15">
-                  <Car className="h-5 w-5 text-volt" /> Car batteries <ArrowRight className="ml-auto h-4 w-4" />
-                </Link>
-                <Link to="/shop/inverter-batteries" className="flex items-center gap-3 rounded-2xl bg-white/10 p-3 text-sm font-semibold hover:bg-white/15">
-                  <BatteryCharging className="h-5 w-5 text-volt" /> Inverter batteries <ArrowRight className="ml-auto h-4 w-4" />
-                </Link>
+        {/* Header */}
+        <header className="container-x pt-10 sm:pt-14">
+          <div className="mx-auto max-w-3xl">
+            <nav aria-label="Breadcrumb" className="text-sm text-muted-foreground">
+              <Link to="/blog" className="hover:text-ink">The Battery Journal</Link>
+              <span className="mx-2">/</span>
+              <Link to={`/blog?topic=${encodeURIComponent(topicOf(post))}`} className="font-medium text-primary hover:underline">{topicOf(post)}</Link>
+            </nav>
+            <h1 className="mt-5 font-display text-4xl font-semibold leading-[1.08] tracking-tight text-ink text-balance sm:text-5xl lg:text-6xl">{post.title}</h1>
+            {post.excerpt && <p className="mt-5 text-xl leading-relaxed text-muted-foreground">{post.excerpt}</p>}
+            <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-y border-line py-4">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 place-items-center rounded-full bg-ink font-display text-sm font-bold text-white">K</span>
+                <div className="text-sm">
+                  <div className="font-semibold text-ink">Kachi Batteries team</div>
+                  <div className="text-muted-foreground">{formatPostDate(post.published_at, "long")} · {readingMinutes(post.body)} min read</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <a href={`https://wa.me/?text=${encodeURIComponent(`${post.title} ${canonicalUrl}`)}`} target="_blank" rel="noopener noreferrer" aria-label="Share on WhatsApp"
+                  className="grid h-10 w-10 place-items-center rounded-full border border-line text-ink hover:border-ink"><MessageCircle className="h-4 w-4" /></a>
+                <button type="button" aria-label={copied ? "Link copied" : "Copy link"}
+                  onClick={() => navigator.clipboard?.writeText(canonicalUrl).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); })}
+                  className="grid h-10 w-10 place-items-center rounded-full border border-line text-ink hover:border-ink">
+                  {copied ? <Check className="h-4 w-4 text-success" /> : <Link2 className="h-4 w-4" />}
+                </button>
               </div>
             </div>
           </div>
-          <a href={contactInfo.whatsappUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-[2rem] border border-line bg-white p-5 hover:border-ink/30">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-whatsapp text-white"><MessageCircle className="h-5 w-5" /></span>
-            <span>
-              <span className="block font-display font-bold text-ink">Not sure what fits?</span>
-              <span className="block text-sm text-muted-foreground">Ask a battery expert on WhatsApp</span>
-            </span>
-          </a>
-        </aside>
-      </div>
+          {post.cover_url && (
+            <img src={post.cover_url} alt="" className="mx-auto mt-10 aspect-[16/9] w-full max-w-5xl rounded-3xl object-cover" />
+          )}
+        </header>
 
-      {/* Related */}
-      {all.filter((p) => p.slug !== post.slug).length > 0 && (
-        <section className="mt-6 border-t border-line bg-white py-14 sm:py-16">
-          <div className="container-x">
-            <div className="flex items-end justify-between gap-4">
-              <h2 className="font-display-tight text-2xl font-bold text-ink sm:text-3xl">Keep reading</h2>
-              <Link to="/blog" className="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-ink hover:text-primary">All articles <ArrowRight className="h-4 w-4" /></Link>
-            </div>
-            <div className="mt-6 grid gap-5 md:grid-cols-3">
-              {all.filter((p) => p.slug !== post.slug).slice(0, 3).map((p) => (
-                <Link key={p.id} to={`/blog/${p.slug}`} className="group flex gap-4 rounded-2xl border border-line bg-background p-3 transition-shadow hover:shadow-card">
-                  {p.cover_url ? <img src={p.cover_url} alt="" loading="lazy" className="h-20 w-24 shrink-0 rounded-xl object-cover" /> : <div className="h-20 w-24 shrink-0 rounded-xl bg-gradient-hero" />}
-                  <span className="min-w-0 py-1">
-                    <span className="block text-[11px] font-semibold uppercase tracking-wider text-primary">{topicOf(p)}</span>
-                    <span className="mt-1 block font-display font-bold leading-snug text-ink group-hover:text-primary">{p.title}</span>
-                  </span>
-                </Link>
-              ))}
-            </div>
+        {/* Body + contents */}
+        <div className="container-x py-12 sm:py-16">
+          <div className={toc.length >= 2 ? "mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1fr_220px]" : "mx-auto max-w-3xl"}>
+            <article className={`w-full min-w-0 ${toc.length >= 2 ? "mx-auto max-w-3xl lg:mx-0" : ""}`}>
+              {post.body ? (
+                <div
+                  className="prose prose-lg max-w-none text-ink-soft prose-headings:scroll-mt-40 prose-headings:font-display prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-ink prose-p:leading-relaxed prose-a:text-primary prose-strong:text-ink prose-li:marker:text-ink/40"
+                  dangerouslySetInnerHTML={{ __html: html }}
+                />
+              ) : (
+                <p className="text-muted-foreground">No content yet.</p>
+              )}
+
+              {/* Inline help, not a sidebar ad */}
+              <div className="mt-12 rounded-2xl bg-background p-6 sm:p-8">
+                <p className="font-display text-xl font-semibold tracking-tight text-ink">Need the right battery?</p>
+                <p className="mt-1 text-muted-foreground">Find one that fits your car or your home backup, delivered free.</p>
+                <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold">
+                  <Link to="/shop/car-batteries" className="inline-flex items-center gap-1 text-ink hover:text-primary">Shop car batteries <ArrowUpRight className="h-4 w-4" /></Link>
+                  <Link to="/shop/inverter-batteries" className="inline-flex items-center gap-1 text-ink hover:text-primary">Shop inverter batteries <ArrowUpRight className="h-4 w-4" /></Link>
+                  <a href={contactInfo.whatsappUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-ink hover:text-primary">Ask an expert <ArrowUpRight className="h-4 w-4" /></a>
+                </div>
+              </div>
+            </article>
+
+            {toc.length >= 2 && (
+              <aside className="hidden lg:block">
+                <nav aria-label="On this page" className="sticky top-44">
+                  <div className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">On this page</div>
+                  <ul className="mt-4 space-y-2.5 border-l border-line">
+                    {toc.map((t) => (
+                      <li key={t.id}><a href={`#${t.id}`} className="-ml-px block border-l border-transparent pl-4 text-sm text-ink/70 hover:border-ink hover:text-ink">{t.text}</a></li>
+                    ))}
+                  </ul>
+                </nav>
+              </aside>
+            )}
           </div>
-        </section>
-      )}
+        </div>
+
+        {/* More guides */}
+        {all.filter((p) => p.slug !== post.slug).slice(0, 3).length > 0 && (
+          <section className="border-t border-line bg-background py-12 sm:py-16">
+            <div className="container-x">
+              <div className="flex items-end justify-between gap-4">
+                <h2 className="font-display text-3xl font-semibold tracking-tight text-ink">More guides</h2>
+                <Link to="/blog" className="inline-flex items-center gap-1 text-sm font-semibold text-ink underline-offset-4 hover:underline">All guides <ArrowRight className="h-4 w-4" /></Link>
+              </div>
+              <div className="mt-8 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+                {all.filter((p) => p.slug !== post.slug).slice(0, 3).map((p) => (
+                  <Link key={p.id} to={`/blog/${p.slug}`} className="group">
+                    <div className="overflow-hidden rounded-2xl">
+                      {p.cover_url ? <img src={p.cover_url} alt="" loading="lazy" className="aspect-[3/2] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" /> : <div className="aspect-[3/2] bg-muted" />}
+                    </div>
+                    <div className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-primary">{topicOf(p)}</div>
+                    <h3 className="mt-1.5 font-display text-lg font-semibold leading-snug tracking-tight text-ink group-hover:underline group-hover:underline-offset-4">{p.title}</h3>
+                    <div className="mt-2 text-sm text-muted-foreground">{formatPostDate(p.published_at)} · {readingMinutes(p.body)} min read</div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+      </div>
     </>
   );
 };

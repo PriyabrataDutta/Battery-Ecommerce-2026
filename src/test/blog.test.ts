@@ -22,3 +22,12 @@ describe("blog helpers", () => {
     expect(topicOf({ title: "Jump start your car", excerpt: null })).toBe("Car batteries");
   });
 });
+
+import { withHeadingIds } from "@/lib/blog";
+describe("withHeadingIds", () => {
+  it("adds ids and builds a toc", () => {
+    const r = withHeadingIds(renderMarkdown("## Pick the size\n\ntext\n\n## Check **CCA**\n\n## Pick the size"));
+    expect(r.toc.map((t) => t.id)).toEqual(["pick-the-size", "check-cca", "pick-the-size-2"]);
+    expect(r.html).toContain('<h2 id="check-cca">');
+  });
+});

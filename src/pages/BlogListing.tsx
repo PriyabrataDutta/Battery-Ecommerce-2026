@@ -1,165 +1,167 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useMemo } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BatteryCharging, Car, Clock, MessageCircle, Search } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { listPublishedPosts, type BlogPost } from "@/api/blog";
-import { formatPostDate, readingMinutes, topicOf, type BlogTopic } from "@/lib/blog";
-import { contactInfo } from "@/components/layout/Header/lib/nav";
+import { BLOG_TOPICS, formatPostDate, readingMinutes, topicOf } from "@/lib/blog";
+import { BlogNav } from "@/components/blog/BlogNav";
 
-const TOPICS: ("All" | BlogTopic)[] = ["All", "Car batteries", "Inverter & home", "Guides"];
+const meta = (p: BlogPost) => `${formatPostDate(p.published_at)} · ${readingMinutes(p.body)} min read`;
 
-function Meta({ post, light }: { post: BlogPost; light?: boolean }) {
-  return (
-    <div className={`flex flex-wrap items-center gap-x-2 text-xs ${light ? "text-white/70" : "text-muted-foreground"}`}>
-      <span>{formatPostDate(post.published_at)}</span>
-      <span aria-hidden>·</span>
-      <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {readingMinutes(post.body)} min read</span>
-    </div>
+function Photo({ post, className }: { post: BlogPost; className: string }) {
+  return post.cover_url ? (
+    <img src={post.cover_url} alt="" loading="lazy" className={`${className} object-cover transition-transform duration-700 group-hover:scale-[1.03]`} />
+  ) : (
+    <div className={`${className} bg-muted`} />
   );
 }
 
-function Cover({ post, className }: { post: BlogPost; className: string }) {
-  return post.cover_url ? (
-    <img src={post.cover_url} alt="" loading="lazy" className={`${className} object-cover transition-transform duration-700 group-hover:scale-105`} />
-  ) : (
-    <div className={`${className} bg-gradient-hero`} />
+/** Text-first row (Ahrefs/Shopify style), used for search & topic results. */
+function Row({ post }: { post: BlogPost }) {
+  return (
+    <Link to={`/blog/${post.slug}`} className="group grid gap-2 border-b border-line py-7 sm:grid-cols-[180px_1fr_auto] sm:gap-8">
+      <div className="text-sm text-muted-foreground">{meta(post)}</div>
+      <div>
+        <div className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">{topicOf(post)}</div>
+        <h2 className="mt-1.5 font-display text-2xl font-semibold leading-snug tracking-tight text-ink group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4">{post.title}</h2>
+        {post.excerpt && <p className="mt-2 max-w-2xl text-muted-foreground">{post.excerpt}</p>}
+      </div>
+      {post.cover_url && <img src={post.cover_url} alt="" loading="lazy" className="hidden h-24 w-36 rounded-xl object-cover sm:block" />}
+    </Link>
   );
 }
 
 const BlogListing = () => {
-  const { data: posts = [], isLoading } = useQuery({
-    queryKey: ["blog-posts"],
-    queryFn: listPublishedPosts,
-    staleTime: 5 * 60_000,
-  });
-  const [topic, setTopic] = useState<(typeof TOPICS)[number]>("All");
-  const [q, setQ] = useState("");
+  const { data: posts = [], isLoading } = useQuery({ queryKey: ["blog-posts"], queryFn: listPublishedPosts, staleTime: 5 * 60_000 });
+  const [params] = useSearchParams();
+  const topic = params.get("topic");
+  const q = params.get("q")?.trim().toLowerCase() ?? "";
 
-  const filtered = useMemo(() => {
-    const term = q.trim().toLowerCase();
-    return posts.filter(
-      (p) =>
-        (topic === "All" || topicOf(p) === topic) &&
-        (!term || `${p.title} ${p.excerpt ?? ""}`.toLowerCase().includes(term)),
-    );
-  }, [posts, topic, q]);
-
-  const showFeatured = topic === "All" && !q && filtered.length > 0;
-  const [featured, ...rest] = showFeatured ? filtered : [undefined, ...filtered];
+  const results = useMemo(
+    () => posts.filter((p) => (!topic || topicOf(p) === topic) && (!q || `${p.title} ${p.excerpt ?? ""} ${p.body ?? ""}`.toLowerCase().includes(q))),
+    [posts, topic, q],
+  );
+  const [lead, ...rest] = posts;
+  const sections = posts.length > 6 ? BLOG_TOPICS.map((t) => ({ t, items: posts.filter((p) => topicOf(p) === t) })).filter((s) => s.items.length >= 2) : [];
 
   return (
-    <>
+    <div className="bg-white">
       <Helmet>
-        <title>Battery Guides & Tips — Kachi Batteries Blog</title>
-        <meta name="description" content="Battery guides, tips and how-tos for car and inverter batteries from Kachi Batteries." />
+        <title>The Battery Journal — Guides & Tips | Kachi Batteries</title>
+        <meta name="description" content="Plain-English guides on choosing, caring for and replacing car and inverter batteries, from Kachi Batteries." />
       </Helmet>
+      <BlogNav />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-hero text-white">
-        <div className="absolute inset-0 bg-dots" aria-hidden />
-        <div className="container-x relative pb-24 pt-12 sm:pb-28 sm:pt-16">
-          <span className="eyebrow">Kachi blog</span>
-          <h1 className="mt-3 max-w-2xl font-display-tight text-4xl font-bold sm:text-6xl">Battery guides that save you money</h1>
-          <p className="mt-4 max-w-xl text-white/70 sm:text-lg">Plain-English advice on choosing, caring for and replacing car and inverter batteries.</p>
-          <label className="relative mt-8 flex max-w-md items-center">
-            <span className="sr-only">Search articles</span>
-            <Search className="pointer-events-none absolute left-4 h-4 w-4 text-ink/50" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search articles"
-              className="h-12 w-full rounded-full border-0 bg-white pl-11 pr-4 text-sm text-ink shadow-elevated outline-none focus-visible:ring-2 focus-visible:ring-volt"
-            />
-          </label>
+      {isLoading ? (
+        <div className="container-x grid gap-10 py-14 lg:grid-cols-2">
+          <div className="space-y-4"><div className="h-4 w-32 rounded bg-muted" /><div className="h-24 rounded bg-muted" /><div className="h-4 w-2/3 rounded bg-muted" /></div>
+          <div className="aspect-[4/3] rounded-3xl bg-muted" />
         </div>
-      </section>
-
-      <div className="container-x -mt-12 sm:-mt-14">
-        {/* Topic chips */}
-        <div className="relative z-10 flex w-fit max-w-full gap-1 overflow-x-auto rounded-full border border-line bg-white p-1.5 shadow-card scrollbar-none" role="tablist" aria-label="Topics">
-          {TOPICS.map((t) => (
-            <button key={t} type="button" role="tab" aria-selected={topic === t} onClick={() => setTopic(t)}
-              className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${topic === t ? "bg-ink text-white" : "text-ink/65 hover:text-ink"}`}>
-              {t}
-            </button>
-          ))}
-        </div>
-
-        {isLoading ? (
-          <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map((i) => <div key={i} className="surface h-80 animate-pulse" />)}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="surface mt-8 px-6 py-16 text-center">
-            <p className="font-display text-lg font-bold text-ink">No articles found</p>
-            <p className="mt-1 text-sm text-muted-foreground">Try another topic or search term.</p>
-          </div>
-        ) : (
-          <>
-            {/* Featured */}
-            {featured && (
-              <Link to={`/blog/${featured.slug}`} className="group mt-8 grid overflow-hidden rounded-[2rem] border border-line bg-white shadow-card transition-shadow hover:shadow-elevated lg:grid-cols-[1.15fr_1fr]">
-                <div className="relative overflow-hidden">
-                  <Cover post={featured} className="h-60 w-full sm:h-80 lg:h-full lg:min-h-[380px]" />
-                  <span className="absolute left-4 top-4 rounded-full bg-volt px-3 py-1 text-xs font-bold text-ink">Latest</span>
-                </div>
-                <div className="flex flex-col justify-center p-6 sm:p-10">
-                  <span className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">{topicOf(featured)}</span>
-                  <h2 className="mt-3 font-display-tight text-3xl font-bold text-ink transition-colors group-hover:text-primary sm:text-4xl">{featured.title}</h2>
-                  {featured.excerpt && <p className="mt-3 text-muted-foreground sm:text-lg">{featured.excerpt}</p>}
-                  <div className="mt-5"><Meta post={featured} /></div>
-                  <span className="mt-6 inline-flex w-fit items-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition-colors group-hover:bg-primary">
-                    Read article <ArrowRight className="h-4 w-4" />
-                  </span>
-                </div>
-              </Link>
+      ) : topic || q ? (
+        /* Topic / search results */
+        <div className="container-x py-12 sm:py-16">
+          <p className="text-sm text-muted-foreground">{q ? "Search results" : "Topic"}</p>
+          <h1 className="mt-1 font-display text-4xl font-semibold tracking-tight text-ink sm:text-5xl">{q ? `“${params.get("q")}”` : topic}</h1>
+          <div className="mt-8 border-t border-line">
+            {results.length ? results.map((p) => <Row key={p.id} post={p} />) : (
+              <p className="py-12 text-muted-foreground">No guides found. <Link to="/blog" className="font-semibold text-ink underline underline-offset-4">See all guides</Link></p>
             )}
+          </div>
+        </div>
+      ) : !lead ? (
+        <div className="container-x py-24 text-center text-muted-foreground">No guides published yet.</div>
+      ) : (
+        <>
+          {/* Lead story */}
+          <section className="container-x grid items-center gap-8 py-12 sm:py-16 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
+            <div className="order-2 lg:order-1">
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">{topicOf(lead)}</div>
+              <Link to={`/blog/${lead.slug}`} className="group mt-4 block">
+                <h1 className="font-display text-4xl font-semibold leading-[1.08] tracking-tight text-ink group-hover:underline group-hover:decoration-2 group-hover:underline-offset-8 sm:text-5xl lg:text-6xl">
+                  {lead.title}
+                </h1>
+              </Link>
+              {lead.excerpt && <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground">{lead.excerpt}</p>}
+              <div className="mt-6 text-sm text-muted-foreground">By Kachi Batteries · {meta(lead)}</div>
+              <Link to={`/blog/${lead.slug}`} className="mt-8 inline-flex items-center gap-2 border-b-2 border-ink pb-1 text-sm font-semibold text-ink hover:border-primary hover:text-primary">
+                Read the guide <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <Link to={`/blog/${lead.slug}`} className="group order-1 block overflow-hidden rounded-3xl lg:order-2" tabIndex={-1} aria-hidden>
+              <Photo post={lead} className="aspect-[4/3] w-full" />
+            </Link>
+          </section>
 
-            {/* Grid */}
-            {rest.length > 0 && (
-              <div className="mt-6 grid gap-5 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {rest.map((post) => post && (
-                  <Link key={post.id} to={`/blog/${post.slug}`} className="group surface flex flex-col overflow-hidden transition-all hover:-translate-y-1 hover:shadow-elevated">
-                    <div className="relative overflow-hidden">
-                      <Cover post={post} className="h-52 w-full" />
-                      <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-ink backdrop-blur">{topicOf(post)}</span>
-                    </div>
-                    <div className="flex flex-1 flex-col p-5 sm:p-6">
-                      <h2 className="font-display text-lg font-bold leading-snug text-ink transition-colors group-hover:text-primary sm:text-xl">{post.title}</h2>
-                      {post.excerpt && <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{post.excerpt}</p>}
-                      <div className="mt-auto pt-5"><Meta post={post} /></div>
+          {/* Latest */}
+          {rest.length > 0 && (
+            <section className="border-y border-line bg-background py-12 sm:py-14">
+              <div className="container-x">
+                <div className="flex items-end justify-between gap-4">
+                  <h2 className="font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl">Latest</h2>
+                  <span className="text-sm text-muted-foreground">{posts.length} guides</span>
+                </div>
+                <div className="mt-8 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+                  {rest.slice(0, 8).map((p) => (
+                    <Link key={p.id} to={`/blog/${p.slug}`} className="group">
+                      <div className="overflow-hidden rounded-2xl"><Photo post={p} className="aspect-[3/2] w-full" /></div>
+                      <div className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-primary">{topicOf(p)}</div>
+                      <h3 className="mt-1.5 font-display text-lg font-semibold leading-snug tracking-tight text-ink group-hover:underline group-hover:underline-offset-4">{p.title}</h3>
+                      <div className="mt-2 text-sm text-muted-foreground">{meta(p)}</div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Topic sections (once there are enough guides) */}
+          {sections.map(({ t, items }) => {
+            const [first, ...others] = items;
+            return (
+              <section key={t} className="container-x border-b border-line py-12 sm:py-14">
+                <div className="flex items-end justify-between gap-4">
+                  <h2 className="font-display text-3xl font-semibold tracking-tight text-ink">{t}</h2>
+                  <Link to={`/blog?topic=${encodeURIComponent(t)}`} className="inline-flex items-center gap-1 text-sm font-semibold text-ink underline-offset-4 hover:underline">See all <ArrowRight className="h-4 w-4" /></Link>
+                </div>
+                <div className="mt-8 grid gap-10 lg:grid-cols-[1.4fr_1fr]">
+                  <Link to={`/blog/${first.slug}`} className="group grid gap-6 sm:grid-cols-2">
+                    <div className="overflow-hidden rounded-2xl"><Photo post={first} className="aspect-[4/3] w-full" /></div>
+                    <div>
+                      <h3 className="font-display text-2xl font-semibold leading-snug tracking-tight text-ink group-hover:underline group-hover:underline-offset-4">{first.title}</h3>
+                      {first.excerpt && <p className="mt-3 text-muted-foreground">{first.excerpt}</p>}
+                      <div className="mt-3 text-sm text-muted-foreground">{meta(first)}</div>
                     </div>
                   </Link>
-                ))}
-              </div>
-            )}
-          </>
-        )}
-      </div>
+                  <ul className="divide-y divide-line border-t border-line lg:border-l lg:border-t-0 lg:pl-10">
+                    {others.slice(0, 4).map((p) => (
+                      <li key={p.id}>
+                        <Link to={`/blog/${p.slug}`} className="group block py-4">
+                          <h3 className="font-display text-lg font-semibold leading-snug text-ink group-hover:underline group-hover:underline-offset-4">{p.title}</h3>
+                          <div className="mt-1 text-sm text-muted-foreground">{meta(p)}</div>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </section>
+            );
+          })}
+        </>
+      )}
 
-      {/* Help band */}
-      <section className="container-x mb-8 mt-16 sm:mt-24">
-        <div className="grid gap-4 lg:grid-cols-3">
-          <Link to="/shop/car-batteries" className="group relative overflow-hidden rounded-[2rem] bg-gradient-hero p-6 text-white sm:p-8">
-            <div className="absolute inset-0 bg-dots opacity-60" aria-hidden />
-            <Car className="relative h-7 w-7 text-volt" />
-            <div className="relative mt-4 font-display text-xl font-bold">Find a battery for your car</div>
-            <span className="relative mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-white/80 group-hover:text-white">Shop car batteries <ArrowRight className="h-4 w-4" /></span>
-          </Link>
-          <Link to="/shop/inverter-batteries" className="group rounded-[2rem] border border-line bg-white p-6 sm:p-8">
-            <BatteryCharging className="h-7 w-7 text-primary" />
-            <div className="mt-4 font-display text-xl font-bold text-ink">Size your inverter battery</div>
-            <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-ink/70 group-hover:text-primary">Use the backup calculator <ArrowRight className="h-4 w-4" /></span>
-          </Link>
-          <a href={contactInfo.whatsappUrl} target="_blank" rel="noopener noreferrer" className="group rounded-[2rem] bg-volt p-6 text-ink sm:p-8">
-            <MessageCircle className="h-7 w-7" />
-            <div className="mt-4 font-display text-xl font-bold">Ask a battery expert</div>
-            <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-ink/75 group-hover:text-ink">Chat on WhatsApp <ArrowRight className="h-4 w-4" /></span>
-          </a>
+      {/* Quiet shop link */}
+      <section className="container-x py-12 sm:py-16">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="font-display text-2xl font-semibold tracking-tight text-ink">Ready to replace your battery?</p>
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold">
+            <Link to="/shop/car-batteries" className="inline-flex items-center gap-1 text-ink hover:text-primary">Car batteries <ArrowUpRight className="h-4 w-4" /></Link>
+            <Link to="/shop/inverter-batteries" className="inline-flex items-center gap-1 text-ink hover:text-primary">Inverter batteries <ArrowUpRight className="h-4 w-4" /></Link>
+            <Link to="/contact" className="inline-flex items-center gap-1 text-ink hover:text-primary">Talk to an expert <ArrowUpRight className="h-4 w-4" /></Link>
+          </div>
         </div>
       </section>
-    </>
+    </div>
   );
 };
 

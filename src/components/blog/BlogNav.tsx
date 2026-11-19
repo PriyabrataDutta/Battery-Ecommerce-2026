@@ -2,7 +2,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
 import { BLOG_TOPICS } from "@/lib/blog";
 
-/** "The Battery Journal" sub-header: wordmark, topic links (?topic=) and search (?q=). */
+/** Phone/tablet sub-header: wordmark, topic links (?topic=) and search (?q=). Desktop uses BlogSidebar. */
 export function BlogNav() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ export function BlogNav() {
     `shrink-0 border-b-2 py-4 text-sm font-medium transition-colors ${active ? "border-ink text-ink" : "border-transparent text-ink/60 hover:text-ink"}`;
 
   return (
-    <div className="border-b border-line bg-white">
+    <div className="border-b border-line bg-white lg:hidden">
       <div className="container-x flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
         <div className="flex min-w-0 items-center gap-6 overflow-x-auto scrollbar-none sm:gap-8">
           <Link to="/blog" className="shrink-0 py-4 font-display text-base font-extrabold tracking-tight text-ink">

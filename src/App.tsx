@@ -7,10 +7,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { StoreLayout } from "@/components/layout/StoreLayout";
 import Home from "./pages/Home";
-import Shop from "./pages/Shop";
-import ShopEntry from "./pages/shop/ShopEntry";
-import ProductDetail from "./pages/product-detail";
-import Cart from "./pages/Cart";
 import NotFound from "./pages/NotFound";
 import { PostLogoutRedirect } from "./components/auth/PostLogoutRedirect";
 import { PendingCartAction } from "./components/cart/PendingCartAction";
@@ -20,6 +16,11 @@ import { RequirePhoneVerified } from "./components/auth/RequirePhoneVerified";
 // are pre-downloaded once the first page has loaded (see prefetchStorePages),
 // so menu clicks don't wait for a download.
 const storePages = {
+  // Most-visited after Home: prefetched first.
+  Shop: () => import("./pages/Shop"),
+  ShopEntry: () => import("./pages/shop/ShopEntry"),
+  ProductDetail: () => import("./pages/product-detail"),
+  Cart: () => import("./pages/Cart"),
   SearchResults: () => import("./pages/SearchResults"),
   CategoryPage: () => import("./pages/CategoryPage"),
   BrandPage: () => import("./pages/BrandPage"),
@@ -59,14 +60,34 @@ const AccountLayout = lazy(storePages.AccountLayout);
 const ResetPassword = lazy(storePages.ResetPassword);
 const VerifyPhone = lazy(storePages.VerifyPhone);
 const AddPhone = lazy(storePages.AddPhone);
+const Shop = lazy(storePages.Shop);
+const ShopEntry = lazy(storePages.ShopEntry);
+const ProductDetail = lazy(storePages.ProductDetail);
+const Cart = lazy(storePages.Cart);
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
 const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 
-/** Download the remaining store pages in the background when the browser is idle. */
+/**
+ * Download the other store pages in the background once the first page is
+ * interactive, so menu clicks are instant. Skipped on Data Saver / 2G; on 3G only
+ * the shop, product and cart pages are fetched.
+ */
 function prefetchStorePages() {
-  const run = () => Object.values(storePages).forEach((load) => load().catch(() => {}));
-  if ("requestIdleCallback" in window) window.requestIdleCallback(run, { timeout: 4000 });
-  else setTimeout(run, 2000);
+  const conn = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+  if (conn?.saveData || /2g/.test(conn?.effectiveType ?? "")) return;
+  const loaders = Object.values(storePages);
+  const list = conn?.effectiveType === "3g" ? loaders.slice(0, 4) : loaders;
+  let started = false;
+  const run = () => {
+    if (started) return;
+    started = true;
+    const go = () => list.forEach((load) => load().catch(() => {}));
+    if ("requestIdleCallback" in window) window.requestIdleCallback(go, { timeout: 3000 });
+    else go();
+  };
+  // Start on the visitor's first interaction (or after 15 s), never during the first paint.
+  for (const ev of ["pointerdown", "keydown", "scroll", "touchstart"]) window.addEventListener(ev, run, { once: true, passive: true });
+  setTimeout(run, 15000);
 }
 if (typeof window !== "undefined") window.addEventListener("load", prefetchStorePages, { once: true });
 

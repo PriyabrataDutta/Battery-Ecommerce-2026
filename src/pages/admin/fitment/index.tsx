@@ -34,7 +34,9 @@ import {
   Info,
   AlertTriangle,
   RotateCcw,
+  ImagePlus,
 } from "lucide-react";
+import { MediaPickerDialog } from "@/pages/admin/products/components/MediaPickerDialog";
 import { parseProductsXlsx } from "@/lib/parseProductsXlsx";
 import * as XLSX from "xlsx";
 
@@ -163,6 +165,7 @@ function BrandsModelsTab() {
   const [newModelName, setNewModelName] = useState("");
   const [newModelBrandId, setNewModelBrandId] = useState<string | null>(null);
   const [expandedBrand, setExpandedBrand] = useState<string | null>(null);
+  const [logoBrandId, setLogoBrandId] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
@@ -176,7 +179,7 @@ function BrandsModelsTab() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("car_brands")
-        .select("id, name, slug")
+        .select("id, name, slug, logo_url")
         .order("name");
       if (error) throw error;
       return data ?? [];
@@ -208,6 +211,19 @@ function BrandsModelsTab() {
       setNewBrandName("");
     },
     onError: (e: any) => toast.error(e.message),
+  });
+
+  const setBrandLogo = useMutation({
+    mutationFn: async ({ id, logo_url }: { id: string; logo_url: string | null }) => {
+      const { error } = await supabase.from("car_brands").update({ logo_url }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-car-brands"] });
+      qc.invalidateQueries({ queryKey: ["car_brands"] });
+      toast.success("Logo updated");
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const removeBrand = useMutation({
@@ -612,6 +628,15 @@ function BrandsModelsTab() {
         <span>{models.length} model{models.length !== 1 ? "s" : ""}</span>
       </div>
 
+      <MediaPickerDialog
+        open={logoBrandId !== null}
+        onOpenChange={(v) => !v && setLogoBrandId(null)}
+        onSelect={(urls) => {
+          if (logoBrandId && urls[0]) setBrandLogo.mutate({ id: logoBrandId, logo_url: urls[0] });
+          setLogoBrandId(null);
+        }}
+      />
+
       {/* Brand list */}
       <div className="rounded-lg border bg-card divide-y">
         {brandsLoading ? (
@@ -631,8 +656,36 @@ function BrandsModelsTab() {
                   <ChevronRight
                     className={`h-4 w-4 mr-2 text-muted-foreground transition-transform ${isExpanded ? "rotate-90" : ""}`}
                   />
-                  <Car className="h-4 w-4 mr-2 text-muted-foreground" />
+                  {brand.logo_url ? (
+                    <img src={brand.logo_url} alt="" className="h-6 w-6 mr-2 object-contain" />
+                  ) : (
+                    <Car className="h-4 w-4 mr-2 text-muted-foreground" />
+                  )}
                   <span className="font-medium flex-1">{brand.name}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 mr-1 text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setLogoBrandId(brand.id);
+                    }}
+                  >
+                    <ImagePlus className="h-4 w-4 mr-1" /> {brand.logo_url ? "Change logo" : "Add logo"}
+                  </Button>
+                  {brand.logo_url && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 mr-1 text-xs text-muted-foreground"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setBrandLogo.mutate({ id: brand.id, logo_url: null });
+                      }}
+                    >
+                      Remove logo
+                    </Button>
+                  )}
                   <span className="text-xs text-muted-foreground mr-3">
                     {brandModels.length} model{brandModels.length !== 1 ? "s" : ""}
                   </span>

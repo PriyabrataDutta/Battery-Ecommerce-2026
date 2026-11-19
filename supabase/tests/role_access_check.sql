@@ -2,6 +2,7 @@
 -- try 20 sensitive actions. Every action is undone; the whole run is rolled back. Safe on prod.
 -- Run: psql "$POOLER_URL" -q -At -F ' ' -f supabase/tests/role_access_check.sql
 -- Read 'ALLOWED n rows' with n > 0 as real access; 'ALLOWED 0 rows' means RLS filtered everything.
+begin;
 create temp table ctx as select
   (select user_id from public.user_roles where role = 'admin' limit 1) admin_id,
   (select user_id from public.user_roles where role = 'customer' order by user_id limit 1) cust_a,

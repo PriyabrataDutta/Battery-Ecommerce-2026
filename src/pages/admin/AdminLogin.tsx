@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { setRememberMe } from "@/lib/adminSession";
 import { AccessExpired, isAccessExpiredCause } from "@/components/auth/AccessExpired";
 import { useCaptcha } from "@/components/auth/Captcha";
+import { TotpQr } from "@/components/auth/TotpQr";
 
 const AdminLogin = () => {
   const { user, isStaff, loading, signIn, resetPassword } = useAuth();
@@ -231,15 +232,7 @@ const AdminLogin = () => {
                     authenticator app — Google Authenticator, Microsoft Authenticator or Authy.
                   </p>
                 </div>
-                <ol className="list-decimal pl-5 space-y-1 text-muted-foreground">
-                  <li>Open the app and choose <em>Add account → Scan QR code</em>.</li>
-                  <li>Scan this code, then enter the 6-digit number the app shows.</li>
-                </ol>
-                <img src={mfa.qr} alt="Authenticator QR code" className="mx-auto h-44 w-44 bg-white p-2 border border-line" />
-                <p className="text-xs text-muted-foreground text-center">
-                  Can't scan? Enter this key manually:
-                  <code className="mt-1 block break-all font-mono text-foreground select-all">{mfa.secret}</code>
-                </p>
+                <TotpQr qr={mfa.qr} secret={mfa.secret} />
               </div>
             ) : (
               <div className="flex items-start gap-2 rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">

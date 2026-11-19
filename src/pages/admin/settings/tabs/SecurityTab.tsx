@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useCaptcha } from "@/components/auth/Captcha";
 import { passwordSchema } from "@/components/auth/signUpSchema";
 import { verifyPassword } from "@/api/auth";
+import { TwoFactorCard } from "./TwoFactorCard";
 
 const schema = z
   .object({
@@ -70,6 +71,8 @@ export function SecurityTab() {
   };
 
   return (
+    <div className="space-y-6">
+    <TwoFactorCard />
     <Card className="p-6 max-w-lg">
       <div className="flex items-center gap-2 mb-1">
         <KeyRound className="h-4 w-4 text-primary" />
@@ -102,7 +105,7 @@ export function SecurityTab() {
             onChange={(e) => setNext(e.target.value)}
             required
           />
-          <p className="text-xs text-muted-foreground">Minimum 8 characters.</p>
+          <p className="text-xs text-muted-foreground">At least 8 characters, with letters and numbers.</p>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="confirm-password">Confirm new password</Label>
@@ -122,5 +125,6 @@ export function SecurityTab() {
         </Button>
       </form>
     </Card>
+    </div>
   );
 }

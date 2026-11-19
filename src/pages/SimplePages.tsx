@@ -18,7 +18,7 @@ export const JumpStart = () => (
   <SimplePage title="Car Jump Start Service" body={
     <>
       <p>Stranded with a dead battery? Our mobile technicians offer fast jump-start service across major Indian cities — usually within 30-45 minutes.</p>
-      <p>Call <a href="tel:+919999999999" className="text-primary font-semibold">+91 99999 99999</a> or <a href="https://wa.me/919999999999" className="text-primary font-semibold">WhatsApp us</a> for immediate assistance.</p>
+      <p>Call <a href="tel:+918197568707" className="text-primary font-semibold">+91 81975 68707</a> or <a href="https://wa.me/918197568707" className="text-primary font-semibold">WhatsApp us</a> for immediate assistance.</p>
     </>
   } />
 );
@@ -32,7 +32,7 @@ export const Blog = () => (
 );
 
 const UPDATED = "19 November 2026";
-const Email = () => <a href="mailto:hello@kachibatteries.com" className="text-primary font-semibold">hello@kachibatteries.com</a>;
+const Email = () => <a href="mailto:kachibatteries@gmail.com" className="text-primary font-semibold">kachibatteries@gmail.com</a>;
 
 export const PrivacyPolicy = () => (
   <SimplePage title="Privacy Policy" body={

@@ -37,8 +37,8 @@ const Contact = () => {
         <h1 className="font-display-tight text-4xl font-bold">Get in Touch</h1>
         <p className="text-muted-foreground mt-2">Questions, support, or partnership — we're happy to help.</p>
         <div className="mt-8 space-y-4 text-sm">
-          <div className="flex items-center gap-3"><Phone className="h-5 w-5 text-primary" /> +91 99999 99999</div>
-          <div className="flex items-center gap-3"><Mail className="h-5 w-5 text-primary" /> hello@kachibatteries.com</div>
+          <div className="flex items-center gap-3"><Phone className="h-5 w-5 text-primary" /> +91 81975 68707</div>
+          <div className="flex items-center gap-3"><Mail className="h-5 w-5 text-primary" /> kachibatteries@gmail.com</div>
           <div className="flex items-start gap-3"><MapPin className="h-5 w-5 text-primary mt-0.5" /> Mumbai · Pune · Bangalore · Delhi</div>
         </div>
       </div>

@@ -12,7 +12,7 @@ export function MobileStickyBar() {
         Find My Battery
       </Link>
       <a
-        href="tel:+919999999999"
+        href="tel:+918197568707"
         className="flex items-center justify-center gap-2 bg-white/10 text-white text-sm font-bold uppercase tracking-wider px-4 py-2.5 rounded-md"
       >
         <PhoneCall className="h-4 w-4" />

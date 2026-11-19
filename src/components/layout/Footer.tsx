@@ -13,11 +13,11 @@ export function Footer() {
             installation across major cities.
           </p>
           <div className="mt-5 space-y-2 text-sm text-white/70">
-            <a href="tel:+919999999999" className="flex items-center gap-2 hover:text-white">
-              <Phone className="h-4 w-4 text-primary" /> +91 99999 99999
+            <a href="tel:+918197568707" className="flex items-center gap-2 hover:text-white">
+              <Phone className="h-4 w-4 text-primary" /> +91 81975 68707
             </a>
-            <a href="mailto:hello@kachibatteries.com" className="flex items-center gap-2 hover:text-white">
-              <Mail className="h-4 w-4 text-primary" /> hello@kachibatteries.com
+            <a href="mailto:kachibatteries@gmail.com" className="flex items-center gap-2 hover:text-white">
+              <Mail className="h-4 w-4 text-primary" /> kachibatteries@gmail.com
             </a>
             <div className="flex items-start gap-2">
               <MapPin className="h-4 w-4 text-primary mt-0.5" /> Mumbai · Pune · Bangalore · Delhi

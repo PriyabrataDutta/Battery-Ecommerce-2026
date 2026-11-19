@@ -216,7 +216,7 @@ export const ProductInfo = ({
           </Link>
         </Button>
         <a
-          href="https://wa.me/919999999999"
+          href="https://wa.me/918197568707"
           target="_blank"
           rel="noopener"
           className="flex items-center justify-center gap-2 h-11 bg-whatsapp text-white text-sm font-bold uppercase tracking-wider rounded-md"

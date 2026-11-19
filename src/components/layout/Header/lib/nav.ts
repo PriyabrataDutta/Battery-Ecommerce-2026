@@ -93,8 +93,8 @@ export const mobileNav: (NavItem & { highlight?: boolean })[] = [
 
 /** Contact info shown in the utility bar. Edit phone / WA number here. */
 export const contactInfo = {
-  phoneDisplay: "+91 99999 99999",
-  phoneTel: "tel:+919999999999",
-  whatsappUrl: "https://wa.me/919999999999",
+  phoneDisplay: "+91 81975 68707",
+  phoneTel: "tel:+918197568707",
+  whatsappUrl: "https://wa.me/918197568707",
   utilityTagline: "Free shipping & doorstep installation across India",
 };

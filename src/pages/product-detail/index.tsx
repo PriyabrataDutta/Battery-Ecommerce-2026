@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { getProductImage } from "@/lib/productImage";
 import { formatINR } from "@/lib/format";
 import { useGstRateOf, withGst } from "@/lib/gst";
-import { useCart } from "@/hooks/useCart";
+import { useAddToCart } from "@/hooks/useAddToCart";
 import {
   useProductBySlug,
   useRelatedProducts,
@@ -42,7 +42,7 @@ const RelatedProducts = lazy(() =>
 
 const ProductDetail = () => {
   const { slug } = useParams();
-  const { addItem } = useCart();
+  const addToCart = useAddToCart();
   const [qty, setQty] = useState(1);
   const [withExchange, setWithExchange] = useState(false);
 
@@ -102,7 +102,7 @@ const ProductDetail = () => {
   const lineTotal = effectiveUnit * qty;
 
   const handleAdd = (opts?: { buyNow?: boolean }) => {
-    addItem(
+    addToCart(
       {
         id: product.id,
         name: product.name,
@@ -119,13 +119,8 @@ const ProductDetail = () => {
         gst_rate_id: (product as any).gst_rate_id ?? null,
       },
       qty,
-      { buyNow: opts?.buyNow === true },
+      { buyNow: opts?.buyNow === true, toast: withExchange ? "With old battery exchange" : "Without exchange" },
     );
-    toast.success("Added to cart", {
-      description: withExchange
-        ? "With old battery exchange"
-        : "Without exchange",
-    });
   };
 
   // ─── SEO ───

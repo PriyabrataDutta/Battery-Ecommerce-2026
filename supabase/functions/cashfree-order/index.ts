@@ -2,7 +2,7 @@
 // POST { action: "create" | "verify", order_number }  — signed-in customer, own order
 // POST { action: "ping" }                              — staff: test the saved keys
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
-import { cfFetch, getCashfreeConfig, syncOrderPayment } from "../_shared/cashfree.ts";
+import { cfFetch, getCashfreeConfig, payBlock, syncOrderPayment } from "../_shared/cashfree.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -40,7 +40,9 @@ Deno.serve(async (req) => {
       .select("id, user_id, order_number, total, status, payment_status, payment_method, cashfree_order_id, customer_name, customer_email, customer_phone")
       .eq("order_number", order_number)
       .maybeSingle();
-    if (!order || order.user_id !== user.id) return json({ error: "Order not found" }, 404);
+    // Customer payment: any signed-in owner may pay. No staff role or 2FA here.
+    const ownerBlock = payBlock(order, user.id, "verify");
+    if (ownerBlock) return json({ error: ownerBlock.error }, ownerBlock.status);
 
     const cfg = await getCashfreeConfig(admin);
 
@@ -51,9 +53,8 @@ Deno.serve(async (req) => {
     }
 
     if (action !== "create") return json({ error: "Unknown action" }, 400);
-    if (order.payment_method !== "Online (Cashfree)") return json({ error: "This order is not an online-payment order" }, 400);
-    if (order.payment_status === "paid") return json({ error: "This order is already paid" }, 409);
-    if (order.status !== "pending") return json({ error: "This order can no longer be paid" }, 409);
+    const block = payBlock(order, user.id, "create");
+    if (block) return json({ error: block.error }, block.status);
 
     // Retry: reuse the Cashfree order while it is still open.
     if (order.cashfree_order_id) {
@@ -91,10 +92,19 @@ Deno.serve(async (req) => {
         order_expiry_time: new Date(Date.now() + 25 * 60 * 1000).toISOString(),
       }),
     });
-    if (!r.ok) return json({ error: `Cashfree: ${r.body?.message ?? `HTTP ${r.status}`}` }, 502);
+    let created = r;
+    if (!r.ok) {
+      // Two "Pay" clicks at once: the other request already created this order at
+      // Cashfree (same order_id). Use that one instead of failing.
+      const existing = await cfFetch(cfg, `/orders/${encodeURIComponent(order_number)}`);
+      if (!(existing.ok && existing.body.order_status === "ACTIVE")) {
+        return json({ error: `Cashfree: ${r.body?.message ?? `HTTP ${r.status}`}` }, 502);
+      }
+      created = existing;
+    }
 
-    await admin.from("orders").update({ cashfree_order_id: String(r.body.cf_order_id) }).eq("id", order.id);
-    return json({ payment_session_id: r.body.payment_session_id, mode: cfg.mode === "live" ? "production" : "sandbox" });
+    await admin.from("orders").update({ cashfree_order_id: String(created.body.cf_order_id) }).eq("id", order.id);
+    return json({ payment_session_id: created.body.payment_session_id, mode: cfg.mode === "live" ? "production" : "sandbox" });
   } catch (e) {
     console.error("cashfree-order:", e);
     return json({ error: e instanceof Error ? e.message : "Payment error" }, 500);

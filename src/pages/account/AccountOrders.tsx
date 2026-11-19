@@ -1,12 +1,29 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { canPayOnline } from "@/api/orders";
+import { payOnline } from "@/lib/cashfree";
 import { useAuth } from "@/hooks/useAuth";
 import { useMyOrders } from "@/hooks/queries/useOrders";
 import { formatINR } from "@/lib/format";
-import { Package, ChevronRight } from "lucide-react";
+import { Package, ChevronRight, Loader2 } from "lucide-react";
 
 const AccountOrders = () => {
   const { user } = useAuth();
   const { data: orders, isLoading } = useMyOrders(user?.id);
+  const [paying, setPaying] = useState<string | null>(null);
+
+  // Ownership, eligibility and the amount are all checked server-side (cashfree-order).
+  const pay = async (orderNumber: string) => {
+    setPaying(orderNumber);
+    try {
+      await payOnline(orderNumber);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not start the payment. Please try again.");
+      setPaying(null);
+    }
+  };
 
   return (
     <div className="bg-white border border-line">
@@ -56,6 +73,12 @@ const AccountOrders = () => {
                 <div className="font-bold">{formatINR(Number(o.total))}</div>
                 {Number(o.discount) > 0 && (
                   <div className="text-[11px] text-success">−{formatINR(Number(o.discount))} saved</div>
+                )}
+                {o.order_number && canPayOnline(o) && (
+                  <Button size="sm" className="mt-2 h-7 text-xs" disabled={!!paying} onClick={() => pay(o.order_number!)}>
+                    {paying === o.order_number && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
+                    Pay now
+                  </Button>
                 )}
               </div>
               <ChevronRight className="h-4 w-4 text-muted-foreground" />

@@ -4,6 +4,7 @@
  * CAPTCHA verification once enabled) and the sign-up circuit breaker trigger.
  */
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ const EMPTY: Values = { fullName: "", phone: "", email: "", password: "", confir
 
 export const SignUpForm = () => {
   const { signUp } = useAuth();
+  const [params] = useSearchParams();
   const captcha = useCaptcha();
   const [values, setValues] = useState<Values>(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
@@ -64,7 +66,7 @@ export const SignUpForm = () => {
       setBusy(false);
       return toast.error("Security check is still verifying — please wait a moment and try again.");
     }
-    const { error } = await signUp(ok.email, ok.password, ok.fullName, ok.phone, captchaToken);
+    const { error } = await signUp(ok.email, ok.password, ok.fullName, ok.phone, captchaToken, params.get("next") ?? undefined);
     setBusy(false);
     captcha.reset();
     if (error) return toast.error(error);

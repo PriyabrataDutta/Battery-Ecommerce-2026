@@ -13,13 +13,14 @@ import { setRememberMe } from "@/lib/adminSession";
 import { AccessExpired, isAccessExpiredCause } from "@/components/auth/AccessExpired";
 import { useCaptcha } from "@/components/auth/Captcha";
 import { TotpQr } from "@/components/auth/TotpQr";
+import { safeNext } from "@/lib/safeNext";
 
 const AdminLogin = () => {
   const { user, isStaff, loading, signIn, resetPassword } = useAuth();
   const captcha = useCaptcha();
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const next = params.get("next") || "/admin";
+  const next = safeNext(params.get("next"), "/admin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);

@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShoppingCart } from "lucide-react";
+import { safeNext } from "@/lib/safeNext";
+import { clearPendingAdd, hasPendingAdd } from "@/lib/pendingCart";
 
 
 
@@ -28,7 +30,8 @@ const emailOnlySchema = z.object({
 
 const Auth = () => {
   const [params] = useSearchParams();
-  const next = params.get("next") || "/account";
+  const next = safeNext(params.get("next"));
+  const cartReason = params.get("reason") === "cart" && hasPendingAdd();
   const { user, signInWithIdentifier, signInWithGoogle, resetPassword, loading } = useAuth();
   const [busy, setBusy] = useState(false);
   const [forgot, setForgot] = useState(false);
@@ -101,6 +104,22 @@ const Auth = () => {
     <div className="container-x py-12 max-w-md">
       <h1 className="font-display-tight text-4xl font-bold text-center">Account</h1>
       <p className="text-center text-muted-foreground mt-1">Sign in or create an account.</p>
+
+      {cartReason && (
+        <div className="mt-6 flex items-start gap-2 border border-primary/30 bg-primary/5 p-3 text-sm">
+          <ShoppingCart className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
+          <div>
+            Sign in or create an account and we'll add your battery to the cart.{" "}
+            <Link
+              to="/shop"
+              onClick={clearPendingAdd}
+              className="text-primary underline whitespace-nowrap"
+            >
+              Continue browsing instead
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div className="mt-8 bg-white border border-line p-6">
         {forgot ? (

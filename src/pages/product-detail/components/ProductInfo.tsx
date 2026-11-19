@@ -4,7 +4,7 @@
  * Displays brand, title, SKU, 3-tier pricing (MRP / Without Exchange / With Exchange),
  * quantity stepper, exchange toggle, pincode check, CTAs, and trust strip.
  */
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
   BadgeCheck,
@@ -52,14 +52,11 @@ export const ProductInfo = ({
   gstRate,
   withExchangePrice,
 }: Props) => {
-  const navigate = useNavigate();
   const dpct = discountPct(withoutExchangePrice, product.mrp);
   const saving = showExchange ? withoutExchangePrice - withExchangePrice : 0;
 
-  const handleBuyNow = () => {
-    onAddToCart({ buyNow: true });
-    navigate("/checkout");
-  };
+  // useAddToCart goes to checkout (or to sign-in first, for guests).
+  const handleBuyNow = () => onAddToCart({ buyNow: true });
 
   return (
     <div className="space-y-5">

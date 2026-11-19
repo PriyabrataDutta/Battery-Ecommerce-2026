@@ -1,17 +1,15 @@
 import { forwardRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Heart, ShoppingCart, Zap } from "lucide-react";
 import { useWishlist } from "@/hooks/useWishlist";
 import type { Product } from "@/types/catalog";
 import { formatINR, discountPct } from "@/lib/format";
 import { getProductImage } from "@/lib/productImage";
-import { useCart } from "@/hooks/useCart";
-import { toast } from "sonner";
+import { useAddToCart } from "@/hooks/useAddToCart";
 
 export const ProductCard = forwardRef<HTMLAnchorElement, { product: Product }>(function ProductCard({ product }, ref) {
-  const { addItem } = useCart();
-  const navigate = useNavigate();
+  const addToCart = useAddToCart();
   const { productIds: wishlistIds, toggle: toggleWishlist } = useWishlist();
 
   const withoutExchange = product.price_without_exchange || product.price;
@@ -38,15 +36,13 @@ export const ProductCard = forwardRef<HTMLAnchorElement, { product: Product }>(f
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem(cartPayload);
-    toast.success("Added to cart", { description: product.name });
+    addToCart(cartPayload);
   };
 
   const handleBuyNow = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem(cartPayload, 1, { buyNow: true });
-    navigate("/checkout");
+    addToCart(cartPayload, 1, { buyNow: true });
   };
 
   return (

@@ -99,13 +99,19 @@ export interface OrderListRow {
   scheduled_slot_label: string | null;
   scheduled_slot_window: string | null;
   created_at: string;
+  payment_method: string | null;
+  payment_status: string;
 }
+
+/** Online order the customer can (still) pay: the server re-checks all of this. */
+export const canPayOnline = (o: Pick<OrderListRow, "payment_method" | "payment_status" | "status">) =>
+  o.payment_method === "Online (Cashfree)" && o.payment_status !== "paid" && o.status === "pending";
 
 export async function listMyOrders(userId: string): Promise<OrderListRow[]> {
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "id, order_number, status, total, subtotal, discount, tax, shipping, promo_code, delivery_label, scheduled_date, scheduled_slot_label, scheduled_slot_window, created_at",
+      "id, order_number, status, total, subtotal, discount, tax, shipping, promo_code, delivery_label, scheduled_date, scheduled_slot_label, scheduled_slot_window, created_at, payment_method, payment_status",
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });

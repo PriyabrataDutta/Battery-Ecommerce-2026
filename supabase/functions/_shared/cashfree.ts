@@ -45,6 +45,32 @@ export async function cfFetch(cfg: CashfreeConfig, path: string, init: RequestIn
   return { ok: res.ok, status: res.status, body };
 }
 
+export interface PayableOrder {
+  user_id: string | null;
+  status: string;
+  payment_status: string;
+  payment_method: string | null;
+}
+
+/**
+ * Whether this user may act on this order's payment. "verify" needs ownership
+ * only; "create" also needs an unpaid, still-pending online order. Returns the
+ * HTTP error to send, or null when allowed. Another customer's order is a 404,
+ * so order numbers can't be probed.
+ */
+export function payBlock(
+  order: PayableOrder | null,
+  userId: string,
+  action: "create" | "verify",
+): { status: number; error: string } | null {
+  if (!order || order.user_id !== userId) return { status: 404, error: "Order not found" };
+  if (action === "verify") return null;
+  if (order.payment_method !== "Online (Cashfree)") return { status: 400, error: "This order is not an online-payment order" };
+  if (order.payment_status === "paid") return { status: 409, error: "This order is already paid" };
+  if (order.status !== "pending") return { status: 409, error: "This order can no longer be paid" };
+  return null;
+}
+
 /**
  * Ask Cashfree for the order's state and record a confirmed payment.
  * The only path that marks an order paid — webhooks and the return page both

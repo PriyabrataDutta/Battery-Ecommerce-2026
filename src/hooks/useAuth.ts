@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { functionErrorMessage } from "@/lib/functionError";
+import { safeNext } from "@/lib/safeNext";
 
 /** Supabase Auth messages → wording a customer can act on. */
 function friendlyAuthError(msg: string): string {
@@ -57,7 +58,7 @@ async function loadProfilePhoneState(userId: string) {
 export function useAuth(): AuthState & {
   signIn: (email: string, password: string, captchaToken?: string) => Promise<{ error: string | null }>;
   signInWithIdentifier: (identifier: string, password: string, captchaToken?: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string, fullName?: string, phone?: string, captchaToken?: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string, fullName?: string, phone?: string, captchaToken?: string, next?: string) => Promise<{ error: string | null }>;
   signInWithGoogle: (redirectTo?: string) => Promise<{ error: string | null }>;
   resetPassword: (email: string, captchaToken?: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -150,13 +151,14 @@ export function useAuth(): AuthState & {
     return { error: sessionError ? friendlyAuthError(sessionError.message) : null };
   };
 
-  const signUp = async (email: string, password: string, fullName?: string, phone?: string, captchaToken?: string) => {
+  const signUp = async (email: string, password: string, fullName?: string, phone?: string, captchaToken?: string, next?: string) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         captchaToken,
-        emailRedirectTo: `${window.location.origin}/account`,
+        // The confirmation link brings them back where they were shopping.
+        emailRedirectTo: `${window.location.origin}${safeNext(next)}`,
         data: {
           ...(fullName ? { full_name: fullName } : {}),
           ...(phone ? { phone } : {}),

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { safeNext } from "@/lib/safeNext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +13,7 @@ import { INVALID_MOBILE, normalizeIndianMobile } from "@/lib/phone";
 const AddPhone = () => {
   const { user, hasPhone, loading, refreshPhoneState } = useAuth();
   const [params] = useSearchParams();
-  const next = params.get("next") || "/account";
+  const next = safeNext(params.get("next"));
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);

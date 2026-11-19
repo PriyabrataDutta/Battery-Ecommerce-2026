@@ -12,6 +12,7 @@ import ProductDetail from "./pages/product-detail";
 import Cart from "./pages/Cart";
 import NotFound from "./pages/NotFound";
 import { PostLogoutRedirect } from "./components/auth/PostLogoutRedirect";
+import { PendingCartAction } from "./components/cart/PendingCartAction";
 import { RequirePhoneVerified } from "./components/auth/RequirePhoneVerified";
 
 // Lazy-loaded routes — keeps the initial Shop/Home bundle small. Store pages
@@ -83,6 +84,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <PendingCartAction />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route element={<StoreLayout />}>

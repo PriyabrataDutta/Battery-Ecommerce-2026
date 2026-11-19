@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { safeNext } from "@/lib/safeNext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,7 @@ const RESEND_COOLDOWN = 60;
 const VerifyPhone = () => {
   const { user, hasPhone, phoneVerified, loading, refreshPhoneState } = useAuth();
   const [params] = useSearchParams();
-  const next = params.get("next") || "/account";
+  const next = safeNext(params.get("next"));
   const navigate = useNavigate();
 
   const [code, setCode] = useState("");

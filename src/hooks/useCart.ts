@@ -4,25 +4,9 @@ import { toast } from "sonner";
 import type { CartItem } from "@/types/catalog";
 import { groupGst, useGstRateOf } from "@/lib/gst";
 import { getCartProducts } from "@/api/products";
+import { localCartStore, maxQty, MAX_LINE_QTY } from "@/api/cart";
 
-const KEY = "kachi_cart";
-
-type Listener = () => void;
-const listeners = new Set<Listener>();
-
-function read(): CartItem[] {
-  if (typeof window === "undefined") return [];
-  try {
-    return JSON.parse(localStorage.getItem(KEY) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function write(items: CartItem[]) {
-  localStorage.setItem(KEY, JSON.stringify(items));
-  listeners.forEach((l) => l());
-}
+const cart = localCartStore;
 
 /** Effective per-unit price based on exchange selection */
 export function lineUnitPrice(it: CartItem) {
@@ -36,10 +20,7 @@ export function lineUnitPrice(it: CartItem) {
   return it.withExchange && it.exchangeRebate ? Math.max(0, it.price - it.exchangeRebate) : it.price;
 }
 
-/** Server limit per line (place_order allows 1–20), further capped by stock. */
-export const MAX_LINE_QTY = 20;
-export const maxQty = (it: Pick<CartItem, "stock">) =>
-  Math.max(1, Math.min(MAX_LINE_QTY, it.stock ?? MAX_LINE_QTY));
+export { MAX_LINE_QTY, maxQty };
 
 /** Whether this item supports exchange pricing */
 export function hasExchangeOption(it: CartItem) {
@@ -57,58 +38,21 @@ function lineKey(it: Pick<CartItem, "id">) {
 }
 
 export function useCart() {
-  const [items, setItems] = useState<CartItem[]>(read);
+  const [items, setItems] = useState<CartItem[]>(cart.get);
   const { rateOf, ready: gstReady } = useGstRateOf();
 
-  useEffect(() => {
-    const sync = () => setItems(read());
-    listeners.add(sync);
-    return () => {
-      listeners.delete(sync);
-    };
-  }, []);
+  useEffect(() => cart.subscribe(() => setItems(cart.get())), []);
 
   /** `buyNow` puts the item in the cart without bumping an existing line. */
-  const addItem = useCallback((item: Omit<CartItem, "qty">, qty = 1, opts?: { buyNow?: boolean }) => {
-    const current = read();
-    const key = lineKey(item);
-    const existing = current.find((i) => lineKey(i) === key);
-    if (existing) {
-      Object.assign(existing, { stock: item.stock, hasExchange: item.hasExchange });
-      existing.qty = Math.min(maxQty(existing), opts?.buyNow ? existing.qty : existing.qty + qty);
-      // Update exchange preference to the latest selection
-      existing.withExchange = item.withExchange;
-      write([...current]);
-    } else {
-      write([...current, { ...item, qty: Math.min(maxQty(item), qty) }]);
-    }
-  }, []);
-
-  const removeLine = useCallback((key: string) => {
-    write(read().filter((i) => lineKey(i) !== key));
-  }, []);
-
-  const setLineQty = useCallback((key: string, qty: number) => {
-    if (qty <= 0) return removeLine(key);
-    const current = read();
-    const it = current.find((i) => lineKey(i) === key);
-    if (it) {
-      it.qty = Math.min(maxQty(it), qty);
-      write([...current]);
-    }
-  }, [removeLine]);
-
+  const addItem = useCallback(
+    (item: Omit<CartItem, "qty">, qty = 1, opts?: { buyNow?: boolean }) => cart.add(item, qty, opts),
+    [],
+  );
+  const removeLine = useCallback((key: string) => cart.remove(key), []);
+  const setLineQty = useCallback((key: string, qty: number) => cart.setQty(key, qty), []);
   /** Toggle exchange preference for a cart line */
-  const setExchange = useCallback((key: string, withExchange: boolean) => {
-    const current = read();
-    const it = current.find((i) => lineKey(i) === key);
-    if (it) {
-      it.withExchange = withExchange;
-      write([...current]);
-    }
-  }, []);
-
-  const clear = useCallback(() => write([]), []);
+  const setExchange = useCallback((key: string, withExchange: boolean) => cart.setExchange(key, withExchange), []);
+  const clear = useCallback(() => cart.clear(), []);
 
   const subtotal = items.reduce((s, i) => s + lineUnitPrice(i) * i.qty, 0);
   // GST per line at the product's rate from Settings → GST, rounded to paise like the server.
@@ -156,7 +100,7 @@ export function useCartSync() {
   useEffect(() => {
     if (!data) return;
     const live = new Map(data.map((p) => [p.id, p]));
-    const current = read();
+    const current = cart.get();
     const removed: string[] = [];
     let changed = false;
     const next = current.flatMap((it) => {
@@ -182,7 +126,7 @@ export function useCartSync() {
       return [upd];
     });
     if (!changed) return;
-    write(next);
+    cart.replace(next);
     if (removed.length) {
       toast.warning(`Removed from your cart: ${removed.join(", ")}`, {
         description: "No longer available or out of stock.",

@@ -3,6 +3,7 @@
 // POST { action: "ping" }                              — staff: test the saved keys
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { cfFetch, getCashfreeConfig, payBlock, syncOrderPayment } from "../_shared/cashfree.ts";
+import { requireStaff } from "../_shared/auth.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -25,8 +26,8 @@ Deno.serve(async (req) => {
     const { action, order_number } = await req.json().catch(() => ({}));
 
     if (action === "ping") {
-      const { data: isStaff } = await admin.rpc("is_staff", { _user_id: user.id });
-      if (!isStaff) return json({ error: "Forbidden" }, 403);
+      const staff = await requireStaff(req, "settings.manage");
+      if (!staff.ok) return json({ error: staff.error }, staff.status);
       const cfg = await getCashfreeConfig(admin);
       const r = await cfFetch(cfg, "/orders/kachi-connection-test");
       // 404 = keys accepted, order just doesn't exist. 401/403 = bad keys.

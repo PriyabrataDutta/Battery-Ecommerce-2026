@@ -4,6 +4,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { requireStaff } from "../_shared/auth.ts";
 import { sendEmail } from "../_shared/email.ts";
 
 Deno.serve(async (req) => {
@@ -26,20 +27,11 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // Verify user is staff
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { data: isStaff } = await supabase.rpc("is_staff", { _user_id: user.id });
-    if (!isStaff) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
+    // Staff with settings permission, signed in with 2FA
+    const auth = await requireStaff(req, "settings.manage");
+    if (!auth.ok) {
+      return new Response(JSON.stringify({ error: auth.error }), {
+        status: auth.status,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

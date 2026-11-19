@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { requireStaff } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -47,25 +48,12 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Verify caller
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData?.user) return json({ error: "Unauthorized" }, 401);
-    const userId = userData.user.id;
+    const auth = await requireStaff(req, "fitment.manage");
+    if (!auth.ok) return json({ error: auth.error }, auth.status);
+    const userId = auth.user.id;
 
     const db = createClient(supabaseUrl, serviceKey);
-
-    // Check staff
-    const { data: roleRows } = await db
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-      .in("role", ["admin", "staff"]);
-    if (!roleRows?.length) return json({ error: "Forbidden" }, 403);
 
     const body = await req.json();
     const rows: IncomingRow[] = body.rows;
@@ -260,7 +248,7 @@ Deno.serve(async (req) => {
 
     await db.from("activity_log").insert({
       actor_id: userId,
-      actor_email: userData.user.email,
+      actor_email: auth.user.email,
       action: "bulk_import.fitment",
       entity_type: "import",
       diff: summary,

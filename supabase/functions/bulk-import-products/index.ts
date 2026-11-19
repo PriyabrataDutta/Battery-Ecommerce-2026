@@ -2,6 +2,7 @@
 // Caller must be staff. Uses service role internally to bypass RLS for upserts.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.105.1";
+import { requireStaff } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -63,27 +64,15 @@ Deno.serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const anonKey =
-      Deno.env.get("SUPABASE_ANON_KEY") ??
-      Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ??
-      "";
 
     const authHeader = req.headers.get("Authorization") ?? "";
     const token = authHeader.replace(/^Bearer\s+/i, "");
     if (!token) return json({ error: "Not authenticated" }, 401);
 
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: `Bearer ${token}` } },
-    });
-    const { data: userRes, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userRes.user) return json({ error: "Invalid session" }, 401);
+    const auth = await requireStaff(req, "products.manage");
+    if (!auth.ok) return json({ error: auth.error }, auth.status);
 
     const admin = createClient(supabaseUrl, serviceKey);
-    const { data: staffOk, error: staffErr } = await admin.rpc("is_staff", {
-      _user_id: userRes.user.id,
-    });
-    if (staffErr) return json({ error: staffErr.message }, 500);
-    if (!staffOk) return json({ error: "Forbidden — staff only" }, 403);
 
     const payload = (await req.json()) as InPayload;
     if (!payload?.rows?.length) return json({ error: "rows[] required" }, 400);

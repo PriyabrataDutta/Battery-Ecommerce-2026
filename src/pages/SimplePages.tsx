@@ -24,15 +24,6 @@ export const About = () => (
   } />
 );
 
-export const JumpStart = () => (
-  <SimplePage title="Car Jump Start Service" body={
-    <>
-      <p>Stranded with a dead battery? Our mobile technicians offer fast jump-start service across major Indian cities — usually within 30-45 minutes.</p>
-      <p>Call <a href="tel:+918197568707" className="text-primary font-semibold">+91 81975 68707</a> or <a href="https://wa.me/918197568707" className="text-primary font-semibold">WhatsApp us</a> for immediate assistance.</p>
-    </>
-  } />
-);
-
 export const Catalog = () => (
   <SimplePage title="Catalogs & Price Lists" body={<p>PDF downloads coming soon. Contact us for current price lists.</p>} />
 );

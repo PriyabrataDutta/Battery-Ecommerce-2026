@@ -48,7 +48,7 @@ const OrderConfirmation = lazy(storePages.OrderConfirmation);
 const Quote = lazy(storePages.Quote);
 const Contact = lazy(storePages.Contact);
 const About = lazy(storePages.About);
-const JumpStart = lazy(() => storePages.SimplePages().then((m) => ({ default: m.JumpStart })));
+const JumpStart = lazy(() => import("./pages/JumpStartPage"));
 const PrivacyPolicy = lazy(() => storePages.SimplePages().then((m) => ({ default: m.PrivacyPolicy })));
 const RefundPolicy = lazy(() => storePages.SimplePages().then((m) => ({ default: m.RefundPolicy })));
 const Catalog = lazy(storePages.Catalog);

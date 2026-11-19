@@ -96,5 +96,10 @@ export const contactInfo = {
   phoneDisplay: "+91 81975 68707",
   phoneTel: "tel:+918197568707",
   whatsappUrl: "https://wa.me/918197568707",
+  email: "kachibatteries@gmail.com",
+  storeName: "Manjunatha Batteries",
+  storeCity: "Bengaluru, Karnataka",
+  mapUrl: "https://maps.app.goo.gl/jFhiV7mrC53UrraL8",
+  mapEmbedUrl: "https://www.google.com/maps?q=12.9582934,77.5336018&z=17&output=embed",
   utilityTagline: "Free shipping & doorstep installation across India",
 };

@@ -8,7 +8,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Shield } from "lucide-react";
+import { Shield, Smartphone } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import type { AdminUserRow } from "@/api/admin/users";
 import { useSetUserRole } from "../hooks/useAdminUsers";
 import { PermissionsEditor } from "./PermissionsEditor";
@@ -28,6 +31,15 @@ export function UsersTable({
 }) {
   const setRole = useSetUserRole();
   const { isAdmin } = useMyPermissions();
+  const { user: me } = useAuth();
+
+  // Lost phone → clear their authenticator; they set up a new one at next login.
+  const resetMfa = async (id: string, name: string) => {
+    if (!window.confirm(`Reset two-factor for ${name}? They'll scan a new QR code at their next admin login.`)) return;
+    const { error } = await supabase.rpc("admin_reset_mfa", { _user_id: id });
+    if (error) toast.error(error.message);
+    else toast.success(`Two-factor reset for ${name}`);
+  };
   const [permTarget, setPermTarget] = useState<{ id: string; name: string } | null>(null);
 
   // Filter to only show admin/staff users (not customers)
@@ -108,20 +120,39 @@ export function UsersTable({
             header: "Permissions",
             cell: (u) => {
               const isStaffUser = u.roles.includes("staff") && !u.roles.includes("admin");
-              if (!isStaffUser || !isAdmin) return null;
+              if (!isAdmin) return null;
+              const name = u.full_name || u.email;
               return (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs gap-1"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setPermTarget({ id: u.id, name: u.full_name || u.email });
-                  }}
-                >
-                  <Shield className="h-3 w-3" />
-                  Manage
-                </Button>
+                <div className="flex flex-wrap gap-1">
+                  {isStaffUser && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs gap-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPermTarget({ id: u.id, name });
+                      }}
+                    >
+                      <Shield className="h-3 w-3" />
+                      Manage
+                    </Button>
+                  )}
+                  {u.id !== me?.id && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs gap-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        resetMfa(u.id, name);
+                      }}
+                    >
+                      <Smartphone className="h-3 w-3" />
+                      Reset 2FA
+                    </Button>
+                  )}
+                </div>
               );
             },
           },

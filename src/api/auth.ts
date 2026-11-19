@@ -1,3 +1,4 @@
+import { createClient } from "@supabase/supabase-js";
 import { supabase } from "./client";
 
 /**
@@ -57,4 +58,17 @@ export async function getCurrentSession() {
 export function onAuthStateChange(cb: Parameters<typeof supabase.auth.onAuthStateChange>[0]) {
   const { data } = supabase.auth.onAuthStateChange(cb);
   return () => data.subscription.unsubscribe();
+}
+
+/**
+ * Checks a password on a throwaway client, so the signed-in session (which may
+ * be a 2FA-upgraded admin session) isn't replaced. Returns the error, if any.
+ */
+export async function verifyPassword(email: string, password: string, captchaToken?: string) {
+  const probe = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false, storageKey: "kachi-verify-password" },
+  });
+  const { error } = await probe.auth.signInWithPassword({ email, password, options: { captchaToken } });
+  if (!error) await probe.auth.signOut({ scope: "local" });
+  return error;
 }

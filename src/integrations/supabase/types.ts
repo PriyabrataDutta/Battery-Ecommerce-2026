@@ -1420,6 +1420,7 @@ export type Database = {
           value: number
         }[]
       }
+      admin_reset_mfa: { Args: { _user_id: string }; Returns: undefined }
       admin_set_private_setting: {
         Args: { _key: string; _value: Json }
         Returns: undefined
@@ -1495,6 +1496,8 @@ export type Database = {
         Args: { p_key: string; p_max: number; p_window_seconds: number }
         Returns: boolean
       }
+      staff_mfa_ok: { Args: { _user_id: string }; Returns: boolean }
+      staff_needs_mfa: { Args: never; Returns: boolean }
       verify_phone_code: { Args: { _code: string }; Returns: boolean }
     }
     Enums: {

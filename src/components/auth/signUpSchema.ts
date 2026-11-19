@@ -1,6 +1,14 @@
 import { z } from "zod";
 import { INVALID_MOBILE, normalizeIndianMobile } from "@/lib/phone";
 
+/** Password rules for every place a password is set (sign-up, reset, change). */
+export const passwordSchema = z
+  .string()
+  .min(8, "At least 8 characters")
+  .max(72, "At most 72 characters")
+  .regex(/[A-Za-z]/, "Include at least one letter")
+  .regex(/\d/, "Include at least one number");
+
 /** Sign-up form rules (Supabase also enforces its own minimum password length). */
 export const signUpSchema = z
   .object({
@@ -16,12 +24,7 @@ export const signUpSchema = z
       return n ?? v;
     }),
     email: z.string().trim().toLowerCase().email("Enter a valid email").max(255),
-    password: z
-      .string()
-      .min(8, "At least 8 characters")
-      .max(72, "At most 72 characters")
-      .regex(/[A-Za-z]/, "Include at least one letter")
-      .regex(/\d/, "Include at least one number"),
+    password: passwordSchema,
     confirmPassword: z.string(),
   })
   .refine((v) => v.password === v.confirmPassword, { path: ["confirmPassword"], message: "Passwords don't match" })

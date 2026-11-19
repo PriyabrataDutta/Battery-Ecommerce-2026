@@ -28,13 +28,16 @@ interface AuthState {
   loading: boolean;
 }
 
+// Keyed by access token: staff access needs a 2FA (aal2) session, so the answer
+// changes when the session is upgraded after the authenticator code.
 let cachedStaff: Record<string, boolean> = {};
 
-async function checkStaff(userId: string, force = false): Promise<boolean> {
-  if (!force && cachedStaff[userId] !== undefined) return cachedStaff[userId];
-  const { data, error } = await supabase.rpc("is_staff", { _user_id: userId });
+async function checkStaff(session: Session): Promise<boolean> {
+  const key = session.access_token;
+  if (cachedStaff[key] !== undefined) return cachedStaff[key];
+  const { data, error } = await supabase.rpc("is_staff", { _user_id: session.user.id });
   if (error) return false;
-  cachedStaff[userId] = !!data;
+  cachedStaff[key] = !!data;
   return !!data;
 }
 
@@ -93,7 +96,7 @@ export function useAuth(): AuthState & {
 
       setTimeout(async () => {
         const [staff, phoneState] = await Promise.all([
-          checkStaff(user.id),
+          checkStaff(session),
           loadProfilePhoneState(user.id),
         ]);
         if (cancelled) return;
@@ -131,26 +134,20 @@ export function useAuth(): AuthState & {
   };
 
   /**
-   * Accepts either an email or a phone number. If it's a phone, resolve the
-   * corresponding email through a secure edge function, then sign in normally.
+   * Accepts either an email or a phone number. Phone sign-in runs entirely in
+   * the phone-login edge function (so a mobile number never reveals an email);
+   * it hands back session tokens.
    */
   const signInWithIdentifier = async (identifier: string, password: string, captchaToken?: string) => {
     const trimmed = identifier.trim();
-    const looksLikeEmail = trimmed.includes("@");
-    let email = trimmed;
+    if (trimmed.includes("@")) return signIn(trimmed, password, captchaToken);
 
-    if (!looksLikeEmail) {
-      // Normalise: keep digits and leading +.
-      const normalised = trimmed.replace(/[^\d+]/g, "");
-      const { data, error } = await supabase.functions.invoke("phone-login-lookup", {
-        body: { phone: normalised },
-      });
-      if (error) return { error: await functionErrorMessage(error, "Could not sign in with that mobile number.") };
-      if (!data?.email) return { error: "No account found for that mobile number." };
-      email = data.email as string;
-    }
-
-    return signIn(email, password, captchaToken);
+    const { data, error } = await supabase.functions.invoke("phone-login", {
+      body: { phone: trimmed.replace(/[^\d+]/g, ""), password, captchaToken },
+    });
+    if (error) return { error: await functionErrorMessage(error, "Could not sign in with that mobile number.") };
+    const { error: sessionError } = await supabase.auth.setSession(data);
+    return { error: sessionError ? friendlyAuthError(sessionError.message) : null };
   };
 
   const signUp = async (email: string, password: string, fullName?: string, phone?: string, captchaToken?: string) => {

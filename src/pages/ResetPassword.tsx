@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { passwordSchema } from "@/components/auth/signUpSchema";
 
 const schema = z.object({
-  password: z.string().min(6, "Min 6 characters").max(72),
+  password: passwordSchema,
 });
 
 /**
@@ -69,7 +70,7 @@ const ResetPassword = () => {
             <Input
               name="password"
               type="password"
-              placeholder="New password (min 6)"
+              placeholder="New password (8+ characters, letters and numbers)"
               required
               autoComplete="new-password"
             />

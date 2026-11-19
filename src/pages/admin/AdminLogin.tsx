@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ShieldCheck, Loader2, AlertCircle } from "lucide-react";
+import { ShieldCheck, Loader2, AlertCircle, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { setRememberMe } from "@/lib/adminSession";
 import { AccessExpired, isAccessExpiredCause } from "@/components/auth/AccessExpired";
@@ -25,10 +25,49 @@ const AdminLogin = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [stage, setStage] = useState<string | null>(null);
+  // Second step for staff: verify an authenticator code, or set one up (first login).
+  const [mfa, setMfa] = useState<
+    { mode: "verify"; factorId: string } | { mode: "enroll"; factorId: string; qr: string; secret: string } | null
+  >(null);
+  const [code, setCode] = useState("");
 
   useEffect(() => {
     document.title = "Admin Login";
   }, []);
+
+  /** Staff session still at password level → show the 2FA step. Returns true if shown. */
+  // One run at a time: the form submit and the resume effect can both fire.
+  const mfaRun = useRef<Promise<boolean> | null>(null);
+  const startMfa = () => (mfaRun.current ??= runMfa().finally(() => (mfaRun.current = null)));
+  const runMfa = async (): Promise<boolean> => {
+    const { data: needs } = await supabase.rpc("staff_needs_mfa");
+    if (!needs) return false;
+    const { data: factors, error: listError } = await supabase.auth.mfa.listFactors();
+    if (listError) throw listError;
+    const verified = factors.totp[0];
+    if (verified) {
+      setMfa({ mode: "verify", factorId: verified.id });
+      return true;
+    }
+    // Drop half-finished setups so enrolling again doesn't clash.
+    for (const f of factors.all.filter((f) => f.status === "unverified")) {
+      await supabase.auth.mfa.unenroll({ factorId: f.id });
+    }
+    const { data, error: enrollError } = await supabase.auth.mfa.enroll({
+      factorType: "totp",
+      friendlyName: `Kachi Admin ${new Date().toISOString().slice(0, 10)}`,
+      issuer: "Kachi Batteries",
+    });
+    if (enrollError) throw enrollError;
+    setMfa({ mode: "enroll", factorId: data.id, qr: data.totp.qr_code, secret: data.totp.secret });
+    return true;
+  };
+
+  // Reloaded mid-login (signed in, 2FA not done yet) → resume at the 2FA step.
+  useEffect(() => {
+    if (!loading && user && !isStaff && !mfa) startMfa().catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, user, isStaff]);
 
   // While auth is still resolving, render a stable loader instead of the form.
   // Without this, the form mounts → useAuth resolves → redirect, causing a
@@ -58,7 +97,6 @@ const AdminLogin = () => {
     setStage(null);
     setSubmitting(true);
     const normalizedEmail = email.trim().toLowerCase();
-    console.info("[AdminLogin] attempt", { email: normalizedEmail });
 
     // Stage 1: Email validation
     if (!normalizedEmail) {
@@ -86,6 +124,33 @@ const AdminLogin = () => {
       return fail("sign-in", friendly, signInError);
     }
 
+    // Stage 3: two-factor
+    try {
+      if (await startMfa()) {
+        setSubmitting(false);
+        return;
+      }
+    } catch (e) {
+      return fail("two-factor", e instanceof Error ? e.message : "Could not start two-factor sign-in.", e);
+    }
+    await finishLogin();
+  };
+
+  const handleCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mfa) return;
+    if (!/^\d{6}$/.test(code)) return fail("two-factor", "Enter the 6-digit code from your authenticator app.");
+    setError(null);
+    setSubmitting(true);
+    const { error: verifyError } = await supabase.auth.mfa.challengeAndVerify({ factorId: mfa.factorId, code });
+    if (verifyError) {
+      setCode("");
+      return fail("two-factor", "That code didn't match. Check the time on your phone and try the newest code.", verifyError);
+    }
+    await finishLogin();
+  };
+
+  const finishLogin = async () => {
     // Stage 4: Auth session
     console.info("[AdminLogin] stage: auth-session");
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
@@ -145,7 +210,7 @@ const AdminLogin = () => {
           </div>
         )}
 
-        {user && !isStaff && (
+        {user && !isStaff && !mfa && (
           <div className="mb-4 flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
             <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
             <span>
@@ -155,6 +220,76 @@ const AdminLogin = () => {
           </div>
         )}
 
+        {mfa ? (
+          <form onSubmit={handleCode} className="space-y-4">
+            {mfa.mode === "enroll" ? (
+              <div className="space-y-3 text-sm">
+                <div className="flex items-start gap-2 rounded-md border border-primary/30 bg-primary/5 p-3">
+                  <Smartphone className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
+                  <p>
+                    <strong>Set up two-factor sign-in (one time).</strong> Admin accounts need a code from an
+                    authenticator app — Google Authenticator, Microsoft Authenticator or Authy.
+                  </p>
+                </div>
+                <ol className="list-decimal pl-5 space-y-1 text-muted-foreground">
+                  <li>Open the app and choose <em>Add account → Scan QR code</em>.</li>
+                  <li>Scan this code, then enter the 6-digit number the app shows.</li>
+                </ol>
+                <img src={mfa.qr} alt="Authenticator QR code" className="mx-auto h-44 w-44 bg-white p-2 border border-line" />
+                <p className="text-xs text-muted-foreground text-center">
+                  Can't scan? Enter this key manually:
+                  <code className="mt-1 block break-all font-mono text-foreground select-all">{mfa.secret}</code>
+                </p>
+              </div>
+            ) : (
+              <div className="flex items-start gap-2 rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
+                <Smartphone className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
+                <p>Enter the 6-digit code from your authenticator app for Kachi Batteries.</p>
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <Label htmlFor="mfa-code">Authenticator code</Label>
+              <Input
+                id="mfa-code"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                autoFocus
+                maxLength={6}
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                placeholder="123456"
+                className="text-center tracking-[0.4em] text-lg"
+              />
+            </div>
+            {error && (
+              <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                <div>{error}</div>
+              </div>
+            )}
+            <Button type="submit" className="w-full" disabled={submitting || code.length !== 6}>
+              {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {mfa.mode === "enroll" ? "Turn on two-factor & sign in" : "Verify & sign in"}
+            </Button>
+            <button
+              type="button"
+              className="block w-full text-center text-xs text-muted-foreground hover:text-primary"
+              onClick={async () => {
+                await supabase.auth.signOut();
+                setMfa(null);
+                setCode("");
+                setError(null);
+              }}
+            >
+              Cancel and sign out
+            </button>
+            {mfa.mode === "verify" && (
+              <p className="text-[11px] text-muted-foreground text-center">
+                Lost your phone? Ask another admin to reset your two-factor in Team.
+              </p>
+            )}
+          </form>
+        ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
@@ -247,6 +382,7 @@ const AdminLogin = () => {
             Forgot password?
           </button>
         </form>
+        )}
 
 
         <div className="mt-6 pt-4 border-t border-line text-center text-xs text-muted-foreground">

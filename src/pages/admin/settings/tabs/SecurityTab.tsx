@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Loader2, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { useCaptcha } from "@/components/auth/Captcha";
+import { passwordSchema } from "@/components/auth/signUpSchema";
+import { verifyPassword } from "@/api/auth";
 
 const schema = z
   .object({
     current: z.string().min(1, "Enter your current password"),
-    next: z.string().min(8, "New password must be at least 8 characters").max(72),
+    next: passwordSchema,
     confirm: z.string(),
   })
   .refine((v) => v.next === v.confirm, { message: "Passwords do not match" })
@@ -45,12 +47,8 @@ export function SecurityTab() {
       toast.error("Security check is still verifying — please wait a moment and try again.");
       return;
     }
-    // Re-authenticate before allowing a password change.
-    const { error: reauthError } = await supabase.auth.signInWithPassword({
-      email: user.email,
-      password: current,
-      options: { captchaToken },
-    });
+    // Check the current password without replacing this (2FA) session.
+    const reauthError = await verifyPassword(user.email, current, captchaToken);
     captcha.reset();
     if (reauthError) {
       setBusy(false);

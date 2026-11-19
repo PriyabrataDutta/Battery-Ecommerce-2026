@@ -1,0 +1,29 @@
+{
+  "entries": [
+    {
+      "identifier": "urn:air:kachibatteries.com:site:llms-txt",
+      "displayName": "Kachi Batteries — site guide for AI assistants",
+      "type": "application/vnd.llms-txt+markdown",
+      "url": "https://www.kachibatteries.com/llms.txt",
+      "description": "Plain-markdown summary of Kachi Batteries (Bengaluru): car and inverter batteries from Amaron, Exide, Power Zone and Elito, delivery and installation charges, returns, warranty, jump start service, shop pages and buying guides.",
+      "tags": ["batteries", "car battery", "inverter battery", "e-commerce", "India", "Bengaluru"],
+      "representativeQueries": [
+        "where can I buy a genuine car battery in Bengaluru",
+        "what does doorstep battery installation cost at Kachi Batteries",
+        "what is Kachi Batteries' return policy for batteries",
+        "which inverter battery size do I need for my home"
+      ]
+    },
+    {
+      "identifier": "urn:air:kachibatteries.com:site:sitemap",
+      "displayName": "Kachi Batteries — sitemap of products, brands and guides",
+      "type": "application/xml",
+      "url": "https://www.kachibatteries.com/sitemap.xml",
+      "description": "XML sitemap listing every public product, battery brand page, shop page and buying guide on kachibatteries.com.",
+      "representativeQueries": [
+        "list Amaron car batteries sold by Kachi Batteries",
+        "find Kachi Batteries guides on choosing a car battery"
+      ]
+    }
+  ]
+}

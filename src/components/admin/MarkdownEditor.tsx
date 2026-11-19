@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { marked } from "marked";
+import { renderMarkdown } from "@/lib/blog";
 
 export function MarkdownEditor({
   value,
@@ -33,7 +33,7 @@ export function MarkdownEditor({
       <TabsContent value="preview">
         <div
           className="prose prose-sm max-w-none border border-line rounded-md p-4 bg-muted/30 min-h-[300px]"
-          dangerouslySetInnerHTML={{ __html: marked.parse(value || "*Nothing to preview*") as string }}
+          dangerouslySetInnerHTML={{ __html: renderMarkdown(value || "*Nothing to preview*") }}
         />
       </TabsContent>
     </Tabs>

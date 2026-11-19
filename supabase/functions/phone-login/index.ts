@@ -34,8 +34,6 @@ Deno.serve(async (req) => {
 
     const { data: email, error: lookupError } = await admin.rpc("lookup_email_by_phone", { _phone: normalised });
     if (lookupError) throw lookupError;
-    // Unknown number gets the same answer as a wrong password.
-    if (!email) return json({ error: WRONG }, 400);
 
     // ponytail: Supabase Auth sees this function's IP, not the customer's, so its
     // own per-IP sign-in limit is shared by all phone logins; our per-IP limit above
@@ -43,7 +41,13 @@ Deno.serve(async (req) => {
     const anon = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
-    const { data, error } = await anon.auth.signInWithPassword({ email, password, options: { captchaToken } });
+    // Unknown number still goes through the same check (captcha, timing, error)
+    // against an address that can't exist, so responses don't reveal accounts.
+    const { data, error } = await anon.auth.signInWithPassword({
+      email: email ?? "no-account@invalid.invalid",
+      password,
+      options: { captchaToken },
+    });
     if (error) {
       const m = error.message.toLowerCase();
       if (m.includes("captcha")) return json({ error: "Security check failed. Please complete it again." }, 400);

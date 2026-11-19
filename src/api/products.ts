@@ -124,3 +124,22 @@ export async function getCartProducts(ids: string[]): Promise<CartProductRow[]> 
   if (error) throw error;
   return (data ?? []) as CartProductRow[];
 }
+
+/**
+ * Popular products, ranked in the database by recent sales plus the
+ * bestseller / featured / new flags (`popular_products`). group null mixes
+ * car and home-power batteries alternately.
+ */
+export async function listPopularProducts(group: "car" | "home" | null, limit = 8): Promise<Product[]> {
+  const { data: ids, error } = await supabase.rpc("popular_products", { p_group: group, p_limit: limit });
+  if (error) throw error;
+  const order = (ids ?? []) as string[];
+  if (order.length === 0) return [];
+  const { data, error: e2 } = await supabase
+    .from("products")
+    .select("*, battery_brands(*), categories(slug, name)")
+    .in("id", order);
+  if (e2) throw e2;
+  const byId = new Map(((data ?? []) as unknown as Product[]).map((p) => [p.id, p]));
+  return order.map((id) => byId.get(id)).filter((p): p is Product => !!p);
+}

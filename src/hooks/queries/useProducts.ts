@@ -30,3 +30,10 @@ export const useRelatedProducts = (
     enabled: !!brandId && !!excludeId,
     staleTime: 5 * 60_000,
   });
+
+export const usePopularProducts = (group: "car" | "home" | null, limit = 8) =>
+  useQuery({
+    queryKey: qk.products.popular(group, limit),
+    queryFn: () => productsApi.listPopularProducts(group, limit),
+    staleTime: 5 * 60 * 1000,
+  });

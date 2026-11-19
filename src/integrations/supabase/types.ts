@@ -1442,6 +1442,10 @@ export type Database = {
       }
       admin_system_status: { Args: never; Returns: Json }
       available_payment_methods: { Args: never; Returns: Json }
+      popular_products: {
+        Args: { p_group?: string | null; p_limit?: number }
+        Returns: string[]
+      }
       car_brand_product_counts: {
         Args: { in_stock_only?: boolean }
         Returns: {

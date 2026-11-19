@@ -13,6 +13,7 @@ export const qk = {
     all: ["products"] as const,
     list: (opts?: ListProductsOptions) => ["products", "list", opts ?? {}] as const,
     bySlug: (slug: string | undefined) => ["products", "bySlug", slug] as const,
+    popular: (group: "car" | "home" | null, limit: number) => ["products", "popular", group, limit] as const,
     related: (brandId: string | undefined, excludeId: string | undefined) =>
       ["products", "related", brandId, excludeId] as const,
     search: (term: string) => ["products", "search", term] as const,

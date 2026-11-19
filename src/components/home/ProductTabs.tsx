@@ -1,21 +1,22 @@
 import { useState } from "react";
-import { useProducts } from "@/hooks/queries/useProducts";
+import { usePopularProducts } from "@/hooks/queries/useProducts";
 import { ProductCard } from "@/components/products/ProductCard";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
+// Ranked in the database by recent sales + bestseller/featured/new flags.
 const tabs = [
-  { key: "featured", label: "Featured", opts: { isFeatured: true, limit: 8 } },
-  { key: "bestsellers", label: "Bestsellers", opts: { isBestseller: true, limit: 8 } },
-  { key: "new", label: "New Arrivals", opts: { isNew: true, limit: 8 } },
+  { key: "popular", label: "Popular", group: null, more: "/shop" },
+  { key: "car", label: "Car batteries", group: "car", more: "/shop/car-batteries" },
+  { key: "home", label: "Inverter & home", group: "home", more: "/shop/inverter-batteries" },
 ] as const;
 
 export function ProductTabs() {
-  const [active, setActive] = useState<string>("featured");
+  const [active, setActive] = useState<string>("popular");
   const activeTab = tabs.find((t) => t.key === active) ?? tabs[0];
 
-  const { data: products = [], isLoading } = useProducts(activeTab.opts);
+  const { data: products = [], isLoading } = usePopularProducts(activeTab.group, 8);
 
   return (
     <section className="container-x mt-16 sm:mt-24">
@@ -31,6 +32,7 @@ export function ProductTabs() {
             <button
               key={t.key}
               onClick={() => setActive(t.key)}
+              aria-pressed={active === t.key}
               className={`rounded-full px-3.5 sm:px-5 py-2 text-xs sm:text-sm font-semibold transition-colors ${
                 active === t.key
                   ? "bg-ink text-white"
@@ -61,8 +63,8 @@ export function ProductTabs() {
 
       <div className="text-center mt-10">
         <Button asChild size="lg" variant="outline">
-          <Link to="/shop">
-            View All Products <ArrowRight className="h-4 w-4 ml-2" />
+          <Link to={activeTab.more}>
+            View all {activeTab.key === "popular" ? "batteries" : activeTab.label.toLowerCase()} <ArrowRight className="h-4 w-4 ml-2" />
           </Link>
         </Button>
       </div>

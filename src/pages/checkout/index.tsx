@@ -72,6 +72,7 @@ import type {
   Step,
 } from "./lib/types";
 import { DRAFT_TTL_MS } from "./lib/constants";
+import { Seo } from "@/components/Seo";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -387,6 +388,7 @@ const Checkout = () => {
 
   return (
     <div className="container-x py-8 sm:py-12">
+      <Seo title="Checkout" description="Checkout at Kachi Batteries." noindex />
       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
         <Link to="/cart" className="inline-flex items-center gap-1 font-medium hover:text-primary">
           <ChevronLeft className="h-4 w-4" /> Back to cart

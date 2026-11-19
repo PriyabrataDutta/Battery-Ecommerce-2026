@@ -12,6 +12,8 @@ import { MobileStickyBar } from "@/components/home/MobileStickyBar";
 import heroCar from "@/assets/hero-car.jpg";
 import batteryStack from "@/assets/battery-stack.png";
 import { gsap } from "gsap";
+import { Seo } from "@/components/Seo";
+import { SITE_URL } from "@/lib/site";
 
 const Home = () => {
   const heroRef = useRef<HTMLDivElement>(null);
@@ -31,6 +33,29 @@ const Home = () => {
 
   return (
     <>
+      <Seo
+        title="Buy Car & Inverter Batteries Online in India"
+        description="Genuine Amaron, Exide, Power Zone and Elito car and inverter batteries. Find the battery that fits your car, free standard delivery, doorstep installation and old battery exchange."
+        path="/"
+        jsonLd={{
+            "@context": "https://schema.org",
+            "@type": ["LocalBusiness", "AutoPartsStore"],
+            "@id": `${SITE_URL}/#store`,
+            name: "Kachi Batteries",
+            alternateName: "Manjunatha Batteries",
+            url: SITE_URL,
+            logo: `${SITE_URL}/og-default.jpg`,
+            image: `${SITE_URL}/og-default.jpg`,
+            telephone: "+91-81975-68707",
+            email: "kachibatteries@gmail.com",
+            priceRange: "₹₹",
+            address: { "@type": "PostalAddress", addressLocality: "Bengaluru", addressRegion: "Karnataka", addressCountry: "IN" },
+            geo: { "@type": "GeoCoordinates", latitude: 12.9582934, longitude: 77.5336018 },
+            hasMap: "https://maps.app.goo.gl/jFhiV7mrC53UrraL8",
+            areaServed: "IN",
+            paymentAccepted: "Cash, UPI, Credit Card, Debit Card, Net Banking",
+          }}
+      />
       {/* HERO */}
       <section ref={heroRef} className="relative overflow-hidden bg-gradient-hero text-white">
         <div className="absolute inset-0 bg-dots opacity-60" aria-hidden />

@@ -8,6 +8,8 @@ import { useProducts } from "@/hooks/queries/useProducts";
 import { formatINR } from "@/lib/format";
 import { INVERTER_SLUGS } from "./shop/inverterKinds";
 import type { Product } from "@/types/catalog";
+import { Seo } from "@/components/Seo";
+import { SITE_URL } from "@/lib/site";
 
 type Range = "all" | "car" | "inverter";
 const isCar = (p: Product) => p.categories?.slug === "car-batteries";
@@ -83,6 +85,14 @@ const BrandPage = () => {
 
   return (
     <div>
+      <Seo
+        title={`${name} Batteries — Car & Inverter, Price List`}
+        description={`Buy genuine ${name} car and inverter batteries online${minPrice ? ` from ${formatINR(minPrice)}` : ""}. ${products.length} models with manufacturer warranty, free standard delivery and old battery exchange.`}
+        path={`/brand/${slug}`}
+        image={brand?.logo_url}
+        breadcrumbs={[{ name: "Brands", path: "/brands" }, { name, path: `/brand/${slug}` }]}
+        jsonLd={{ "@context": "https://schema.org", "@type": "Brand", name, ...(brand?.logo_url ? { logo: brand.logo_url } : {}), url: `${SITE_URL}/brand/${slug}` }}
+      />
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-hero text-white">
         <div className="absolute inset-0 bg-dots" aria-hidden />

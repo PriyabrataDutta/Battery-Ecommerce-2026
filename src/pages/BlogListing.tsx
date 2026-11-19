@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import { Seo } from "@/components/Seo";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react";
 import { listPublishedPosts, type BlogPost } from "@/api/blog";
@@ -49,10 +50,13 @@ const BlogListing = () => {
 
   return (
     <div className="bg-white">
-      <Helmet>
-        <title>The Battery Journal — Guides & Tips | Kachi Batteries</title>
-        <meta name="description" content="Plain-English guides on choosing, caring for and replacing car and inverter batteries, from Kachi Batteries." />
-      </Helmet>
+      <Seo
+        title={topic ? `${topic} Guides — The Battery Journal` : "The Battery Journal — Battery Guides & Tips"}
+        description="Plain-English guides on choosing, caring for and replacing car and inverter batteries, from Kachi Batteries."
+        path={topic ? `/blog?topic=${encodeURIComponent(topic)}` : "/blog"}
+        noindex={!!q}
+        breadcrumbs={[{ name: "Blog", path: "/blog" }]}
+      />
       <BlogNav />
 
       {/* Page header */}

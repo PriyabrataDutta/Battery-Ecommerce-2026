@@ -2,6 +2,7 @@ import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, Car, BatteryCharging } from "lucide-react";
 import Shop from "../Shop";
 import { INVERTER_SLUGS } from "./inverterKinds";
+import { Seo } from "@/components/Seo";
 
 /**
  * /shop — with no filters, asks "car or inverter?"; old /shop?type=… and
@@ -30,6 +31,7 @@ export default function ShopEntry() {
 
   return (
     <div>
+      <Seo title="Shop Batteries: Car & Inverter" description="Shop genuine car batteries by vehicle or inverter and home backup batteries by capacity. Free standard delivery and old battery exchange." path="/shop" breadcrumbs={[{ name: "Shop", path: "/shop" }]} />
       <section className="relative overflow-hidden bg-gradient-hero text-white">
         <div className="absolute inset-0 bg-dots" aria-hidden />
         <div className="container-x relative pb-28 pt-12 sm:pt-16">

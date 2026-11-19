@@ -1,5 +1,7 @@
-const SimplePage = ({ title, body }: { title: string; body: React.ReactNode }) => (
+import { Seo } from "@/components/Seo";
+const SimplePage = ({ title, body, path, description }: { title: string; body: React.ReactNode; path?: string; description?: string }) => (
   <>
+    {path && <Seo title={title} description={description ?? title} path={path} breadcrumbs={[{ name: title, path }]} />}
     <section className="relative overflow-hidden bg-gradient-hero text-white">
       <div className="absolute inset-0 bg-dots" aria-hidden />
       <div className="container-x relative py-14 sm:py-20 max-w-3xl">
@@ -36,7 +38,7 @@ const UPDATED = "19 November 2026";
 const Email = () => <a href="mailto:kachibatteries@gmail.com" className="text-primary font-semibold">kachibatteries@gmail.com</a>;
 
 export const PrivacyPolicy = () => (
-  <SimplePage title="Privacy Policy" body={
+  <SimplePage title="Privacy Policy" path="/privacy-policy" description="How Kachi Batteries collects, uses and protects your personal data, in line with India's DPDP Act 2023." body={
     <>
       <p><em>Last updated: {UPDATED}</em></p>
       <p>This policy explains how Kachi Batteries, a sister concern of Manjunatha Batteries, Bengaluru ("we", "us"), collects, uses and protects your personal data when you use www.kachibatteries.com, in line with the Digital Personal Data Protection Act, 2023 and the Information Technology Act, 2000.</p>
@@ -87,7 +89,7 @@ export const PrivacyPolicy = () => (
 );
 
 export const RefundPolicy = () => (
-  <SimplePage title="Return & Refund Policy" body={
+  <SimplePage title="Return & Refund Policy" path="/refund-policy" description="Kachi Batteries returns, cancellations, old battery exchange, warranty claims and refund timelines." body={
     <>
       <p><em>Last updated: {UPDATED}</em></p>
 

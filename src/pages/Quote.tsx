@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { CheckCircle2 } from "lucide-react";
+import { Seo } from "@/components/Seo";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Name required").max(100),
@@ -39,6 +40,7 @@ const Quote = () => {
 
   return (
     <>
+      <Seo title="Bulk & B2B Battery Quote" description="Request a bulk or B2B quote for car, inverter and UPS batteries. Dealer pricing, BOQ support and a dedicated account manager from Kachi Batteries." path="/quote" breadcrumbs={[{ name: "Bulk quote", path: "/quote" }]} />
     <section className="relative overflow-hidden bg-gradient-hero text-white">
         <div className="absolute inset-0 bg-dots" aria-hidden />
         <div className="container-x relative py-14 sm:py-20">

@@ -6,6 +6,7 @@ import { OrderItems } from "./components/OrderItems";
 import { AddressBlocks } from "./components/AddressBlocks";
 import { PaymentSummary } from "./components/PaymentSummary";
 import { PaymentStatusBanner } from "./components/PaymentStatusBanner";
+import { Seo } from "@/components/Seo";
 
 /**
  * OrderConfirmation (orchestrator)
@@ -52,6 +53,7 @@ const OrderConfirmation = () => {
 
   return (
     <div className="container-x py-8 sm:py-12">
+      <Seo title="Order Confirmation" description="Order Confirmation at Kachi Batteries." noindex />
       {order.payment.id === "online" && <PaymentStatusBanner orderNumber={order.orderNumber} />}
       <SuccessHeader order={order} />
       <OrderTracker order={order} />

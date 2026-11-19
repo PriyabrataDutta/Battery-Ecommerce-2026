@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { passwordSchema } from "@/components/auth/signUpSchema";
+import { Seo } from "@/components/Seo";
 
 const schema = z.object({
   password: passwordSchema,
@@ -59,6 +60,7 @@ const ResetPassword = () => {
 
   return (
     <div className="container-x max-w-md py-12 sm:py-20">
+      <Seo title="Reset Password" description="Reset Password at Kachi Batteries." noindex />
       <div className="text-center"><span className="eyebrow">Account</span></div>
       <h1 className="mt-2 font-display-tight text-3xl sm:text-4xl font-bold text-center">Set a new password</h1>
       <div className="mt-8 surface p-6 sm:p-8">

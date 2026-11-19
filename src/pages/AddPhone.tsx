@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { INVALID_MOBILE, normalizeIndianMobile } from "@/lib/phone";
+import { Seo } from "@/components/Seo";
 
 
 const AddPhone = () => {
@@ -49,6 +50,7 @@ const AddPhone = () => {
 
   return (
     <div className="container-x max-w-md py-12 sm:py-20">
+      <Seo title="Add Phone Number" description="Add Phone Number at Kachi Batteries." noindex />
       <div className="text-center"><span className="eyebrow">Account</span></div>
       <h1 className="mt-2 font-display-tight text-3xl sm:text-4xl font-bold text-center">Add your mobile</h1>
       <p className="text-center text-muted-foreground mt-2">

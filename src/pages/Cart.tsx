@@ -5,6 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { formatINR } from "@/lib/format";
 import { PriceBreakup } from "@/components/PriceBreakup";
 import { Trash2, Minus, Plus, ArrowLeftRight, ArrowRight, ShoppingBag } from "lucide-react";
+import { Seo } from "@/components/Seo";
 
 const Cart = () => {
   const { items, setQty, removeItem, setExchange, subtotal, gst, total, clear } = useCart();
@@ -12,6 +13,7 @@ const Cart = () => {
 
   return (
     <div className="container-x py-8 sm:py-12">
+      <Seo title="Your Cart" description="Your Cart at Kachi Batteries." noindex />
       <div className="eyebrow">Cart</div>
       <h1 className="font-display-tight text-3xl sm:text-5xl font-bold mt-2 text-ink">
         Your cart{items.length > 0 && <span className="text-muted-foreground font-semibold text-2xl sm:text-3xl"> · {items.length} item{items.length !== 1 ? "s" : ""}</span>}

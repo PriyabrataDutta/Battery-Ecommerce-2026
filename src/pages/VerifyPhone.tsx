@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { functionErrorMessage } from "@/lib/functionError";
+import { Seo } from "@/components/Seo";
 
 const RESEND_COOLDOWN = 60;
 
@@ -91,6 +92,7 @@ const VerifyPhone = () => {
 
   return (
     <div className="container-x max-w-md py-12 sm:py-20">
+      <Seo title="Verify Phone" description="Verify Phone at Kachi Batteries." noindex />
       <div className="text-center"><span className="eyebrow">Account</span></div>
       <h1 className="mt-2 font-display-tight text-3xl sm:text-4xl font-bold text-center">Verify your mobile</h1>
       <p className="text-center text-muted-foreground mt-2">

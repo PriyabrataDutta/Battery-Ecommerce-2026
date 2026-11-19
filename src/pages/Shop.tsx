@@ -31,6 +31,8 @@ import { CarShopHero } from "./shop/CarShopHero";
 import { InverterShopHero } from "./shop/InverterShopHero";
 import { InverterFilters } from "./shop/InverterFilters";
 import { INVERTER_SLUGS } from "./shop/inverterKinds";
+import { Seo } from "@/components/Seo";
+import { SITE_URL } from "@/lib/site";
 
 export type ShopVariant = "all" | "car" | "inverter";
 
@@ -269,6 +271,28 @@ const Shop = ({ variant = "all" }: { variant?: ShopVariant }) => {
 
   return (
     <div>
+      <Seo
+        title={
+          variant === "car" ? (fitLabel ? `${fitLabel} Battery — Price & Fitment` : "Car Batteries Online — Find by Your Car")
+          : variant === "inverter" ? "Inverter Batteries — Tubular, SMF & Lithium"
+          : typeCategory?.name ? `${typeCategory.name} Online` : "All Batteries"
+        }
+        description={
+          variant === "car"
+            ? `${fitLabel ? `Batteries that fit your ${fitLabel}. ` : "Pick your car brand and model and see only batteries that fit. "}Genuine Amaron, Exide and Power Zone with warranty, free standard delivery and doorstep installation.`
+            : variant === "inverter"
+              ? "Tubular, SMF and lithium inverter batteries for home backup. Use our backup calculator to pick the right Ah, with free standard delivery and old battery exchange."
+              : "Browse genuine car and inverter batteries from Amaron, Exide, Power Zone and Elito. Free standard delivery and old battery exchange."
+        }
+        path={variant === "car" ? `/shop/car-batteries${carBrandSlug ? `?car_brand=${carBrandSlug}${carModelSlug ? `&car_model=${carModelSlug}` : ""}` : ""}` : variant === "inverter" ? "/shop/inverter-batteries" : "/shop"}
+        noindex={variant === "all" && [...params.keys()].length > 0}
+        breadcrumbs={[{ name: "Shop", path: "/shop" }, ...(variant === "car" ? [{ name: "Car batteries", path: "/shop/car-batteries" }] : variant === "inverter" ? [{ name: "Inverter batteries", path: "/shop/inverter-batteries" }] : [])]}
+        jsonLd={paged.length ? {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          itemListElement: paged.slice(0, 20).map((p, i) => ({ "@type": "ListItem", position: i + 1, url: `${SITE_URL}/product/${p.slug}`, name: p.name })),
+        } : undefined}
+      />
       {variant === "car" ? (
         <CarShopHero count={filtered.length} />
       ) : variant === "inverter" ? (

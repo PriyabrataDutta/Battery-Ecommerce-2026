@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Loader2, ShoppingCart, ShieldCheck, Truck, BadgeCheck } from "lucide-react";
 import { safeNext } from "@/lib/safeNext";
 import { clearPendingAdd, hasPendingAdd } from "@/lib/pendingCart";
+import { Seo } from "@/components/Seo";
 
 
 
@@ -102,6 +103,7 @@ const Auth = () => {
 
   return (
     <div className="container-x py-10 sm:py-16">
+      <Seo title="Sign In or Create Account" description="Sign In or Create Account at Kachi Batteries." noindex />
       <div className="mx-auto grid max-w-5xl overflow-hidden rounded-3xl border border-line bg-card shadow-elevated lg:grid-cols-2">
       <aside className="relative hidden overflow-hidden bg-gradient-hero p-10 text-white lg:flex lg:flex-col lg:justify-between">
         <div className="absolute inset-0 bg-dots" aria-hidden />

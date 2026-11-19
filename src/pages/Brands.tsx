@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import { Seo } from "@/components/Seo";
 import { useBatteryBrands } from "@/hooks/queries/useBrands";
 import { ArrowRight } from "lucide-react";
 
@@ -8,10 +9,7 @@ const Brands = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Battery Brands — Kachi Batteries</title>
-        <meta name="description" content="Shop genuine batteries from India's most trusted brands — Amaron, Exide, Power Zone, Elito and more." />
-      </Helmet>
+        <Seo title="Battery Brands — Amaron, Exide, Power Zone, Elito" description="Shop genuine batteries from India's most trusted brands: Amaron, Exide, Power Zone and Elito. Manufacturer warranty, free standard delivery." path="/brands" breadcrumbs={[{ name: "Brands", path: "/brands" }]} />
 
       <section className="relative overflow-hidden bg-gradient-hero text-white">
         <div className="absolute inset-0 bg-dots" aria-hidden />

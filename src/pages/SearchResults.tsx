@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useCarBrands, useCarModelsByBrandId } from "@/hooks/queries/useBrands";
 import { useProductIdsByModelIds } from "@/hooks/queries/useFitment";
 import { getCarModelIdsByBrandIds } from "@/api/carModels";
+import { Seo } from "@/components/Seo";
 
 const ALL = "__all__";
 
@@ -88,6 +89,7 @@ const SearchResults = () => {
 
   return (
     <div>
+      <Seo title="Search Results" description="Search genuine car and inverter batteries at Kachi Batteries." path="/search" noindex />
       <header className="relative overflow-hidden bg-gradient-hero text-white">
         <div className="absolute inset-0 bg-dots" aria-hidden />
         <div className="container-x relative py-10 sm:py-14">

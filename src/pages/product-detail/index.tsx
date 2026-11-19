@@ -134,9 +134,10 @@ const ProductDetail = () => {
   };
 
   // ─── SEO ───
+  // e.g. "Amaron CR-150 Tall Tubular 150Ah — Price & Warranty | Kachi Batteries"
   const seoTitle =
     product.meta_title ||
-    `${product.name} — Buy Online | Kachi Batteries`;
+    `${product.name}${product.capacity_ah && !product.name.includes(`${product.capacity_ah}`) ? ` ${product.capacity_ah}Ah` : ""} — Price & Warranty | Kachi Batteries`;
   const seoDesc =
     product.meta_description ||
     product.short_description ||
@@ -160,6 +161,22 @@ const ProductDetail = () => {
         )}
         <meta property="product:price:amount" content={String(withGst(withoutExchange, gstRate))} />
         <meta property="product:price:currency" content="INR" />
+        <meta property="og:locale" content="en_IN" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={seoTitle} />
+        <meta name="twitter:description" content={seoDesc} />
+        {product.primary_image_url && <meta name="twitter:image" content={product.primary_image_url} />}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { name: "Home", item: SITE_URL },
+              isCar ? { name: "Car batteries", item: `${SITE_URL}/shop/car-batteries` } : isInverter ? { name: "Inverter batteries", item: `${SITE_URL}/shop/inverter-batteries` } : { name: "Shop", item: `${SITE_URL}/shop` },
+              { name: product.name, item: canonicalUrl },
+            ].map((b, i) => ({ "@type": "ListItem", position: i + 1, ...b })),
+          })}
+        </script>
       </Helmet>
 
       {/* JSON-LD rendered outside Helmet for immediate DOM injection (no async batching delay) */}

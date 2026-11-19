@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import { Seo } from "@/components/Seo";
 import {
   AlertTriangle, ArrowRight, BatteryWarning, Car, CheckCircle2, Clock, Gauge, Lightbulb, MapPin, MessageCircle,
   PhoneCall, ShieldAlert, Wrench, XCircle, Zap,
@@ -75,12 +76,14 @@ const JumpStartPage = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Car Jump Start Service in Bengaluru | Kachi Batteries</title>
-        <meta name="description" content="Dead car battery in Bengaluru? Our technician reaches you in about 30–60 minutes during store hours for a safe jump start. Call or WhatsApp Kachi Batteries." />
-        <link rel="canonical" href={`${SITE_URL}/jump-start`} />
-        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
-      </Helmet>
+      <Seo
+        title="Car Jump Start Service in Bengaluru"
+        description="Dead car battery in Bengaluru? Our technician reaches you in about 30–60 minutes during store hours for a safe jump start. Call or WhatsApp Kachi Batteries."
+        path="/jump-start"
+        image={`${IMG}/hero.jpg`}
+        breadcrumbs={[{ name: "Jump start", path: "/jump-start" }]}
+        jsonLd={jsonLd}
+      />
 
       {/* Hero */}
       <section className="relative overflow-hidden bg-ink text-white">

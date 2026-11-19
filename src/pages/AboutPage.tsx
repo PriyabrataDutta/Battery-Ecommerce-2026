@@ -1,4 +1,5 @@
 import { Helmet } from "react-helmet-async";
+import { Seo } from "@/components/Seo";
 import {
   ShieldCheck,
   Award,
@@ -31,10 +32,7 @@ const values = [
 
 const About = () => (
   <>
-    <Helmet>
-      <title>About Us — Kachi Batteries</title>
-      <meta name="description" content="Kachi Batteries is India's trusted source for genuine car batteries, inverter batteries and UPS systems with free shipping and installation." />
-    </Helmet>
+      <Seo title="About Us — Genuine Batteries from Bengaluru" description="Kachi Batteries, a sister concern of Manjunatha Batteries in Bengaluru, sells genuine car, inverter and UPS batteries with free standard delivery and doorstep installation." path="/about" breadcrumbs={[{ name: "About", path: "/about" }]} />
 
     {/* Hero */}
     <section className="relative overflow-hidden bg-gradient-hero text-white">

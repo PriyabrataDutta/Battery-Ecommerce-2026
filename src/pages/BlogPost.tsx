@@ -1,5 +1,5 @@
 import { Link, useParams } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
+import { Seo } from "@/components/Seo";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { getPostBySlug, listPublishedPosts } from "@/api/blog";
@@ -58,23 +58,23 @@ const BlogPost = () => {
     ...(post.excerpt ? { description: post.excerpt } : {}),
     ...(post.cover_url ? { image: [post.cover_url] } : {}),
     datePublished: post.published_at ?? post.created_at,
+    dateModified: post.published_at ?? post.created_at,
     mainEntityOfPage: { "@type": "WebPage", "@id": canonicalUrl },
-    publisher: { "@type": "Organization", name: "Kachi Batteries" },
+    author: { "@type": "Organization", name: "Kachi Batteries", url: SITE_URL },
+    publisher: { "@type": "Organization", name: "Kachi Batteries", logo: { "@type": "ImageObject", url: `${SITE_URL}/og-default.jpg` } },
   };
 
   return (
     <>
-      <Helmet>
-        <title>{post.title} — Kachi Batteries Blog</title>
-        {post.excerpt && <meta name="description" content={post.excerpt} />}
-        <link rel="canonical" href={canonicalUrl} />
-        <meta property="og:type" content="article" />
-        <meta property="og:title" content={post.title} />
-        <meta property="og:url" content={canonicalUrl} />
-        {post.excerpt && <meta property="og:description" content={post.excerpt} />}
-        {post.cover_url && <meta property="og:image" content={post.cover_url} />}
-        <script type="application/ld+json">{JSON.stringify(articleJsonLd)}</script>
-      </Helmet>
+      <Seo
+        title={post.title}
+        description={post.excerpt ?? `${post.title}: a battery guide from Kachi Batteries.`}
+        path={`/blog/${post.slug}`}
+        image={post.cover_url}
+        type="article"
+        breadcrumbs={[{ name: "Blog", path: "/blog" }, { name: post.title, path: `/blog/${post.slug}` }]}
+        jsonLd={articleJsonLd}
+      />
 
 
       <div className="bg-white">

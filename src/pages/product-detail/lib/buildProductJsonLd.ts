@@ -40,6 +40,26 @@ export function buildProductJsonLd(
   const availability =
     Number.isFinite(stockNum) && stockNum > 0 ? AVAILABILITY_IN : AVAILABILITY_OUT;
 
+  // Shipping (standard delivery is free) and returns (7 days, see /refund-policy).
+  const shippingDetails = {
+    "@type": "OfferShippingDetails",
+    shippingRate: { "@type": "MonetaryAmount", value: 0, currency: "INR" },
+    shippingDestination: { "@type": "DefinedRegion", addressCountry: "IN" },
+    deliveryTime: {
+      "@type": "ShippingDeliveryTime",
+      handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "DAY" },
+      transitTime: { "@type": "QuantitativeValue", minValue: 3, maxValue: 5, unitCode: "DAY" },
+    },
+  };
+  const hasMerchantReturnPolicy = {
+    "@type": "MerchantReturnPolicy",
+    applicableCountry: "IN",
+    returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+    merchantReturnDays: 7,
+    returnMethod: "https://schema.org/ReturnByMail",
+    returnFees: "https://schema.org/FreeReturn",
+  };
+
   // ─── Offers — always include both with and without exchange ───
   const offerList = [
     {
@@ -49,6 +69,10 @@ export function buildProductJsonLd(
       priceCurrency: "INR",
       description: "Price with old battery exchange",
       availability,
+      itemCondition: "https://schema.org/NewCondition",
+      url: canonicalUrl,
+      shippingDetails,
+      hasMerchantReturnPolicy,
     },
     {
       "@type": "Offer" as const,
@@ -56,6 +80,10 @@ export function buildProductJsonLd(
       price: withoutExchange,
       priceCurrency: "INR",
       availability,
+      itemCondition: "https://schema.org/NewCondition",
+      url: canonicalUrl,
+      shippingDetails,
+      hasMerchantReturnPolicy,
     },
   ];
 
@@ -121,7 +149,10 @@ export function buildProductJsonLd(
   };
 
   // Conditional fields — only include when admin has data
-  if (product.sku) schema.sku = product.sku;
+  if (product.sku) {
+    schema.sku = product.sku;
+    schema.mpn = product.sku;
+  }
 
   if (product.categories?.name) schema.category = product.categories.name;
 

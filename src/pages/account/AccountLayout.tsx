@@ -23,6 +23,7 @@ import AccountProfile from "@/pages/account/AccountProfile";
 import AccountWishlist from "@/pages/account/AccountWishlist";
 import AccountQuotes from "@/pages/account/AccountQuotes";
 import AccountSupport from "@/pages/account/AccountSupport";
+import { Seo } from "@/components/Seo";
 
 /**
  * Single-route customer dashboard. Active section is driven by a persisted
@@ -69,6 +70,7 @@ const AccountLayout = () => {
 
   return (
     <RequireAuth>
+      <Seo title="My Account" description="Your Kachi Batteries account." noindex />
       <div className="container-x py-8 sm:py-12">
         <div className="mb-6 flex items-center gap-4">
           <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-red font-display text-xl font-bold text-white shadow-red" aria-hidden>

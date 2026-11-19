@@ -1,4 +1,5 @@
 import { Helmet } from "react-helmet-async";
+import { Seo } from "@/components/Seo";
 import { useQuery } from "@tanstack/react-query";
 import { listCatalogFiles } from "@/api/catalogs";
 import { FileText, Download, FolderOpen } from "lucide-react";
@@ -20,10 +21,7 @@ const CatalogPage = () => {
 
   return (
     <>
-      <Helmet>
-        <title>Catalogs & Price Lists — Kachi Batteries</title>
-        <meta name="description" content="Download battery catalogs, price lists and product datasheets from Kachi Batteries." />
-      </Helmet>
+        <Seo title="Battery Catalogs & Price Lists" description="Download battery catalogs, price lists and product datasheets from Kachi Batteries." path="/catalog" breadcrumbs={[{ name: "Catalogs", path: "/catalog" }]} />
 
       <section className="relative overflow-hidden bg-gradient-hero text-white">
         <div className="absolute inset-0 bg-dots" aria-hidden />

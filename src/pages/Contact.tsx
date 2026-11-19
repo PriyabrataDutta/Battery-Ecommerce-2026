@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Mail, Phone, MapPin, CheckCircle2, MessageCircle, ArrowRight, Package, RotateCcw, FileText } from "lucide-react";
 import { contactInfo as c } from "@/components/layout/Header/lib/nav";
+import { Seo } from "@/components/Seo";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Please enter your name").max(100),
@@ -48,6 +49,7 @@ const Contact = () => {
 
   return (
     <div>
+      <Seo title="Contact Us — Call, WhatsApp or Visit" description="Contact Kachi Batteries: call or WhatsApp +91 81975 68707, email kachibatteries@gmail.com, or visit our store, Manjunatha Batteries in Bengaluru." path="/contact" breadcrumbs={[{ name: "Contact", path: "/contact" }]} />
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-hero text-white">
         <div className="absolute inset-0 bg-dots" aria-hidden />

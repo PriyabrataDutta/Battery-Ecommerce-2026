@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
-import { mainNav, shopMegaMenu, type MegaColumn } from "../lib/nav";
+import { mainNav } from "../lib/nav";
+import { ShopMegaMenu } from "./ShopMegaMenu";
 
 /**
  * DesktopNav
@@ -14,30 +15,47 @@ import { mainNav, shopMegaMenu, type MegaColumn } from "../lib/nav";
  */
 export function DesktopNav() {
   const [shopOpen, setShopOpen] = useState(false);
+  const closeTimer = useRef<number>();
+  const { pathname, search } = useLocation();
+
+  // Small grace period so moving the mouse from the button to the panel doesn't close it.
+  const open = () => { window.clearTimeout(closeTimer.current); setShopOpen(true); };
+  const closeSoon = () => { window.clearTimeout(closeTimer.current); closeTimer.current = window.setTimeout(() => setShopOpen(false), 120); };
+
+  useEffect(() => setShopOpen(false), [pathname, search]);
+  useEffect(() => {
+    if (!shopOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setShopOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [shopOpen]);
 
   return (
     <nav className="hidden lg:block border-t border-line/70">
-      <div className="container-x flex items-center gap-1 h-12">
+      <div className="container-x relative flex items-center gap-1 h-12">
         {/* First link (Home) */}
         {mainNav.slice(0, 1).map((item) => (
           <TopLink key={item.to} to={item.to} label={item.label} />
         ))}
 
-        {/* Shop with mega menu */}
-        <div
-          className="relative"
-          onMouseEnter={() => setShopOpen(true)}
-          onMouseLeave={() => setShopOpen(false)}
-        >
-          <button className="px-3.5 h-9 rounded-full inline-flex items-center gap-1 text-sm font-medium text-ink hover:bg-muted transition-colors" aria-expanded={shopOpen}>
-            Shop <ChevronDown className="h-3.5 w-3.5" />
+        {/* Shop with mega menu (panel spans the nav container) */}
+        <div onMouseEnter={open} onMouseLeave={closeSoon}>
+          <button
+            type="button"
+            onClick={() => setShopOpen((v) => !v)}
+            aria-expanded={shopOpen}
+            aria-haspopup="true"
+            aria-controls="shop-mega-menu"
+            className={`px-3.5 h-9 rounded-full inline-flex items-center gap-1 text-sm font-medium transition-colors ${shopOpen ? "bg-ink text-white" : "text-ink hover:bg-muted"}`}
+          >
+            Shop <ChevronDown className={`h-3.5 w-3.5 transition-transform ${shopOpen ? "rotate-180" : ""}`} />
           </button>
           {shopOpen && (
-            <div className="absolute left-0 top-full pt-2 z-50"><div className="rounded-2xl bg-white border border-line shadow-elevated w-[860px] p-7 grid grid-cols-4 gap-8 animate-fade-in">
-              {shopMegaMenu.map((col) => (
-                <MegaCol key={col.title} column={col} />
-              ))}
-            </div></div>
+            <div id="shop-mega-menu" className="absolute inset-x-4 top-full z-50 pt-2 sm:inset-x-6 lg:inset-x-8">
+              <div className="overflow-hidden rounded-3xl border border-line bg-white shadow-elevated animate-fade-in">
+                <ShopMegaMenu onNavigate={() => setShopOpen(false)} />
+              </div>
+            </div>
           )}
         </div>
 
@@ -69,24 +87,5 @@ function TopLink({ to, label }: { to: string; label: string }) {
     >
       {label}
     </NavLink>
-  );
-}
-
-function MegaCol({ column }: { column: MegaColumn }) {
-  return (
-    <div>
-      <h4 className="eyebrow mb-4">
-        {column.title}
-      </h4>
-      <ul className="space-y-2">
-        {column.items.map((it) => (
-          <li key={it.to + it.label}>
-            <Link to={it.to} className="text-sm text-ink-soft hover:text-primary hover:translate-x-0.5 inline-block transition-all">
-              {it.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
   );
 }

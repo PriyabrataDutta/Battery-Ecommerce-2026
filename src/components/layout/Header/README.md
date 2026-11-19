@@ -34,7 +34,7 @@ StoreLayout
         │     ├── <CartButton />          ← reads useCart()
         │     └── <AccountMenu />         ← reads useAuth(), useAccountMenu()
         ├── <MobileSearchOverlay />
-        ├── <DesktopNav />                ← reads mainNav + shopMegaMenu
+        ├── <DesktopNav />                ← reads mainNav; Shop panel = ShopMegaMenu (data-driven)
         ├── <MobileDrawer />              ← reads mobileNav
         └── <CartDrawer />                ← controlled by cartDrawerOpen state
 ```
@@ -48,7 +48,7 @@ State that affects multiple siblings (`mobileOpen`, `mobileSearchOpen`,
 | Task | Edit |
 | --- | --- |
 | Add or rename a top-nav link | `lib/nav.ts` → `mainNav` |
-| Add a column or item to the Shop mega menu | `lib/nav.ts` → `shopMegaMenu` |
+| Change the Shop mega menu | `components/ShopMegaMenu.tsx` (car/battery brands come from the DB) |
 | Add an item to the mobile drawer | `lib/nav.ts` → `mobileNav` |
 | Change phone / WhatsApp number / tagline | `lib/nav.ts` → `contactInfo` |
 | Add an entry inside the account dropdown | `components/AccountMenu.tsx` |

@@ -9,7 +9,7 @@
  *
  * HOW TO EXTEND
  *   • Add a top-level link  → push to `mainNav`.
- *   • Add a Shop mega-menu column → push to `shopMegaMenu`.
+ *   • Shop mega menu content → components/ShopMegaMenu.tsx (data-driven).
  *   • Add a mobile-only entry → push to `mobileNav`.
  *
  * NOTE
@@ -20,11 +20,6 @@
 
 export type NavItem = { label: string; to: string };
 
-export type MegaColumn = {
-  title: string;
-  items: NavItem[];
-};
-
 /** Desktop top-bar links (excluding "Shop" mega menu, rendered separately). */
 export const mainNav: NavItem[] = [
   { label: "Home", to: "/" },
@@ -33,50 +28,6 @@ export const mainNav: NavItem[] = [
   { label: "Blog", to: "/blog" },
   { label: "About", to: "/about" },
   { label: "Contact", to: "/contact" },
-];
-
-/** Columns inside the desktop "Shop" mega menu. */
-export const shopMegaMenu: MegaColumn[] = [
-  {
-    title: "Car Batteries",
-    items: [
-      { label: "Find by your car", to: "/shop/car-batteries" },
-      { label: "Maruti Suzuki", to: "/shop/car-batteries?car_brand=maruti-suzuki" },
-      { label: "Hyundai", to: "/shop/car-batteries?car_brand=hyundai" },
-      { label: "Tata", to: "/shop/car-batteries?car_brand=tata" },
-      { label: "Mahindra", to: "/shop/car-batteries?car_brand=mahindra" },
-    ],
-  },
-  {
-    title: "Inverter Batteries & UPS",
-    items: [
-      { label: "Backup calculator", to: "/shop/inverter-batteries" },
-      { label: "Tubular", to: "/shop/inverter-batteries?kind=tubular" },
-      { label: "SMF / VRLA", to: "/shop/inverter-batteries?kind=smf" },
-      { label: "Lithium", to: "/shop/inverter-batteries?kind=lithium" },
-      { label: "Inverters & UPS", to: "/shop/inverter-batteries?kind=inverter-ups" },
-    ],
-  },
-  {
-    title: "Battery by Brand",
-    items: [
-      { label: "Amaron", to: "/brand/amaron" },
-      { label: "Exide", to: "/brand/exide" },
-      { label: "Power Zone", to: "/brand/power-zone" },
-      { label: "Elito", to: "/brand/elito" },
-      { label: "View all brands", to: "/brands" },
-    ],
-  },
-  {
-    title: "Offers",
-    items: [
-      { label: "Clearance Sale", to: "/category/clearance" },
-      { label: "On Sale Now", to: "/shop?onSale=1" },
-      { label: "New Arrivals", to: "/shop?isNew=1" },
-      { label: "Bestsellers", to: "/shop?bestseller=1" },
-      { label: "Exchange & Save", to: "/shop?exchange=1" },
-    ],
-  },
 ];
 
 /** Items shown in the mobile slide-down drawer (in order). */

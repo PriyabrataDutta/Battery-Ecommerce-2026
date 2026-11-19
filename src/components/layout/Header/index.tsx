@@ -32,7 +32,7 @@ import { MobileSearchOverlay } from "./components/MobileSearchOverlay";
  * COMMON EDITS
  *   • Add / rename a nav link        → lib/nav.ts
  *   • Change phone / WhatsApp number → lib/nav.ts (contactInfo)
- *   • Add a Shop mega-menu column    → lib/nav.ts (shopMegaMenu)
+ *   • Change the Shop mega menu      → components/ShopMegaMenu.tsx
  *   • Add an account-menu entry      → components/AccountMenu.tsx
  *   • Tweak layout / spacing only    → components/MainBar.tsx
  *

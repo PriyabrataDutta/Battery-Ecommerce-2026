@@ -9,6 +9,9 @@ window.addEventListener("vite:preloadError", (event) => {
   if (reloadForNewVersion()) event.preventDefault();
 });
 
+// Server-rendered SEO tags (middleware.ts) are only for crawlers; Helmet manages them from here.
+document.querySelectorAll("[data-seo]").forEach((el) => el.remove());
+
 createRoot(document.getElementById("root")!).render(
   <AppErrorBoundary>
     <App />

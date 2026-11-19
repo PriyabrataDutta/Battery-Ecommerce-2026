@@ -28,6 +28,7 @@ interface SitemapEntry {
   path: string;
   changefreq?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
   priority?: string;
+  lastmod?: string;
 }
 
 const staticEntries: SitemapEntry[] = [
@@ -67,9 +68,9 @@ async function collectEntries(): Promise<SitemapEntry[]> {
   // Category pages only redirect to /shop/car-batteries or /shop/inverter-batteries,
   // which are listed in staticEntries, so categories are not listed here.
   const [products, brands, posts] = await Promise.all([
-    fetchRows("products", "select=slug&status=eq.active"),
+    fetchRows("products", "select=slug,updated_at&status=eq.active"),
     fetchRows("battery_brands", "select=slug"),
-    fetchRows("blog_posts", "select=slug&is_published=eq.true"),
+    fetchRows("blog_posts", "select=slug,updated_at&is_published=eq.true"),
   ]);
 
   return [
@@ -83,11 +84,13 @@ async function collectEntries(): Promise<SitemapEntry[]> {
       path: `/product/${p.slug}`,
       changefreq: "weekly" as const,
       priority: "0.8",
+      lastmod: p.updated_at?.slice(0, 10),
     })),
     ...posts.filter((p) => p.slug).map((p) => ({
       path: `/blog/${p.slug}`,
       changefreq: "monthly" as const,
       priority: "0.6",
+      lastmod: p.updated_at?.slice(0, 10),
     })),
   ];
 }
@@ -101,6 +104,7 @@ function generateSitemap(entries: SitemapEntry[]) {
     [
       `  <url>`,
       `    <loc>${escapeXml(`${BASE_URL}${e.path}`)}</loc>`,
+      e.lastmod ? `    <lastmod>${e.lastmod}</lastmod>` : null,
       e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
       e.priority ? `    <priority>${e.priority}</priority>` : null,
       `  </url>`,

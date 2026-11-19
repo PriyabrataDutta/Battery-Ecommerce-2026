@@ -85,8 +85,8 @@ const Shop = ({ variant = "all" }: { variant?: ShopVariant }) => {
 
   const q = params.get("q")?.toLowerCase() ?? "";
   const type = params.get("type"); // category slug
-  const carModelSlug = params.get("car_model");
-  const carBrandSlug = params.get("car_brand");
+  const carModelSlug = params.get("car_model")?.toLowerCase() ?? null;
+  const carBrandSlug = params.get("car_brand")?.toLowerCase() ?? null;
   const brandSlug = params.get("battery_brand");
   const minPriceParam = params.get("min_price");
   const maxPriceParam = params.get("max_price");
@@ -285,7 +285,8 @@ const Shop = ({ variant = "all" }: { variant?: ShopVariant }) => {
               : "Browse genuine car and inverter batteries from Amaron, Exide, Power Zone and Elito. Free standard delivery and old battery exchange."
         }
         path={variant === "car" ? `/shop/car-batteries${carBrandSlug ? `?car_brand=${carBrandSlug}${carModelSlug ? `&car_model=${carModelSlug}` : ""}` : ""}` : variant === "inverter" ? "/shop/inverter-batteries" : "/shop"}
-        noindex={variant === "all" && [...params.keys()].length > 0}
+        // Only clean shop pages and car brand/model fitment pages are indexable; filters, sort and paging are not.
+        noindex={[...params.keys()].some((k) => !(variant === "car" && (k === "car_brand" || k === "car_model")))}
         breadcrumbs={[{ name: "Shop", path: "/shop" }, ...(variant === "car" ? [{ name: "Car batteries", path: "/shop/car-batteries" }] : variant === "inverter" ? [{ name: "Inverter batteries", path: "/shop/inverter-batteries" }] : [])]}
         jsonLd={paged.length ? {
           "@context": "https://schema.org",
@@ -462,8 +463,52 @@ const Shop = ({ variant = "all" }: { variant?: ShopVariant }) => {
         </div>
       </div>
       </div>
+
+      {variant !== "all" && <ShopGuide variant={variant} />}
     </div>
   );
 };
+
+/** Short buying guide under the grid: verified facts only, linking to the full guides. */
+function ShopGuide({ variant }: { variant: "car" | "inverter" }) {
+  const car = variant === "car";
+  return (
+    <section className="border-t border-line bg-white">
+      <div className="container-x grid gap-8 py-12 sm:py-16 lg:grid-cols-[1.2fr_1fr] lg:gap-14">
+        <div>
+          <h2 className="font-display-tight text-2xl font-bold text-ink sm:text-3xl">
+            {car ? "How to choose a car battery" : "How to choose an inverter battery"}
+          </h2>
+          <div className="mt-4 space-y-3 text-muted-foreground">
+            {car ? (
+              <>
+                <p>The right battery matches your car maker's specification: the same size and terminal layout, and the same or higher capacity (Ah) and cold cranking amps (CCA). Diesel engines usually need a bigger battery than the petrol version of the same car.</p>
+                <p>Pick your car brand and model above to see only batteries listed as fitting it. When comparing warranties, look at the free-replacement period first, then the pro-rata period.</p>
+                <p>Choose the exchange price to save on your old battery. Standard delivery is free (3–5 business days), and doorstep installation with old battery pickup is ₹499.</p>
+              </>
+            ) : (
+              <>
+                <p>Battery capacity decides how long your backup lasts. For a single 12V battery, Ah needed ≈ total watts × backup hours ÷ 9. For example, 260W of fans, lights, a TV and Wi-Fi for 4 hours needs about 120Ah. The backup calculator above does this for you.</p>
+                <p>Tubular batteries last longest under frequent, long power cuts but need distilled water every few months. SMF batteries are sealed and maintenance-free for lighter backup. Lithium is lightest and longest-lasting, at a higher price.</p>
+                <p>Standard delivery is free (3–5 business days), and you can choose the exchange price to save on your old battery.</p>
+              </>
+            )}
+          </div>
+        </div>
+        <div className="rounded-3xl bg-background p-6">
+          <h3 className="font-display font-bold text-ink">Read the full guide</h3>
+          <ul className="mt-3 space-y-2 text-sm font-semibold">
+            {(car
+              ? [["/blog/how-to-choose-car-battery", "How to choose the right car battery"], ["/blog/how-long-does-a-car-battery-last", "How long does a car battery last?"], ["/blog/jump-start-guide", "How to jump start a car safely"]]
+              : [["/blog/inverter-battery-capacity-guide", "What size inverter battery do I need?"], ["/blog/tubular-vs-smf", "Tubular vs SMF inverter batteries"]]
+            ).map(([to, label]) => (
+              <li key={to}><Link to={to} className="text-ink underline-offset-4 hover:text-primary hover:underline">{label}</Link></li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export default Shop;

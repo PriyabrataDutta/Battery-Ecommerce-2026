@@ -29,11 +29,7 @@ export function buildProductJsonLd(
   const withoutExchange = withGst(safePrice(product.price_without_exchange, basePrice), gstRate);
   const withExchangePrice = withGst(safePrice(product.price_with_exchange, basePrice), gstRate);
 
-  // lowPrice = always with-exchange price (the price shown to customers)
-  let lowPrice = withExchangePrice;
-  let highPrice = product.mrp ? withGst(Number(product.mrp), gstRate) : withoutExchange;
-  if (highPrice < withoutExchange) highPrice = withoutExchange;
-  if (lowPrice > highPrice) [lowPrice, highPrice] = [highPrice, lowPrice];
+  const hasExchangeOffer = product.has_exchange === true && withExchangePrice < withoutExchange;
 
   // ─── Availability ───
   const stockNum = Number(product.stock);
@@ -56,15 +52,19 @@ export function buildProductJsonLd(
     applicableCountry: "IN",
     returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
     merchantReturnDays: 7,
-    returnMethod: "https://schema.org/ReturnByMail",
     returnFees: "https://schema.org/FreeReturn",
+    merchantReturnLink: "https://www.kachibatteries.com/refund-policy",
   };
 
-  // ─── Offers — always include both with and without exchange ───
+  // Offers: without-exchange first (the standard price), then the exchange price.
+  const priceValidUntil = new Date(Date.now() + 30 * 864e5).toISOString().slice(0, 10);
+  const seller = { "@id": "https://www.kachibatteries.com/#org" };
   const offerList = [
     {
       "@type": "Offer" as const,
-      name: "With Exchange",
+      name: "With old battery exchange",
+      priceValidUntil,
+      seller,
       price: withExchangePrice,
       priceCurrency: "INR",
       description: "Price with old battery exchange",
@@ -76,7 +76,9 @@ export function buildProductJsonLd(
     },
     {
       "@type": "Offer" as const,
-      name: "Without Exchange",
+      name: "Without exchange",
+      priceValidUntil,
+      seller,
       price: withoutExchange,
       priceCurrency: "INR",
       availability,
@@ -118,8 +120,8 @@ export function buildProductJsonLd(
     product.description ||
     `${product.name} battery`;
 
-  // ─── Image fallback ───
-  const imageList = images.length > 0 ? images : ["/placeholder.svg"];
+  // ─── Image fallback (absolute URL) ───
+  const imageList = images.length > 0 ? images : ["https://www.kachibatteries.com/og-default.jpg"];
 
   // ─── Build schema ───
   const schema: Record<string, unknown> = {
@@ -132,20 +134,7 @@ export function buildProductJsonLd(
       "@type": "Brand",
       name: product.battery_brands?.name || "Kachi Batteries",
     },
-    offers: {
-      "@type": "AggregateOffer",
-      url: canonicalUrl,
-      priceCurrency: "INR",
-      lowPrice,
-      highPrice,
-      offerCount: offerList.length,
-      availability,
-      seller: {
-        "@type": "Organization",
-        name: "Kachi Batteries",
-      },
-      offers: offerList,
-    },
+    offers: hasExchangeOffer ? [offerList[1], offerList[0]] : [offerList[1]],
   };
 
   // Conditional fields — only include when admin has data

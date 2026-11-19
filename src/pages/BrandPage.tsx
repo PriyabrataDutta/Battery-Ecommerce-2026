@@ -113,7 +113,7 @@ const BrandPage = () => {
               )}
             </div>
             <div className="min-w-0">
-              <span className="eyebrow">Authorised battery brand</span>
+              <span className="eyebrow">Battery brand</span>
               <h1 className="mt-2 font-display-tight text-4xl font-bold sm:text-5xl lg:text-6xl">{name} batteries</h1>
               {tagline && <p className="mt-3 max-w-2xl text-base text-white/70 sm:text-lg">{tagline}</p>}
             </div>

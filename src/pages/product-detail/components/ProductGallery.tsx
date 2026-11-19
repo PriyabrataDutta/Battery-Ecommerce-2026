@@ -42,11 +42,11 @@ export const ProductGallery = ({
       </div>
       {images.length > 1 && (
         <div className="mt-3 grid grid-cols-5 gap-2 sm:gap-3">
-          {images.slice(0, 5).map((url) => (
+          {images.slice(0, 5).map((url, i) => (
             <button
               key={url}
               onClick={() => handleSelect(url)}
-              aria-label="Show image"
+              aria-label={`Show ${alt}, image ${i + 1}`}
               aria-pressed={active === url}
               className={`bg-card border aspect-square overflow-hidden rounded-xl transition-all ${
                 active === url

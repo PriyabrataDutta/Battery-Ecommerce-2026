@@ -5,7 +5,6 @@ import { FitmentSearch } from "@/components/products/FitmentSearch";
 import { useBatteryBrands } from "@/hooks/queries/useBrands";
 import { CarBrandGrid } from "@/components/home/CarBrandGrid";
 import { ProductTabs } from "@/components/home/ProductTabs";
-import { TestimonialsSection } from "@/components/home/TestimonialsSection";
 import { ShopByNeed, HowItWorks, ExchangeBand, BatteryHealth, VisitAndDelivery, HomeFaq, HOME_FAQ } from "@/components/home/HomeSections";
 import { faqJsonLd } from "@/lib/faq";
 import { MobileStickyBar } from "@/components/home/MobileStickyBar";
@@ -24,12 +23,13 @@ const Home = () => {
         path="/"
         jsonLd={[{
             "@context": "https://schema.org",
-            "@type": ["LocalBusiness", "AutoPartsStore"],
+            "@type": "AutoPartsStore",
             "@id": `${SITE_URL}/#store`,
             name: "Kachi Batteries",
             alternateName: "Manjunatha Batteries",
             url: SITE_URL,
-            logo: `${SITE_URL}/og-default.jpg`,
+            logo: `${SITE_URL}/logo.png`,
+            parentOrganization: { "@id": `${SITE_URL}/#org` },
             image: `${SITE_URL}/og-default.jpg`,
             telephone: "+91-81975-68707",
             email: "kachibatteries@gmail.com",
@@ -37,7 +37,7 @@ const Home = () => {
             address: { "@type": "PostalAddress", addressLocality: "Bengaluru", addressRegion: "Karnataka", addressCountry: "IN" },
             geo: { "@type": "GeoCoordinates", latitude: 12.9582934, longitude: 77.5336018 },
             hasMap: "https://maps.app.goo.gl/jFhiV7mrC53UrraL8",
-            areaServed: "IN",
+            areaServed: [{ "@type": "Country", name: "India" }, { "@type": "City", name: "Bengaluru" }],
             paymentAccepted: "Cash, UPI, Credit Card, Debit Card, Net Banking",
           }, faqJsonLd(HOME_FAQ)]}
       />
@@ -56,7 +56,7 @@ const Home = () => {
         <div className="container-x relative grid items-center gap-10 pb-14 pt-12 sm:pb-20 sm:pt-16 lg:grid-cols-[1.1fr_0.9fr] lg:pb-24 lg:pt-20">
           <div>
             <div className="hero-line inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/85 backdrop-blur">
-              <span className="h-1.5 w-1.5 rounded-full bg-volt" aria-hidden /> India's trusted battery store
+              <span className="h-1.5 w-1.5 rounded-full bg-volt" aria-hidden /> Bengaluru battery store · delivering across India
             </div>
             <h1 className="mt-5 font-display-tight text-[2.6rem] font-extrabold sm:text-6xl lg:text-7xl">
               <span className="hero-line block">Power that</span>
@@ -106,7 +106,7 @@ const Home = () => {
       {/* PERKS */}
       <section className="container-x relative z-10 -mt-6 grid grid-cols-2 gap-3 sm:-mt-8 sm:gap-4 lg:grid-cols-4">
         {[
-          { Icon: IndianRupee, t: "Best prices", s: "Honest discounts on MRP" },
+          { Icon: IndianRupee, t: "Clear prices", s: "Exchange and non-exchange shown" },
           { Icon: Truck, t: "Free delivery", s: "Standard, 3–5 business days" },
           { Icon: Wrench, t: "Doorstep installation", s: "With old battery pickup" },
           { Icon: ShieldCheck, t: "Genuine warranty", s: "Direct from the brands" },
@@ -166,8 +166,7 @@ const Home = () => {
 
       <BatteryHealth />
 
-      {/* TESTIMONIALS */}
-      <TestimonialsSection />
+      {/* Customer reviews: add TestimonialsSection back once real reviews exist (the old ones were placeholders). */}
 
       <Band>
         <VisitAndDelivery />

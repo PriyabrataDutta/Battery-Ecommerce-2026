@@ -140,7 +140,6 @@ const ProductDetail = () => {
     `${product.name}${product.capacity_ah && !product.name.includes(`${product.capacity_ah}`) ? ` ${product.capacity_ah}Ah` : ""} — Price & Warranty | Kachi Batteries`;
   const seoDesc =
     product.meta_description ||
-    product.short_description ||
     `Buy ${product.name} at ${formatINR(withGst(withoutExchange, gstRate))} incl. GST. ${product.warranty_months ?? 0} month warranty. Free standard delivery, doorstep installation available.`;
   return (
     <>

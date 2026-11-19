@@ -72,7 +72,7 @@ const JumpStartPage = () => {
     name: "Car battery jump start service",
     serviceType: "Jump start",
     areaServed: { "@type": "City", name: "Bengaluru" },
-    provider: { "@type": "Organization", name: "Kachi Batteries", telephone: c.phoneTel.replace("tel:", ""), url: SITE_URL },
+    provider: { "@id": `${SITE_URL}/#store` },
   };
 
   return (

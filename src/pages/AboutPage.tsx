@@ -14,20 +14,21 @@ import {
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
+// Verifiable facts only (see /refund-policy and checkout): no unconfirmed sales or coverage numbers.
 const stats = [
-  { value: "10,000+", label: "Batteries Sold" },
-  { value: "50+", label: "Cities Covered" },
-  { value: "15+", label: "Brand Partners" },
-  { value: "99%", label: "Customer Satisfaction" },
+  { value: "4", label: "Battery brands" },
+  { value: "Free", label: "Standard delivery" },
+  { value: "₹499", label: "Doorstep installation" },
+  { value: "7 days", label: "Returns on unused batteries" },
 ];
 
 const values = [
-  { Icon: ShieldCheck, title: "100% Genuine", desc: "Every battery is sourced directly from manufacturers with full traceability." },
-  { Icon: IndianRupee, title: "Best Prices", desc: "Direct partnerships mean no middlemen. You get MRP discounts every day." },
-  { Icon: Truck, title: "Free Shipping", desc: "Pan-India delivery with same-day dispatch for orders before 2 PM." },
-  { Icon: Wrench, title: "Doorstep Installation", desc: "Trained technicians fit your battery at home and take the old one away." },
-  { Icon: Award, title: "Full Warranty", desc: "Manufacturer warranty honored at authorized service centers across India." },
-  { Icon: HeadphonesIcon, title: "Expert Support", desc: "Our battery specialists help you find the perfect fit for any vehicle." },
+  { Icon: ShieldCheck, title: "Genuine brands", desc: "Amaron, Exide, Power Zone and Elito batteries, sold with an invoice and the manufacturer's warranty." },
+  { Icon: IndianRupee, title: "Clear prices", desc: "Prices exclude GST, which is shown per product in your cart. Choose the exchange price to save on your old battery." },
+  { Icon: Truck, title: "Free standard delivery", desc: "Standard delivery is free (3–5 business days). Express delivery in 1–2 business days is ₹299." },
+  { Icon: Wrench, title: "Doorstep installation", desc: "For ₹499 we fit your new battery at home and take the old one away for recycling." },
+  { Icon: Award, title: "Manufacturer warranty", desc: "Warranty claims are handled by the brand's authorised service centres, and we help you raise them." },
+  { Icon: HeadphonesIcon, title: "Help choosing", desc: "Call or WhatsApp us with your car or inverter details and we'll suggest the right battery." },
 ];
 
 const About = () => (
@@ -42,14 +43,13 @@ const About = () => (
           About Us
         </div>
         <h1 className="font-display-tight text-3xl sm:text-5xl font-bold leading-tight">
-          Powering India's Vehicles <br className="hidden sm:block" />
-          & Homes Since Day One
+          Genuine batteries from <br className="hidden sm:block" />
+          a Bengaluru battery store
         </h1>
         <p className="mt-6 text-white/80 text-sm sm:text-base max-w-2xl leading-relaxed">
-          Kachi Batteries is India's trusted source for genuine car batteries, inverter batteries
-          and UPS systems. We work directly with manufacturers like Amaron, Exide, Power Zone and
-          Elito to deliver authentic products at competitive prices — with free shipping and
-          doorstep installation in major cities.
+          Kachi Batteries is the online store of Manjunatha Batteries, a battery shop in Bengaluru.
+          We sell genuine car and inverter batteries from Amaron, Exide, Power Zone and Elito, with
+          free standard delivery, optional doorstep installation and old battery exchange.
         </p>
       </div>
     </section>
@@ -75,9 +75,9 @@ const About = () => (
         Making Reliable Power Simple & Affordable
       </h2>
       <p className="mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-        We believe every home, business and vehicle deserves dependable power. Our mission is to
-        eliminate the hassle of battery buying — no confusing specs, no inflated prices, no waiting.
-        Just genuine products delivered fast with professional installation.
+        Buying a battery shouldn't mean guessing. Pick your car to see batteries listed as fitting it,
+        size an inverter battery with our backup calculator, and see the exchange and non-exchange price
+        before you pay. If you're unsure, our store team will help by phone or WhatsApp.
       </p>
     </section>
 
@@ -118,9 +118,9 @@ const About = () => (
       </div>
       <div className="grid sm:grid-cols-3 gap-6 text-center">
         {[
-          { Icon: Users, title: "Individual Customers", desc: "Car owners, homeowners — find the right battery at the best price, delivered free." },
-          { Icon: Package, title: "B2B & Fleet", desc: "Bulk pricing, BOQ support and dedicated account management for businesses and fleet operators." },
-          { Icon: MapPin, title: "Dealers & Distributors", desc: "Competitive dealer rates, reliable supply chain and marketing support for retail partners." },
+          { Icon: Users, title: "Car owners & homes", desc: "Replacement car batteries and inverter batteries, delivered free with optional installation." },
+          { Icon: Package, title: "Businesses & fleets", desc: "Bulk orders for offices, shops and vehicle fleets. Request a quote and we'll get back to you." },
+          { Icon: MapPin, title: "Bengaluru customers", desc: "Visit Manjunatha Batteries, or use our jump start service in Bengaluru during store hours." },
         ].map(({ Icon, title, desc }) => (
           <div key={title} className="surface p-6">
             <div className="h-14 w-14 mx-auto rounded-xl bg-primary/10 text-primary grid place-items-center">

@@ -7,6 +7,31 @@
   ],
   "headers": [
     {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), payment=(self \"https://*.cashfree.com\")"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains"
+        }
+      ]
+    },
+    {
       "source": "/assets/(.*)",
       "headers": [
         {
@@ -103,6 +128,70 @@
           "value": "noindex, follow"
         }
       ]
+    },
+    {
+      "source": "/reset-password",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/verify-phone",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/add-phone",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/search",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    }
+  ],
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/category/car-batteries",
+      "destination": "/shop/car-batteries",
+      "permanent": true
+    },
+    {
+      "source": "/category/inverter-ups",
+      "destination": "/shop/inverter-batteries",
+      "permanent": true
+    },
+    {
+      "source": "/category/tubular",
+      "destination": "/shop/inverter-batteries?kind=tubular",
+      "permanent": true
+    },
+    {
+      "source": "/category/smf",
+      "destination": "/shop/inverter-batteries?kind=smf",
+      "permanent": true
+    },
+    {
+      "source": "/category/lithium",
+      "destination": "/shop/inverter-batteries?kind=lithium",
+      "permanent": true
     }
   ]
 }

@@ -57,15 +57,15 @@ const BlogPost = () => {
     "@type": "Article",
     headline: post.title,
     ...(post.excerpt ? { description: post.excerpt } : {}),
-    ...(post.cover_url ? { image: [post.cover_url] } : {}),
+    image: [post.cover_url ?? `${SITE_URL}/og-default.jpg`],
     datePublished: post.published_at ?? post.created_at,
     dateModified: post.updated_at ?? post.published_at ?? post.created_at,
     articleSection: topicOf(post),
     inLanguage: "en-IN",
     wordCount: (post.body ?? "").split(/\s+/).filter(Boolean).length,
     mainEntityOfPage: { "@type": "WebPage", "@id": canonicalUrl },
-    author: { "@type": "Organization", name: "Kachi Batteries", url: SITE_URL },
-    publisher: { "@type": "Organization", name: "Kachi Batteries", logo: { "@type": "ImageObject", url: `${SITE_URL}/og-default.jpg` } },
+    author: { "@id": `${SITE_URL}/#org` },
+    publisher: { "@id": `${SITE_URL}/#org` },
   };
 
   return (
@@ -99,7 +99,12 @@ const BlogPost = () => {
                 <span className="grid h-10 w-10 place-items-center rounded-full bg-ink font-display text-sm font-bold text-white">K</span>
                 <div className="text-sm">
                   <div className="font-semibold text-ink">Kachi Batteries team</div>
-                  <div className="text-muted-foreground">{formatPostDate(post.published_at, "long")} · {readingMinutes(post.body)} min read</div>
+                  <div className="text-muted-foreground">
+                    {formatPostDate(post.published_at, "long")} · {readingMinutes(post.body)} min read
+                    {post.updated_at && post.published_at && new Date(post.updated_at).getTime() - new Date(post.published_at).getTime() > 864e5 && (
+                      <> · Updated {formatPostDate(post.updated_at, "long")}</>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">

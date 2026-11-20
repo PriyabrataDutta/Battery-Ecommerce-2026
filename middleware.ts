@@ -10,6 +10,7 @@
  * Any error falls back to the normal SPA response.
  */
 import { next } from "@vercel/functions";
+import { HOME_SHELL } from "./home-shell";
 import { marked } from "marked";
 
 export const config = {
@@ -25,7 +26,7 @@ const ORG_ID = `${SITE}/#org`;
 // Routes rendered only by the app (private, transactional or redirects): no SEO work.
 const PASS = [/^\/(cart|checkout|account|auth|reset-password|verify-phone|add-phone|order-confirmation|search|admin)(\/|$)/, /^\/category\//, /^\/account\//];
 
-type Page = { status?: number; title: string; description: string; path: string; image?: string; type?: string; noindex?: boolean; jsonLd?: object[]; body: string };
+type Page = { status?: number; title: string; description: string; path: string; image?: string; type?: string; noindex?: boolean; jsonLd?: object[]; body: string; shell?: string };
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const fullTitle = (t: string) => (t.includes(BRAND) ? t : `${t} | ${BRAND}`);
@@ -178,7 +179,7 @@ async function pageFor(url: URL): Promise<Page | null> {
   const path = url.pathname.replace(/\/+$/, "") || "/";
   if (STATIC[path]) {
     const s = STATIC[path];
-    return { ...s, path, jsonLd: s.jsonLd ?? (path === "/" ? [] : [crumbs([{ name: s.title.split(" — ")[0], path }])]) };
+    return { ...s, path, shell: path === "/" ? HOME_SHELL : undefined, jsonLd: s.jsonLd ?? (path === "/" ? [] : [crumbs([{ name: s.title.split(" — ")[0], path }])]) };
   }
   if (path === "/shop/car-batteries") return carShop(url);
   if (path === "/blog") return blogIndex();
@@ -211,7 +212,7 @@ function render(shell: string, page: Page): string {
   ].join("\n    ");
   return shell
     .replace(/<!--seo:start-->[\s\S]*?<!--seo:end-->/, `<!--seo:start-->\n    ${head}\n    <!--seo:end-->`)
-    .replace('<div id="root"></div>', `<div id="root"><div class="sr-only" data-seo-body>${page.body}</div></div>`);
+    .replace('<div id="root"></div>', `<div id="root"><div class="sr-only" data-seo-body>${page.body}</div>${page.shell ?? ""}</div>`);
 }
 
 export default async function middleware(request: Request) {

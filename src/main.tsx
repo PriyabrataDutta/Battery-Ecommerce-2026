@@ -11,6 +11,8 @@ window.addEventListener("vite:preloadError", (event) => {
 
 // Server-rendered SEO tags (middleware.ts) are only for crawlers; Helmet manages them from here.
 document.querySelectorAll("[data-seo]").forEach((el) => el.remove());
+// The home hero arrives pre-painted (home-shell.ts); don't replay its entrance animation.
+if (document.querySelector("[data-shell]")) document.documentElement.classList.add("shell-painted");
 
 createRoot(document.getElementById("root")!).render(
   <AppErrorBoundary>
